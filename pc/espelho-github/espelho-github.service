@@ -1,0 +1,10 @@
+# GAMMA | espelho-github.service | versão 1.0.0 | 07/11/2026 15:40 (-03) | criação original (Claude, para Lucas Tavares)
+[Unit]
+Description=Espelho local dos repositórios do GitHub (HDD 12TB)
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/sincronizar-github.sh
+Nice=10
+IOSchedulingClass=idle

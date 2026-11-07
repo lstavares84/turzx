@@ -7,6 +7,7 @@ Segue [SemVer](https://semver.org/lang/pt-BR/) (MAJOR.MINOR.PATCH). Os três est
 
 ## [Não lançado]
 
+- Autoteste: o caso "baias: inverter troca a numeração" lia as montagens reais do PC e falhava quando `/dev/sdc1` estava montado; agora usa a mesma simulação de partições da leitura normal.
 - Utilitário do PC `pc/espelho-github/`: espelho local de todos os repositórios do GitHub no HDD de 12TB, sincronizado por timer do systemd. Não entra nos ZIPs.
 - Script de desenvolvimento `construir/aplicar-na-tela.sh`: aplica o código atual na tela do PC (monta o ZIP do estilo e roda o instalador). Não entra nos ZIPs.
 - Ferramenta de desenvolvimento `construir/matriz_previas.py`: um PNG com as 3 versões nos 3 estados, desenhado com o código atual, com conferência de layout. Não entra nos ZIPs.

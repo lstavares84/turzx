@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-# MATRIX GREEN PRO | versão 3.1.0 | 01/11/2026 11:05 (-03) | testes dos estilos selecionáveis
-# histórico: 2.1.0 31/10/2026 23:55 testes de rede x internet e do estado da coleta
+# MATRIX GREEN PRO | versão 3.1.1 | 07/11/2026 18:15 (-03) | testes dos estilos selecionáveis (Claude, para Lucas Tavares)
+# histórico: 3.1.1 07/11/2026 18:15 teste de baias invertidas isolado das montagens reais do PC; 2.1.0 31/10/2026 23:55 testes de rede x internet e do estado da coleta
 # histórico: 2.0.0 31/10/2026 23:45 criação: testes de cenários e de coletores
 # Testes automáticos SEM hardware (rodam em qualquer Debian e no instalador).
 # Uso: .venv/bin/python3 tools/mgp_selftest.py
@@ -154,14 +154,15 @@ def main():
         col.psutil.disk_partitions = lambda all=False: [types.SimpleNamespace(device="/dev/sdc1", mountpoint="/mnt/12TB")]
         try:
             bs = col.Baias({"terramaster": {"ativo": "auto"}}, td).leitura()
+            bi = col.Baias({"terramaster": {"ativo": "auto", "inverter": True}}, td).leitura()
         finally:
             col.psutil.disk_partitions = ant
         check("baias: 4 baias lidas do hub", bs is not None and [b["n"] for b in bs] == [1, 2, 3, 4], str(bs))
         check("baias: montada, desmontada, desmontada e livre",
               [b["estado"] for b in bs] == ["MONT", "DESM", "DESM", "LIVRE"], str([b["estado"] for b in bs]))
         check("baias: capacidade lida (12 TB na baia 1)", abs(bs[0]["bytes"] - 12e12) < 0.01e12, str(bs[0]["bytes"]))
-        bi = col.Baias({"terramaster": {"ativo": "auto", "inverter": True}}, td).leitura()
-        check("baias: inverter troca a numeração", bi[3]["estado"] == "DESM" and bi[0]["estado"] == "LIVRE")
+        check("baias: inverter troca a numeração", bi[3]["estado"] == "MONT" and bi[0]["estado"] == "LIVRE",
+              str([b["estado"] for b in bi]))
         check("baias: sem gabinete devolve None", col.Baias({}, td + "/nada").leitura() is None)
     vb = vm_of(base())["baias"]
     check("baias: viewmodel com 4 baias, sem alerta",

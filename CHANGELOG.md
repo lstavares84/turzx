@@ -7,6 +7,7 @@ Segue [SemVer](https://semver.org/lang/pt-BR/) (MAJOR.MINOR.PATCH). Os três est
 
 ## [Não lançado]
 
+- Script de desenvolvimento `construir/aplicar-na-tela.sh`: aplica o código atual na tela do PC (monta o ZIP do estilo e roda o instalador). Não entra nos ZIPs.
 - Ferramenta de desenvolvimento `construir/matriz_previas.py`: um PNG com as 3 versões nos 3 estados, desenhado com o código atual, com conferência de layout. Não entra nos ZIPs.
 - Documentação completa do repositório: nova página de entrada e a pasta `docs/` (estilos, instalação, configuração, hardware, arquitetura, desenvolvimento, decisões e roteiro).
 - Removido do fonte o travessão residual do texto interno do campo `gpu_fan_rpm` em `viewmodel.py` e `mgp_selftest.py` (não aparecia na tela). Os ZIPs 1.6.0 ainda o contêm.

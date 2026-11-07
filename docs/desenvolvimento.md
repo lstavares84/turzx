@@ -65,6 +65,10 @@ python3 -I construir/matriz_previas.py previas/matriz.png ~/turing-smart-screen-
 
 O segundo argumento é uma cópia do Turing Smart Screen, usada só pelas fontes de `res/fonts`. Requer Pillow e psutil. A pasta `previas/` fica fora do Git.
 
+## Aplicar na tela do PC
+
+Numa sessão que roda no próprio PC, `construir/aplicar-na-tela.sh gamma` monta o ZIP do estilo a partir do código atual, extrai com `unzip` e roda o instalador com `--sem-apt`. O instalador guarda o tema anterior (volta com `--restaurar`) e reinicia o serviço da tela. Rodar com o usuário comum, sem sudo.
+
 ## Gerar os ZIPs
 
 ```bash

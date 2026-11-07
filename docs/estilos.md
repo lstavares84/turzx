@@ -1,5 +1,5 @@
-<!-- docs/estilos.md | versão 1.1.0 | 07/11/2026 18:45 (-03) | criação original (Claude, para Lucas Tavares). Fonte: código v1.6.0 e histórico do projeto. -->
-<!-- histórico: 1.1.0 07/11/2026 18:45 variante de estudo GAMMA GAMMA COLUNA -->
+<!-- docs/estilos.md | versão 1.3.0 | 07/11/2026 19:40 (-03) | criação original (Claude, para Lucas Tavares). Fonte: código v1.6.0 e histórico do projeto. -->
+<!-- histórico: 1.3.0 07/11/2026 19:40 gráficos de 24 h do GAMMA DELTA; 1.2.0 07/11/2026 19:00 GAMMA DELTA; 1.1.0 07/11/2026 18:45 variante de estudo GAMMA GAMMA COLUNA -->
 
 # Estilos
 
@@ -74,6 +74,22 @@ Apelido aceito: `gamma-gamma-fronteira`. Veja o [esquema ilustrativo](img/gamma-
 A folga vertical é praticamente zero: qualquer linha nova exige reorganizar o layout.
 
 Cores das baias: montado em verde, desmontado em branco, livre em cinza.
+
+## GAMMA DELTA (`gamma-delta`), o mais novo
+
+O GAMMA GAMMA com quatro ajustes e três gráficos de 24 h. Ainda não é entregue nos ZIPs.
+
+- **TERRAMASTER com uso.** Baia montada mostra ocupado/total e percentual, como na seção DISCOS: `1 6.24/11.99TB (52%)`. A cor do percentual segue os limites dos discos (85% e 95%, 50 GB e 10 GB livres), mas só como informação: não entra na saúde. Por falta de largura, a palavra MONTADO sai da baia que mostra o uso. Baia desmontada ou livre continua como antes.
+- **Rodapé mais curto.** Sem a linha do sistema operacional (`DEBIAN 13 TRIXIE`) e sem a idade do clima (`OPEN-METEO HH:MM`).
+- **Texto 14 px mais baixo.** Do CPU ao SISTEMA, tudo desce para ocupar o espaço dessas linhas, e a sobra fica no alto.
+- **Colmeia à direita.** Os 7 hexágonos ficam alinhados à direita, com a borda em x = 314, deixando livre a área abaixo da escala N0/N1/N2.
+- **Gráficos de 24 h** no espaço livre do alto. A primeira série de cada gráfico é uma área verde, e a segunda é uma linha branca:
+  - à direita da escala: temperatura da CPU (área) e da GPU (linha), de 20 a 100 °C, um pixel a cada ~19 min;
+  - abaixo da escala: VRAM (área) e RAM (linha), cada uma em percentual da própria capacidade, um pixel a cada ~10 min;
+  - rede: download (área) e upload (linha), com a escala ajustada ao pico do dia.
+  A linha é a média de cada intervalo. O **pico de 24 h** de cada série é um ponto no gráfico, no momento e na altura em que aconteceu, com o valor ao lado (VRAM e RAM em GB, temperatura em °C, rede em MB/s). Marcas pontilhadas a cada 6 h; a borda direita é agora. Falha na linha = sem dado (PC desligado ou sensor ausente).
+  O histórico (`historico.py`) guarda média e máximo por intervalo em `~/.local/state/matrixgreenpro/historico.json`, gravado a cada ~10 min, e sobrevive a reinícios. Logo depois da instalação os gráficos começam vazios e enchem ao longo do dia.
+- Selo `DELTA` no canto superior direito.
 
 ## GAMMA GAMMA COLUNA (`gamma-gamma-coluna`), variante de estudo
 

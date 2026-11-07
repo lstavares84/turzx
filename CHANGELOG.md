@@ -7,8 +7,11 @@ Segue [SemVer](https://semver.org/lang/pt-BR/) (MAJOR.MINOR.PATCH). Os três est
 
 ## [Não lançado]
 
-- Nova variante de estudo do GAMMA GAMMA, `gamma-gamma-coluna` (GAMMA GAMMA COLUNA): os hexágonos de resumo viram uma coluna à esquerda, cada um ao lado dos números do seu grupo, e a faixa do grupo fica âmbar ou vermelha quando ele sai do verde. Relógio no alto à direita, ao lado da escala. Não entra nos ZIPs.
-- `construir/matriz_previas.py --extra coluna` acrescenta a variante como quarta coluna da matriz.
+- Gráficos de 24 h no GAMMA DELTA: temperatura de CPU e GPU no alto; VRAM com RAM e rede (download e upload) abaixo da escala. O pico de 24 h de cada série aparece como um ponto no gráfico, com o valor ao lado; VRAM e RAM em GB. Histórico com média e máximo por intervalo em `historico.py`, gravado em `~/.local/state/matrixgreenpro/historico.json`.
+- Novo estilo GAMMA DELTA (`gamma-delta`), derivado do GAMMA GAMMA: o TERRAMASTER mostra ocupado, total e percentual das baias montadas (como em DISCOS); somem a linha do sistema operacional e a idade do clima; o painel de texto desce 14 px e a colmeia fica alinhada à direita. Ainda não entra nos ZIPs.
+- Baias do TerraMaster: o coletor passa a ler o uso das partições montadas (ocupado e total), e o modelo de visão gera o texto e o percentual. A cor do percentual segue os limites dos discos, mas não entra na saúde nem nos alertas.
+- Nova variante de estudo GAMMA GAMMA COLUNA (`gamma-gamma-coluna`): os hexágonos de resumo viram uma coluna à esquerda, cada um ao lado dos números do seu grupo, e a faixa do grupo fica âmbar ou vermelha quando ele sai do verde. Relógio no alto à direita, ao lado da escala. Não entra nos ZIPs.
+- `construir/matriz_previas.py --extra delta` e `--extra coluna` acrescentam esses estilos como colunas a mais na matriz.
 - Autoteste: o caso "baias: inverter troca a numeração" lia as montagens reais do PC e falhava quando `/dev/sdc1` estava montado; agora usa a mesma simulação de partições da leitura normal.
 - Utilitário do PC `pc/espelho-github/`: espelho local de todos os repositórios do GitHub no HDD de 12TB, sincronizado por timer do systemd. Não entra nos ZIPs.
 - Script de desenvolvimento `construir/aplicar-na-tela.sh`: aplica o código atual na tela do PC (monta o ZIP do estilo e roda o instalador). Não entra nos ZIPs.

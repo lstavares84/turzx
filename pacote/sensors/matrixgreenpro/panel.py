@@ -1,4 +1,6 @@
-# MATRIX GREEN PRO | versão 3.2.0 | 02/11/2026 17:40 (-03) | estilos gamma* e apelido uranio
+# MATRIX GREEN PRO | versão 3.4.0 | 07/11/2026 19:10 (-03) | histórico de 24 h para os gráficos (historico.py)
+# histórico: 3.3.0 07/11/2026 19:00 demonstração com uso da baia montada
+# histórico: 3.2.0 02/11/2026 17:40 estilos gamma* e apelido uranio
 # histórico: 3.1.0 01/11/2026 10:50 estilo selecionável (matrix, uranio, pcb)
 # histórico: 2.1.0 31/10/2026 23:50 estado da coleta por coletor, isolamento de falhas
 # histórico: 2.0.0 31/10/2026 23:30 cenários demo normal/atencao/critico
@@ -31,7 +33,7 @@ def demo_snapshot(scenario="normal"):
     wifi = ({"exists": False} if att else
             {"exists": True, "name": "wlp4s0", "up": True, "signal": -54, "ip": "192.168.0.21",
              "rate_down": 3.2e6 if crit else 18e3, "rate_up": 0.4e6 if crit else 2e3, "rx": 1.2e9, "tx": 0.3e9})
-    return {
+    s = {
         "demo": True,
         "cpu": {"util": 100 if crit else (87 if att else 28), "ghz": 5.12 if crit else 4.85,
                 "temp": 96 if crit else (84 if att else 57),
@@ -57,7 +59,8 @@ def demo_snapshot(scenario="normal"):
             {"nome": "4T", "state": "OK", "total": 4000e9, "used": 3960e9 if crit else 3100e9,
              "free": 40e9 if crit else 900e9, "pct": 99.0 if crit else 77.5, "temp": 57.0 if crit else 33.0, "hdd": True},
         ],
-        "baias": [{"n": 1, "estado": "MONT", "bytes": 12000138625024, "modelo": "WDC WD120EFGX-68CPHN0", "dev": "sdc"},
+        "baias": [{"n": 1, "estado": "MONT", "bytes": 12000138625024, "modelo": "WDC WD120EFGX-68CPHN0", "dev": "sdc",
+                   "usado": 6.24e12, "total": 11.99e12},
                   {"n": 2, "estado": "DESM", "bytes": 500107862016, "modelo": "TOSHIBA MK5076GSX", "dev": "sdd"},
                   {"n": 3, "estado": "DESM", "bytes": 8001563222016, "modelo": "ST8000DM004-2U9188", "dev": "sde"},
                   {"n": 4, "estado": "LIVRE", "bytes": None, "modelo": "", "dev": None}],
@@ -73,6 +76,9 @@ def demo_snapshot(scenario="normal"):
         "power": {"state": "ND"},
         "coleta": {"esperados": 8, "falhas": []},
     }
+    from .historico import demo_series
+    s["hist"] = demo_series(s, scenario)          # 24 h fictícias para os gráficos do GAMMA DELTA
+    return s
 
 
 class Engine:
@@ -95,6 +101,8 @@ class Engine:
             self.ping = col.Ping(self.cfg)
             self.weather = col.Weather(self.cfg)
             self.power = col.Power(self.cfg)
+            from .historico import Historico
+            self.hist = Historico()
             cpu_l, gpu_l = self.cpu.thresholds(), self.gpu.thresholds()
             col.log(f"CPU '{self.cpu.model}' limites {cpu_l}; GPU backend={self.gpu.backend} limites {gpu_l}; "
                     f"ETH={self.net.eth} WIFI={self.net.wifi}; energia={self.power.kind}")
@@ -160,6 +168,11 @@ class Engine:
         if s["power"].get("state") == "LOST" and "ENERGIA" not in falhas:
             falhas.append("ENERGIA")
         s["coleta"] = {"esperados": esperados, "falhas": falhas}
+        try:
+            s["hist"] = self.hist.add(s)                        # gráficos de 24 h (só o GAMMA DELTA desenha)
+        except Exception as e:
+            s["hist"] = None
+            col.log(f"histórico: {type(e).__name__}: {e}", "warning")
         return s
 
     def frame(self):

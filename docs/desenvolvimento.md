@@ -63,7 +63,7 @@ Toda modificação é mostrada ao Lucas como uma matriz em PNG: as 3 versões (A
 python3 -I construir/matriz_previas.py previas/matriz.png ~/turing-smart-screen-linux
 ```
 
-Com `--extra coluna` a variante de estudo GAMMA GAMMA COLUNA entra como quarta coluna. O segundo argumento é uma cópia do Turing Smart Screen, usada só pelas fontes de `res/fonts`. Requer Pillow e psutil. A pasta `previas/` fica fora do Git.
+Com `--extra delta` (GAMMA DELTA, com gráficos de demonstração) ou `--extra coluna` (GAMMA GAMMA COLUNA), o estilo entra como coluna a mais. O segundo argumento é uma cópia do Turing Smart Screen, usada só pelas fontes de `res/fonts`. Requer Pillow e psutil. A pasta `previas/` fica fora do Git.
 
 ## Aplicar na tela do PC
 

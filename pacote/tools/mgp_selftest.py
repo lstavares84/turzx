@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-# MATRIX GREEN PRO | versão 3.2.0 | 07/11/2026 18:40 (-03) | testes dos estilos selecionáveis (Claude, para Lucas Tavares)
-# histórico: 3.2.0 07/11/2026 18:40 estilo de estudo gamma-gamma-coluna na lista de estilos
+# MATRIX GREEN PRO | versão 3.3.0 | 07/11/2026 19:00 (-03) | testes dos estilos selecionáveis (Claude, para Lucas Tavares)
+# histórico: 3.3.0 07/11/2026 19:00 uso das baias e estilos gamma-delta e gamma-gamma-coluna; 3.2.0 07/11/2026 18:40 estilo de estudo na lista de estilos
 # histórico: 3.1.1 07/11/2026 18:15 teste de baias invertidas isolado das montagens reais do PC; 2.1.0 31/10/2026 23:55 testes de rede x internet e do estado da coleta
 # histórico: 2.0.0 31/10/2026 23:45 criação: testes de cenários e de coletores
 # Testes automáticos SEM hardware (rodam em qualquer Debian e no instalador).
@@ -153,21 +153,42 @@ def main():
         import types
         ant = col.psutil.disk_partitions
         col.psutil.disk_partitions = lambda all=False: [types.SimpleNamespace(device="/dev/sdc1", mountpoint="/mnt/12TB")]
+        ant_u = col.shutil.disk_usage
+        col.shutil.disk_usage = lambda p: types.SimpleNamespace(total=12e12, used=6e12, free=6e12) if p == "/mnt/12TB" else ant_u(p)
         try:
             bs = col.Baias({"terramaster": {"ativo": "auto"}}, td).leitura()
             bi = col.Baias({"terramaster": {"ativo": "auto", "inverter": True}}, td).leitura()
         finally:
             col.psutil.disk_partitions = ant
+            col.shutil.disk_usage = ant_u
         check("baias: 4 baias lidas do hub", bs is not None and [b["n"] for b in bs] == [1, 2, 3, 4], str(bs))
         check("baias: montada, desmontada, desmontada e livre",
               [b["estado"] for b in bs] == ["MONT", "DESM", "DESM", "LIVRE"], str([b["estado"] for b in bs]))
         check("baias: capacidade lida (12 TB na baia 1)", abs(bs[0]["bytes"] - 12e12) < 0.01e12, str(bs[0]["bytes"]))
         check("baias: inverter troca a numeração", bi[3]["estado"] == "MONT" and bi[0]["estado"] == "LIVRE",
               str([b["estado"] for b in bi]))
+        check("baias: uso da baia montada (6 de 12 TB)", bs[0].get("usado") == 6e12 and bs[0].get("total") == 12e12
+              and "usado" not in bs[1], str(bs[0]))
         check("baias: sem gabinete devolve None", col.Baias({}, td + "/nada").leitura() is None)
     vb = vm_of(base())["baias"]
     check("baias: viewmodel com 4 baias, sem alerta",
           len(vb) == 4 and vb[0]["cap"] == "12TB" and vb[3]["palavra"] == "LIVRE" and vm_of(base())["hdr_status"][1] == OK, str(vb[:1]))
+    check("baias: viewmodel com uso e percentual da baia montada",
+          vb[0].get("use") == "6.24/11.99TB" and vb[0].get("pct_txt") == "52%" and "use" not in vb[1], str(vb[0]))
+    # ---- histórico de 24 h (gráficos do GAMMA DELTA): médias por intervalo, falha sem dado, gravação e releitura
+    from library.sensors.matrixgreenpro.historico import Historico
+    with tempfile.TemporaryDirectory() as td:
+        arq = f"{td}/h.json"
+        h1 = Historico(arq, n=4, janela=400)
+        h1.add(base(), t=1000); h1.add(base(), t=1050)
+        sr = h1.add(base(), t=1250)                             # 2 intervalos depois: o do meio fica vazio
+        check("histórico: média por intervalo e falha sem dado",
+              len(sr["ram"]) == 4 and sr["ram"][-1] is not None and sr["ram"][-2] is None and sr["ram"][-3] is not None
+              and abs(sr["vram"][-1] - 100 * 6.4 / 12.0) < 0.01, str(sr["ram"]))
+        h2 = Historico(arq, n=4, janela=400)
+        check("histórico: pico de 24 h por intervalo", sr["ram_max"][-1] is not None and sr["cpu_t_max"][-1] == 57)
+        check("histórico: sobrevive a reinício (arquivo)", h2.series(t=1250)["ram"][-3] is not None)
+        check("histórico: descarta o que passou de 24 h", all(x is None for x in h2.series(t=5000)["ram"]))
     s2 = base(); s2["baias"] = None
     check("baias: recurso ausente = lista vazia", vm_of(s2)["baias"] == [])
 
@@ -294,7 +315,7 @@ def main():
     from library.sensors.matrixgreenpro.estilos import renderer
     for nome in ("matrix", "gamma", "gamma-sonar", "gamma-raiox", "gamma-uv", "gamma-escala", "gamma-barra",
                  "gamma-banner", "gamma-faixa", "gamma-n3", "gamma-alpha", "gamma-n3-abas", "gamma-n3-linha",
-                 "gamma-n3-eventos", "gamma-beta", "gamma-gamma-colmeia", "gamma-gamma-mini", "gamma-gamma-painel", "gamma-gamma-coluna", "gamma-gamma", "pcb"):
+                 "gamma-n3-eventos", "gamma-beta", "gamma-gamma-colmeia", "gamma-gamma-mini", "gamma-gamma-painel", "gamma-gamma-coluna", "gamma-delta", "gamma-gamma", "pcb"):
         for sc in ("normal", "atencao", "critico"):
             key, draw = renderer(nome)
             img = draw(ViewModel(copy.deepcopy(DEFAULTS), (80, 90), (80, 87)).build(panel.demo_snapshot(sc)))

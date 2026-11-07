@@ -1,5 +1,6 @@
-# GAMMA GAMMA COLUNA | versão 1.0.0 | 07/11/2026 18:40 (-03) | criação original (Claude, para Lucas Tavares)
-# Quarta variante de estudo do GAMMA GAMMA (depois de COLMEIA, MINI e PAINEL). Não entra nos ZIPs.
+# GAMMA GAMMA COLUNA | versão 1.0.1 | 07/11/2026 19:00 (-03) | criação original (Claude, para Lucas Tavares)
+# histórico: 1.0.0 07/11/2026 18:40 criação; o nome GAMMA DELTA passou para outro estilo (reator_gamma_delta.py)
+# Variante de estudo do GAMMA GAMMA (hexágonos em coluna). Não entra nos ZIPs.
 # Ideia: os 7 hexágonos de resumo viram uma coluna vertebral à esquerda. CORE é a vértebra do topo, ao lado da
 # escala N0/N1/N2; cada grupo tem a sua vértebra (nome e OK, ATEN ou CRIT) encostada nos próprios números.
 # Quando um grupo sai do verde, a faixa inteira do grupo ganha um fundo âmbar ou vermelho (o crítico pisca).

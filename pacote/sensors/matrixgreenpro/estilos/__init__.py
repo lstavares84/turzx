@@ -1,4 +1,8 @@
-# GAMMA | estilos selecionáveis | versão 1.7.0 | 07/11/2026 18:40 (-03) | variante de estudo GAMMA GAMMA COLUNA
+# GAMMA | estilos selecionáveis | versão 1.11.0 | 07/11/2026 19:40 (-03) | GAMMA DELTA com 3 gráficos de 24 h e pico marcado
+# histórico: 1.10.0 07/11/2026 19:30 opções de pico p1, p2, p3
+# histórico: 1.9.0 07/11/2026 19:15 propostas de gráficos do GAMMA DELTA (3g e 2g)
+# histórico: 1.8.0 07/11/2026 19:00 GAMMA DELTA (derivado do GAMMA GAMMA) e GAMMA GAMMA COLUNA
+# histórico: 1.7.0 07/11/2026 18:40 variante de estudo GAMMA GAMMA COLUNA
 # histórico: 1.5.0 02/11/2026 22:45 GAMMA GAMMA definitivo (7 colmeias de resumo)
 # histórico: 1.4.0 02/11/2026 22:00 GAMMA ALPHA, BETA e GAMMA (3 variantes)
 # histórico: 1.0.0 02/11/2026 20:10 GAMMA SENTINELA e GAMMA DOSÍMETRO
@@ -27,7 +31,8 @@ ESTILOS = {
     "gamma-gamma-colmeia": ("GAMMA GAMMA COLMEIA", "reator_gamma_gamma_colmeia"),
     "gamma-gamma-mini": ("GAMMA GAMMA MINI", "reator_gamma_gamma_mini"),
     "gamma-gamma-painel": ("GAMMA GAMMA PAINEL", "reator_gamma_gamma_painel"),
-    "gamma-gamma-coluna": ("GAMMA GAMMA COLUNA", "reator_gamma_gamma_coluna"),   # hexágonos em coluna, ao lado de cada grupo
+    "gamma-gamma-coluna": ("GAMMA GAMMA COLUNA", "reator_gamma_gamma_coluna"),   # estudo: hexágonos em coluna
+    "gamma-delta": ("GAMMA DELTA", "reator_gamma_delta"),                  # GAMMA GAMMA com uso das baias, colmeia à direita e 3 gráficos de 24 h
     "gamma-gamma": ("GAMMA GAMMA", "reator_gamma_gamma"),                  # 7 colmeias de resumo, CORE no centro
     "gamma-n3-eventos": ("GAMMA N3 EVENTOS", "reator_gamma_n3_eventos"),
     "pcb": ("13-C PLACA DE CIRCUITO", "blueprint_pcb"),

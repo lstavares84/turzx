@@ -1,4 +1,5 @@
-# MATRIX GREEN PRO | versão 2.3.0 | 02/11/2026 21:50 (-03) | temperaturas de placa, RAM e SSD (Cpu.temps)
+# MATRIX GREEN PRO | versão 2.4.0 | 07/11/2026 19:00 (-03) | uso das baias montadas (ocupado, total, percentual)
+# histórico: 2.3.0 02/11/2026 21:50 temperaturas de placa, RAM e SSD (Cpu.temps)
 # histórico: 2.2.0 02/11/2026 21:30 leitura de bomba e ventoinhas por papel (Cpu.cool)
 # histórico: 2.1.0 31/10/2026 23:45 erro do clima exposto para o estado da coleta
 # histórico: 2.0.0 31/10/2026 23:10 tráfego por interface, rota padrão, limite de potência da GPU
@@ -585,10 +586,10 @@ class Baias:
         for porta, nome in hubs[hub].items():
             b = mapa.get(str(porta)) or ((n + 1 - porta) if self.c.get("inverter") else porta)
             por_baia[b] = nome
-        montados = set()
+        montados = {}                                           # dispositivo -> pontos de montagem
         try:
             for p in psutil.disk_partitions(all=False):
-                montados.add(os.path.basename(os.path.realpath(p.device)))
+                montados.setdefault(os.path.basename(os.path.realpath(p.device)), []).append(p.mountpoint)
         except Exception:
             pass
         out = []
@@ -604,8 +605,18 @@ class Baias:
                     tam = 0
                 if tam > 0:
                     mod = " ".join(_read(f"{self.sys}/block/{base}/device/{k}", "").strip() for k in ("vendor", "model")).strip()
-                    mont = any(m == base or (m.startswith(base) and m[len(base):].lstrip("p").isdigit()) for m in montados)
-                    item.update(estado="MONT" if mont else "DESM", bytes=tam, modelo=mod, dev=base)
+                    pontos = [pt for m, pts in montados.items()
+                              if m == base or (m.startswith(base) and m[len(base):].lstrip("p").isdigit()) for pt in pts]
+                    item.update(estado="MONT" if pontos else "DESM", bytes=tam, modelo=mod, dev=base)
+                    usado = total = 0                           # soma das partições montadas (cada ponto uma vez)
+                    for pt in dict.fromkeys(pontos):
+                        try:
+                            u = shutil.disk_usage(pt)
+                            usado, total = usado + u.used, total + u.used + u.free
+                        except Exception:
+                            pass
+                    if total:
+                        item.update(usado=usado, total=total)
             out.append(item)
         return out
 

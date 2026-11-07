@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# MATRIX GREEN PRO | versão 3.4.0 | 07/11/2026 18:40 (-03) | estilo de estudo gamma-gamma-coluna
+# MATRIX GREEN PRO | versão 3.8.0 | 07/11/2026 19:40 (-03) | estilos gamma-delta e gamma-gamma-coluna
 # histórico: 3.3.0 02/11/2026 18:10 prévias com fase de piscar (aceso e apagado) nos estilos de alerta
 # histórico: 3.2.0 02/11/2026 17:45 estilos gamma (4) e pcb
 # histórico: 3.1.0 01/11/2026 11:00 estilos uranio e pcb
@@ -123,7 +123,7 @@ def estilos(out):
                      "gamma-banner": "GammaBanner", "gamma-faixa": "GammaFaixa", "gamma-n3": "GammaN3", "gamma-alpha": "GammaAlpha",
                      "gamma-n3-abas": "GammaN3Abas", "gamma-n3-linha": "GammaN3Linha",
                      "gamma-n3-eventos": "GammaN3Eventos", "gamma-beta": "GammaBeta", "gamma-gamma-colmeia": "GammaGammaColmeia",
-                     "gamma-gamma-mini": "GammaGammaMini", "gamma-gamma-painel": "GammaGammaPainel", "gamma-gamma-coluna": "GammaGammaColuna", "gamma-gamma": "GammaGamma"}[key]
+                     "gamma-gamma-mini": "GammaGammaMini", "gamma-gamma-painel": "GammaGammaPainel", "gamma-gamma-coluna": "GammaGammaColuna", "gamma-delta": "GammaDelta", "gamma-gamma": "GammaGamma"}[key]
             nome = f"MatrixGreenPro-{camel}-{tag}" if not tag.startswith("teste") else f"{key}-{tag}"
             c.img.save(out / f"{nome}.png")
             e = check(c.texts, nome)

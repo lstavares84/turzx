@@ -3,7 +3,7 @@
 # Matriz de prévias: as 3 versões (ALPHA, BETA, GAMMA) nos 3 estados (normal, atenção, crítico), num único PNG.
 # Desenha com o código ATUAL de pacote/ (não com o que está instalado) e os dados de demonstração do painel.
 # Uso, na raiz do repositório:
-#   python3 -I construir/matriz_previas.py SAIDA.png [pasta_do_turing] [--extra coluna]
+#   python3 -I construir/matriz_previas.py SAIDA.png [pasta_do_turing] [--extra delta] [--extra coluna]
 # --extra NOME (repetível): acrescenta uma variante de estudo como coluna a mais (veja EXTRAS).
 # pasta_do_turing: cópia do turing-smart-screen, só para as fontes em res/fonts (padrão: ~/turing-smart-screen-linux).
 # Requer Pillow e psutil. Também confere limites, sobreposições, glifos e cobertura de métricas de cada quadro.
@@ -16,7 +16,8 @@ time.tzset()
 COLUNAS = [("gamma-alpha", "reator_gamma_alpha", "ALPHA", "escala N0/N1/N2, percentuais"),
            ("gamma-beta", "reator_gamma_beta", "BETA", "percentuais entre parênteses, baias"),
            ("gamma-gamma", "reator_gamma_gamma", "GAMMA", "7 colmeias e painel por grupo")]
-EXTRAS = {"coluna": ("gamma-gamma-coluna", "reator_gamma_gamma_coluna", "GAMMA COLUNA", "estudo: hexágonos em coluna")}
+EXTRAS = {"delta": ("gamma-delta", "reator_gamma_delta", "DELTA", "gráficos de 24 h, baias com uso"),
+          "coluna": ("gamma-gamma-coluna", "reator_gamma_gamma_coluna", "COLUNA", "estudo: hexágonos em coluna")}
 LINHAS = [("normal", "NORMAL", (110, 255, 110)), ("atencao", "ATENÇÃO", (255, 190, 40)), ("critico", "CRÍTICO", (255, 80, 70))]
 
 

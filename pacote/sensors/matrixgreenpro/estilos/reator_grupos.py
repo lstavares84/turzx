@@ -1,4 +1,7 @@
-# GAMMA GAMMA | motor por grupos | versão 1.6.0 | 07/11/2026 14:15 (-03) | criação original (Claude, para Lucas Tavares)
+# GAMMA GAMMA | motor por grupos | versão 1.7.0 | 07/11/2026 19:00 (-03) | criação original (Claude, para Lucas Tavares)
+# histórico: 1.7.1 07/11/2026 19:10 gancho P['extra'] (gráficos do GAMMA DELTA)
+# histórico: 1.7.0 07/11/2026 19:00 opções do GAMMA DELTA na paleta (colmeia_x, texto_y, baias_uso, rodape_enxuto)
+# histórico: 1.6.0 07/11/2026 14:15 selo de estilo e versão
 # Base: GAMMA BETA (escala N0/N1/N2, percentuais entre parênteses, informações coladas à esquerda).
 # Reorganiza a colmeia e o texto por grupos: CPU, GPU, RAM, DISCOS, REFRIGERAÇÃO, REDE e SISTEMA.
 # Três variantes de colmeia:
@@ -56,12 +59,12 @@ def _cell(c, P, col, vals, key, cx, cy, r, f_lab, f_val):
     c.text(f"hex.{key}.val", cx, cy + dy + (8 if r < 20 else 9), short(t), f_val, col(lv), anchor="ms")
 
 
-def _colmeia(c, P, col, vals, F, layout, r, gap, cy0, f_lab=None, f_val=None):
+def _colmeia(c, P, col, vals, F, layout, r, gap, cy0, f_lab=None, f_val=None, cx=160):
     """layout: lista de linhas; cada célula é (deslocamento em meias-colunas, chave). Devolve a base da colmeia."""
     sx, sy = math.sqrt(3) * r + gap, 1.5 * r + gap
     for ri, row in enumerate(layout):
         for off, key in row:
-            _cell(c, P, col, vals, key, 160 + off * sx / 2, cy0 + ri * sy, r,
+            _cell(c, P, col, vals, key, cx + off * sx / 2, cy0 + ri * sy, r,
                   f_lab or (F["h"] if r >= 20 else F["hs"]), f_val or (F["hv"] if r >= 20 else F["hvs"]))
     return cy0 + (len(layout) - 1) * sy + r
 
@@ -273,6 +276,10 @@ def _texto_resumo(c, v, P, col, F, vals, y, step=13, gap=4):
             if i and i % 2 == 0:
                 y += step - 1
             bx = c.text(f"bay{i}.n", x, y, f"{b['n']}", F["sb"], P["accent"])
+            if P.get("baias_uso") and b.get("use"):             # DELTA: ocupado/total e percentual, como nos discos
+                ub = c.text(f"bay{i}.use", bx[2] + 5, y, b["use"], F["s"], P["white"])
+                c.text(f"bay{i}.pct", ub[2] + 5, y, _paren(b["pct_txt"]), F["sb"], col(b.get("pct_lvl", OK)))
+                continue
             if b["cap"]:
                 bx = c.text(f"bay{i}.cap", bx[2] + 5, y, b["cap"], F["sb"], col(b["lvl"]))
             c.text(f"bay{i}.st", bx[2] + 5, y, b["palavra"], F["xs"], col(b["lvl"]))
@@ -294,19 +301,24 @@ def _texto_resumo(c, v, P, col, F, vals, y, step=13, gap=4):
         iface_row(c, v, key, y, 6, tag, 44, 314, F["xs"], F["sb"], F["xs"], F["xs"], col, P["sub"],
                   c_info=P["white"], c_rates=P["white"])
     # SISTEMA (à esquerda) e clima (canto inferior direito, sem moldura), alinhados no rodapé da tela
-    ys = 419
+    enxuto = P.get("rodape_enxuto")                         # DELTA: sem a linha do sistema e a idade do clima
+    ys = 419 + (14 if enxuto else 0)
     b = c.text("tit.SISTEMA", 6, ys + 7, "SISTEMA", F["g"], P["accent"])
     c.line((b[2] + 5, ys + 4, 196, ys + 4), P["dim"])
     t, _ = v("date"); c.text("sys.date", 6, ys + 21, t, F["sb"], P["white"])
     t, _ = v("clock"); c.text("sys.clock", 6, ys + 43, t, F["xl"], P["accent"])
     t, lv = v("uptime"); _pair(c, P, col, "sys.up", 196, ys + 43, "UP", t, F["s"], lv, F, right=True)
-    t, _ = v("os"); c.text("sys.os", 6, ys + 58, c.fit(t, F["xs"], 190), F["xs"], P["sub"])
+    if enxuto:
+        v.raw("os"); v.raw("wage")
+    else:
+        t, _ = v("os"); c.text("sys.os", 6, ys + 58, c.fit(t, F["xs"], 190), F["xs"], P["sub"])
     c.text("wx.city", 314, ys + 7, c.fit(v.raw("city", ""), F["xs"], 100), F["xs"], P["sub"], anchor="rs")
     t, lv = v("wtemp"); c.text("wx.temp", 314, ys + 29, t, F["xl"], col(lv), anchor="rs")
     t, lv = v("wdesc"); c.text("wx.desc", 314, ys + 42, c.fit(t, F["xs"], 106), F["xs"],
                                col(lv) if lv != NA else P["sub"], anchor="rs")
-    t, lv = v("wage"); c.text("wx.age", 314, ys + 56, c.fit(t, F["xs"], 106), F["xs"],
-                              col(lv) if lv != NA else P["sub"], anchor="rs")
+    if not enxuto:
+        t, lv = v("wage"); c.text("wx.age", 314, ys + 56, c.fit(t, F["xs"], 106), F["xs"],
+                                  col(lv) if lv != NA else P["sub"], anchor="rs")
     return y
 
 
@@ -383,8 +395,10 @@ def render_grupos(vm_dict, P, variante):
         lay = [[(-1, "g_cpu"), (1, "g_gpu")],
                [(-2, "g_ref"), (0, "core"), (2, "g_ram")],
                [(-1, "g_rede"), (1, "g_dsk")]]
-        _colmeia(c, P, col, vals, F, lay, 21, 2, 49, f_lab=F["hs"], f_val=F["hv"])
-        _texto_resumo(c, v, P, col, F, vals, 137)
+        _colmeia(c, P, col, vals, F, lay, 21, 2, 49, f_lab=F["hs"], f_val=F["hv"], cx=P.get("colmeia_x", 160))
+        _texto_resumo(c, v, P, col, F, vals, P.get("texto_y", 137))
+        if P.get("extra"):                                      # desenho a mais do estilo (ex.: gráficos de 24 h)
+            P["extra"](c, v, P, col, F)
         if P.get("bloom"):
             c.img = bloom(c.img, *P["bloom"])
         return c, v

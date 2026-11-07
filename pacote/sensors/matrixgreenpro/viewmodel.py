@@ -1,4 +1,6 @@
-# MATRIX GREEN PRO | versão 2.1.0 | 31/10/2026 23:40 (-03) | ajustes finais: rede x internet, estado da coleta
+# MATRIX GREEN PRO | versão 2.3.0 | 07/11/2026 19:10 (-03) | séries de 24 h repassadas aos estilos (vm['hist'])
+# histórico: 2.2.0 07/11/2026 19:00 baias com uso, total e percentual (cor só informativa)
+# histórico: 2.1.0 31/10/2026 23:40 ajustes finais: rede x internet, estado da coleta
 #   (OK/PARCIAL/FALHOU) separado da saúde, ventoinha GPU 'FAN 72% | 1800RPM'
 # histórico: 2.0.0 31/10/2026 23:15 saúde por indicador | 1.0.0 31/10/2026 22:40 criação inicial
 #
@@ -269,7 +271,14 @@ class ViewModel:
                           "curta": {"MONT": "MONT", "DESM": "DESM", "LIVRE": "LIVRE"}.get(e, "N/D"),
                           "lvl": OK if e == "MONT" else NEUTRAL if e == "DESM" else NA,
                           "modelo": b.get("modelo", "")})
+            if e == "MONT" and b.get("total"):                 # uso, como na seção de discos; a cor não entra na saúde
+                pct = 100.0 * b["usado"] / b["total"]
+                livre = b["total"] - b["usado"]
+                plv = CRIT if (pct >= float(self.cfg["disco_crit"]) or livre < fc) else \
+                    WARN if (pct >= float(self.cfg["disco_warn"]) or livre < fw) else OK
+                baias[-1].update(use=disk_use(b["usado"], b["total"]), pct=pct, pct_txt=f"{round(pct)}%", pct_lvl=plv)
         vm["baias"] = baias
+        vm["hist"] = s.get("hist")                             # séries de 24 h (historico.py), para os gráficos
 
         # ---------- Rede
         n = s["net"]

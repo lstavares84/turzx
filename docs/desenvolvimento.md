@@ -67,7 +67,7 @@ Com `--extra coluna` a variante de estudo GAMMA GAMMA COLUNA entra como quarta c
 
 ## Aplicar na tela do PC
 
-Numa sessão que roda no próprio PC, `construir/aplicar-na-tela.sh gamma` monta o ZIP do estilo a partir do código atual, extrai com `unzip` e roda o instalador com `--sem-apt`. O instalador guarda o tema anterior (volta com `--restaurar`) e reinicia o serviço da tela. Rodar com o usuário comum, sem sudo.
+Numa sessão que roda no próprio PC, `construir/aplicar-na-tela.sh gamma` monta o ZIP do estilo a partir do código atual, extrai com `unzip` e roda o instalador com `--sem-apt`. O instalador guarda o tema anterior (volta com `--restaurar`) e reinicia o serviço da tela. Rodar com o usuário comum, sem sudo. ⚠️ Só com autorização explícita do Lucas, a cada envio.
 
 ## Gerar os ZIPs
 

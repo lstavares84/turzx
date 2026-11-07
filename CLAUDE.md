@@ -20,7 +20,7 @@ Este repositório é o GAMMA TUS-35, tema de monitoramento para a tela USB TURZX
 
 - Não inventar fatos sobre o hardware. Faltando informação, pedir a saída de um comando somente leitura.
 - Mostrar toda modificação visual ou de código do tema na matriz de prévias em PNG (3 versões x 3 estados), gerada por `construir/matriz_previas.py`.
-- Quando a sessão roda no PC do Lucas (existe `~/turing-smart-screen-linux`), toda edição termina assim: autoteste e matriz verdes, commit, push e `construir/aplicar-na-tela.sh gamma` para atualizar a tela física.
+- Quando a sessão roda no PC do Lucas (existe `~/turing-smart-screen-linux`), toda edição termina assim: autoteste e matriz verdes, commit e push. Enviar a versão para a tela física (`construir/aplicar-na-tela.sh`, `instalar-gamma.sh` ou qualquer instalação) só com autorização explícita do Lucas no chat, a cada envio: perguntar e esperar um sim claro.
 - Seguir os critérios de pronto de [docs/desenvolvimento.md](docs/desenvolvimento.md): autoteste verde, prévias sem problema de layout, instalação do zero com usuário comum, SemVer e CHANGELOG atualizados.
 - Pacotes enxutos: nada que não seja essencial entra nos ZIPs.
 - ZIPs são artefatos de lançamento, não vão para o Git.

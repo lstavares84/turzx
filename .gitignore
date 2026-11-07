@@ -1,0 +1,15 @@
+# .gitignore | GAMMA TUS-35 | versão 1.0.0 | 07/11/2026 15:55 (-03) | criação original (Claude, para Lucas Tavares)
+# Python
+__pycache__/
+*.pyc
+.venv/
+# Saídas de build e prévias (ZIPs vão para Releases, não para o Git)
+*.zip
+saida/
+dist/
+previas/
+# Editores e sistema
+.vscode/
+.idea/
+*.swp
+.DS_Store

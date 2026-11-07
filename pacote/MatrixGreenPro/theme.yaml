@@ -1,0 +1,42 @@
+---
+# MATRIX GREEN PRO | versão 2.1.0 | 01/11/2026 00:25 (-03) | pacote TUS35-Debian13
+# histórico: 2.0.0 31/10/2026 23:30 paleta V2 | 1.0.0 31/10/2026 23:00 criação
+#
+# Tema VERTICAL nativo para TURZX/Turing TUS-35 (3,5"), revisão A, 320 x 480 pixels.
+# Estrutura idêntica à aceita pelo programa (ver 3.5inchTheme2 e CustomDataExample):
+#   display        -> DISPLAY_SIZE 3.5" = 320x480 em retrato; DISPLAY_ORIENTATION portrait
+#                     (o giro de 180° fica no config.yaml do programa: DISPLAY_REVERSE)
+#   static_images  -> fundo desenhado uma vez na inicialização (cabeçalho e divisórias)
+#   STATS.CUSTOM   -> sensor personalizado da interface oficial (sensors_custom.py)
+#
+# Por que um único sensor personalizado em vez de dezenas de blocos TEXT/GRAPH:
+# no sistema de temas, FONT_COLOR e BAR_COLOR são fixos no YAML, o bloco DISK lê
+# apenas "/", não há RPM de ventoinha da GPU, nem rede por interface, nem estados
+# de saúde. O sensor MatrixGreenProPanel desenha o painel completo e envia à tela
+# só as regiões alteradas, pelo mesmo método do programa (lcd.DisplayPILImage).
+# Fonte usada: res/fonts/jetbrains-mono/JetBrainsMonoNL-*.ttf (já incluída no projeto, OFL).
+author: "MATRIX GREEN PRO (Lucas Tavares)"
+
+display:
+  DISPLAY_SIZE: 3.5"
+  DISPLAY_ORIENTATION: portrait
+  # Cor do LED traseiro (somente modelos "flagship"; o TUS-35 ignora)
+  DISPLAY_RGB_LED: 0, 255, 0
+
+static_images:
+  BACKGROUND:
+    PATH: background.png
+    X: 0
+    Y: 0
+    WIDTH: 320
+    HEIGHT: 480
+
+STATS:
+  # Sensores nativos (CPU, GPU, MEMORY, DISK, NET, DATE...) não são declarados:
+  # o default.yaml do programa os mantém com INTERVAL 0 (desligados).
+  CUSTOM:
+    # Intervalo único de todos os sensores personalizados (segundos)
+    INTERVAL: 1
+    # O nome precisa ser idêntico ao da classe em library/sensors/sensors_custom.py.
+    # Sem TEXT/GRAPH/RADIAL/LINE_GRAPH: o próprio sensor desenha o quadro.
+    MatrixGreenProPanel: {}

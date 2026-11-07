@@ -1,0 +1,66 @@
+# MATRIX GREEN PRO | versão 2.1.0 | gerado em 31/10/2026 23:22:13 por mgp_detect.py
+# Configuração do painel. Edite à vontade: o instalador nunca sobrescreve
+# este arquivo (use --forcar no mgp_detect.py para regenerar).
+painel:
+  demo: false              # true = dados demonstrativos (cabeçalho mostra DEMO)
+  demo_cenario: normal     # normal | atencao | critico
+  refresh_full_s: 300
+
+cpu:
+  temp_sensor: auto        # ex.: k10temp/Tctl  (veja scripts/diagnosticar.sh)
+  fan: auto                # ex.: nct6798/fan2; auto usa CPU_FAN do config.yaml do programa
+  temp_warn: auto          # auto = conforme o modelo detectado (Ryzen 7000/9000: 88/94 °C)
+  temp_crit: auto
+  fan_stop_ok_below_c: 60  # 0 RPM abaixo desta temperatura = modo semipassivo (normal)
+
+gpu:
+  index: 0
+  temp_warn: auto          # auto = limite de desaceleração NVML - 10 °C
+  temp_crit: auto          # auto = limite de desaceleração NVML - 3 °C
+  vram_warn: 90
+  vram_crit: 97
+
+fps:
+  mangohud_dir: /tmp/mgp-mangohud
+  max_age_s: 3.5
+
+ram: {warn: 85, crit: 95}
+
+# Três volumes, identificados por UUID (persistente). Desmontado = OFF.
+discos:
+  - nome: "M.2"
+    uuid: ""        # ⚠️ NÃO DETECTADO: preencha com o UUID (lsblk -f)
+    montagem: "/"
+  - nome: "2T"
+    uuid: ""        # ⚠️ NÃO DETECTADO: preencha com o UUID (lsblk -f)
+    montagem: ""
+  - nome: "4T"
+    uuid: ""        # ⚠️ NÃO DETECTADO: preencha com o UUID (lsblk -f)
+    montagem: ""
+disco_warn: 85
+disco_crit: 95
+disco_livre_warn_gb: 50
+disco_livre_crit_gb: 10
+
+rede:
+  ethernet: "enp5s0"
+  wifi: "nenhuma"
+  ethernet_obrigatoria: false   # true = Ethernet caída gera aviso mesmo com Wi-Fi ativo
+
+ping: {host: 8.8.8.8, intervalo_s: 5, warn_ms: 80, crit_ms: 200}
+
+clima:
+  cidade: "RIO DO SUL"
+  latitude: -27.2139
+  longitude: -49.6428
+  intervalo_min: 15
+  desatualizado_min: 45
+
+energia:
+  fonte: auto              # auto | none | hwmon | arquivo | tasmota | shelly_gen2
+  arquivo: ""              # arquivo com watts (uma linha), atualizado por outro programa
+  tipo_arquivo: tomada     # tomada | psu | estimativa
+  host: ""                 # IP da tomada inteligente (tasmota/shelly_gen2)
+  psu_watts: 0             # capacidade da fonte para alertas (0 = sem alerta)
+
+histerese: {temperatura: 3, percentual: 2, ping_ms: 15}

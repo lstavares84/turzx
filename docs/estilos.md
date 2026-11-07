@@ -1,0 +1,79 @@
+<!-- docs/estilos.md | versão 1.0.0 | 07/11/2026 15:10 (-03) | criação original (Claude, para Lucas Tavares). Fonte: código v1.6.0 e histórico do projeto. -->
+
+# Estilos
+
+O GAMMA tem três estilos de entrega. Os três usam os mesmos dados, as mesmas regras de saúde e a mesma coleta: muda só o desenho. Todos mostram, no canto superior direito, o selo do estilo e da versão (por exemplo `GAMMA v1.6.0`), com o nome em verde-claro e a versão em cinza.
+
+[Voltar ao README](../README.md)
+
+## Identidade visual
+
+| Elemento | Valor |
+|---|---|
+| Tela | 320x480 pixels, retrato |
+| Fundo | quase preto, RGB (3, 10, 4) |
+| Destaque | verde fluorescente, RGB (120, 255, 90) |
+| Atenção | âmbar, RGB (255, 190, 0) |
+| Crítico | vermelho, RGB (255, 60, 50) |
+| Apoio | cinza-esverdeado, RGB (110, 170, 110) |
+| Fontes | JetBrains Mono (números e dados) e Roboto (títulos), ambas OFL |
+| Acabamento | brilho (bloom) aplicado ao quadro inteiro no final |
+
+## Cores e estados
+
+| Cor | Estado | Significado |
+|---|---|---|
+| Verde | `OK` | dentro do limite |
+| Âmbar | `WARN` | atenção (N1) |
+| Vermelho | `CRIT` | crítico (N2), pisca 1 s aceso e 1 s apagado |
+| Cinza | `NA` | o sensor não existe nesta máquina (N/D), não alerta |
+| Amarelo | `LOST` | o sensor existia e sumiu |
+| Branco | `NEUTRAL` | número sem significado de saúde (por exemplo, tráfego de rede) |
+
+No cabeçalho, a **escala N0 NORMAL, N1 AVISO, N2 ALERTA** mostra o pior nível do sistema. O nível ativo brilha e os outros ficam esmaecidos.
+
+## GAMMA ALPHA (`gamma-alpha`)
+
+Nome antigo: GAMMA SENTINELA (apelidos aceitos: `gamma-sentinela`, `gamma-n3-esq`).
+
+- **Cabeçalho:** título GAMMA, aviso DEMO (só no modo demonstração), escala N0/N1/N2 à esquerda, sem tarja, e selo à direita.
+- **Favo de 19 hexágonos** em linhas de 3, 4, 5, 4 e 3: CPU, CPU°, GPU, BOMBA, LOAD ou PLACA, GPU°, G.FAN, RAM, VRAM, CORE (saúde geral), FPS, GPU W, os três discos (M.2, 2T, 4T), PING, REDE, RAM° e SSD°.
+- **Linhas de texto abaixo:** CPU; GPU (VRAM, W, LIM, FPS e FAN %); RAM; refrigeração (BOMBA, RAD, INF, LAT e TRA em RPM); discos com uso, percentual e livre; rede (↓ ↑, RX, TX, ETH, WIFI); relógio grande, data, uptime e sistema; ping, internet e clima; rodapé com TOTAL W e COLETA.
+
+## GAMMA BETA (`gamma-beta`)
+
+Nome antigo: GAMMA DOSÍMETRO (apelidos aceitos: `gamma-dosimetro`, `gamma-n3-compacto`).
+
+Igual ao ALPHA, com duas diferenças de texto e uma de conteúdo:
+
+- Percentuais **entre parênteses** e na cor do nível: `VRAM 10.9/12.0GB (91%)`, `RAM 12.4/31.3GB (40%)`.
+- Informações secundárias (DISP da RAM, LIVRE dos discos, LIM da GPU) **coladas logo depois do uso**, em vez de alinhadas à direita.
+- **Baias do TerraMaster:** quando o gabinete é detectado, as 4 baias aparecem em 2x2 no rodapé, no lugar de TOTAL W e COLETA. Sem gabinete, o rodapé volta ao normal.
+
+## GAMMA GAMMA (`gamma-gamma`), o mais recente
+
+Apelido aceito: `gamma-gamma-fronteira`. Veja o [esquema ilustrativo](img/gamma-gamma-esquema.svg).
+
+**Colmeia de resumo.** Exatamente 7 hexágonos (raio 21, vão 2). CORE no centro; CPU e GPU em cima; REFR. e RAM nas laterais do CORE; REDE e DISCOS embaixo. Cada hexágono mostra só o nome e o estado `OK`, `ATEN` ou `CRIT` (`N/D` quando o grupo não tem nenhum dado). O estado do grupo é o pior nível entre os seus indicadores, e um sensor perdido (`LOST`) conta como atenção. O CORE é o pior estado geral, a mesma informação da escala N0/N1/N2. Não há rótulos ao redor nem linhas de fronteira.
+
+**Painel numérico**, por grupo, com título e linha divisória. Para economizar espaço, um dado-chave vai no próprio título:
+
+| Grupo | No título | Linhas |
+|---|---|---|
+| CPU | LOAD | USO, TEMP, FREQ |
+| GPU | FPS e FAN | USO, TEMP, FREQ; VRAM com percentual, W e LIM |
+| RAM | TEMP | USO com total e percentual, DISP |
+| DISCOS | | nome, uso, percentual, livre e temperatura à direita |
+| TERRAMASTER | | 4 baias em 2x2: número, capacidade e MONTADO, DESMONT. ou LIVRE (só com o gabinete conectado) |
+| REFRIGERAÇÃO | | BOMBA, RAD, PLACA; SQUAMA INF, LAT, TRA |
+| REDE | PING e internet | ↓ ↑, TX, RX; ETH e WIFI |
+
+**Rodapé.** Sistema à esquerda (data acima da hora, uptime, sistema operacional) e clima isolado no canto inferior direito, sem moldura (cidade, temperatura grande, condição do tempo e idade do dado). TOTAL W, "sem medidor" e COLETA foram removidos de propósito.
+
+A folga vertical é praticamente zero: qualquer linha nova exige reorganizar o layout.
+
+Cores das baias: montado em verde, desmontado em branco, livre em cinza.
+
+## Estilos legados e experimentais
+
+O código ainda contém estilos de fases anteriores que **não são entregues nos ZIPs**: `matrix` (minimalista, usado como reserva), `gamma` (o favo original), `gamma-sonar`, `gamma-raiox`, `gamma-uv`, `gamma-escala`, `gamma-barra`, `gamma-banner`, `gamma-faixa`, `gamma-n3`, `gamma-n3-abas`, `gamma-n3-linha`, `gamma-n3-eventos`, as variantes de estudo do GAMMA GAMMA (`gamma-gamma-colmeia`, `gamma-gamma-mini`, `gamma-gamma-painel`) e `pcb` (placa de circuito). Eles podem ser usados com `--estilo NOME`, mas não recebem manutenção. A decisão de arquivar ou remover está no [roteiro](roteiro.md).

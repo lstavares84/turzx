@@ -1,0 +1,9 @@
+
+# >>> MATRIXGREENPRO >>> (bloco gerido pelo scripts/instalar.sh do MATRIX GREEN PRO; não editar)
+# versão 2.1.0 | 01/11/2026
+try:
+    from library.sensors.matrixgreenpro.panel import MatrixGreenProPanel  # noqa: F401
+except Exception as _mgp_err:  # o restante do programa continua funcionando
+    import logging as _mgp_logging
+    _mgp_logging.getLogger().error("[MatrixGreenPro] falha ao importar o painel: %s", _mgp_err)
+# <<< MATRIXGREENPRO <<<

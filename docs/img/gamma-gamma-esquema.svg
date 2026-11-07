@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 480" width="320" height="480" role="img" aria-labelledby="t d">
+  <!-- gamma-gamma-esquema.svg | versão 1.0.1 | 07/11/2026 15:05 (-03) | criação original (Claude, para Lucas Tavares) -->
+  <!-- Esquema ilustrativo do GAMMA GAMMA v1.6.0, desenhado a partir da especificação do layout. Valores de exemplo. Não é captura da tela. -->
+  <title id="t">Esquema do GAMMA GAMMA</title>
+  <desc id="d">Tela vertical de 320x480 com cabeçalho, sete hexágonos de resumo (CPU, GPU, REFR., CORE, RAM, REDE, DISCOS), painel numérico por grupo, sistema no rodapé à esquerda e clima à direita.</desc>
+  <defs>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="1.6" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <polygon id="hx" points="0,-21 18.19,-10.5 18.19,10.5 0,21 -18.19,10.5 -18.19,-10.5"/>
+    <pattern id="favo" width="24" height="41.6" patternUnits="userSpaceOnUse">
+      <path d="M12 0 L24 6.9 L24 20.8 L12 27.7 L0 20.8 L0 6.9 Z M12 27.7 L12 41.6" fill="none" stroke="#0d2410" stroke-width="0.6"/>
+    </pattern>
+  </defs>
+  <style>
+    text { font-family: "JetBrains Mono", "DejaVu Sans Mono", monospace; font-size: 8.6px; fill: #ffffff; }
+    .t { font-family: Roboto, "DejaVu Sans", sans-serif; font-weight: 700; fill: #78ff5a; font-size: 9px; letter-spacing: .6px; }
+    .k { fill: #6eaa6e; }
+    .ok { fill: #78ff5a; }
+    .am { fill: #ffbe00; }
+    .hn.am, .hs.am { fill: #ffbe00; }
+    .hn { font-family: Roboto, "DejaVu Sans", sans-serif; font-weight: 700; font-size: 8px; fill: #78ff5a; text-anchor: middle; }
+    .hs { font-size: 7.5px; text-anchor: middle; fill: #78ff5a; }
+    .div { stroke: #1f5a24; stroke-width: 1; }
+  </style>
+
+  <rect width="320" height="480" fill="#030a04"/>
+  <rect width="320" height="140" fill="url(#favo)" opacity=".8"/>
+
+  <!-- cabeçalho -->
+  <text x="6" y="16" class="t" style="font-size:15px" filter="url(#glow)">GAMMA</text>
+  <text x="80" y="8.5" class="k" style="font-size:6.5px;opacity:.5">N0 NORMAL</text>
+  <text x="80" y="16" class="am" style="font-size:6.5px">▌N1 AVISO</text>
+  <text x="80" y="23.5" class="k" style="font-size:6.5px;opacity:.5">N2 ALERTA</text>
+  <text x="314" y="14" class="ok" style="text-anchor:end">GAMMA <tspan class="k">v1.6.0</tspan></text>
+
+  <!-- colmeia: 7 hexágonos, raio 21, vão 2 -->
+  <g fill="#06180a" stroke="#78ff5a" stroke-width="1.4" filter="url(#glow)">
+    <use href="#hx" x="140.8" y="49"/><use href="#hx" x="179.2" y="49"/>
+    <use href="#hx" x="121.6" y="82.2"/><use href="#hx" x="160" y="82.2" stroke="#ffbe00" stroke-width="2.2"/><use href="#hx" x="198.4" y="82.2"/>
+    <use href="#hx" x="140.8" y="115.4"/><use href="#hx" x="179.2" y="115.4" stroke="#ffbe00"/>
+  </g>
+  <g>
+    <text x="140.8" y="47" class="hn">CPU</text><text x="140.8" y="57" class="hs">OK</text>
+    <text x="179.2" y="47" class="hn">GPU</text><text x="179.2" y="57" class="hs">OK</text>
+    <text x="121.6" y="80" class="hn">REFR.</text><text x="121.6" y="90" class="hs">OK</text>
+    <text x="160" y="80" class="hn am" style="font-size:9px">CORE</text><text x="160" y="90" class="hs am">ATEN</text>
+    <text x="198.4" y="80" class="hn">RAM</text><text x="198.4" y="90" class="hs">OK</text>
+    <text x="140.8" y="113" class="hn">REDE</text><text x="140.8" y="123" class="hs">OK</text>
+    <text x="179.2" y="113" class="hn am">DISCOS</text><text x="179.2" y="123" class="hs am">ATEN</text>
+  </g>
+
+  <!-- painel numérico por grupo -->
+  <text x="6" y="150" class="t">CPU</text><text x="314" y="150" style="text-anchor:end"><tspan class="k">LOAD</tspan> 0.82</text>
+  <line x1="6" y1="153" x2="314" y2="153" class="div"/>
+  <text x="6" y="163"><tspan class="k">USO</tspan> <tspan class="ok">28%</tspan>  <tspan class="k">TEMP</tspan> <tspan class="ok">57°C</tspan>  <tspan class="k">FREQ</tspan> 4.85GHz</text>
+
+  <text x="6" y="177" class="t">GPU</text><text x="314" y="177" style="text-anchor:end"><tspan class="k">FPS</tspan> 142  <tspan class="k">FAN</tspan> <tspan class="ok">68%</tspan></text>
+  <line x1="6" y1="180" x2="314" y2="180" class="div"/>
+  <text x="6" y="190"><tspan class="k">USO</tspan> <tspan class="ok">74%</tspan>  <tspan class="k">TEMP</tspan> <tspan class="ok">67°C</tspan>  <tspan class="k">FREQ</tspan> 2655MHz</text>
+  <text x="6" y="201"><tspan class="k">VRAM</tspan> 6.4/16.0GB <tspan class="ok">(40%)</tspan>  <tspan class="k">W</tspan> 212  <tspan class="k">LIM</tspan> 300</text>
+
+  <text x="6" y="215" class="t">RAM</text><text x="314" y="215" style="text-anchor:end"><tspan class="k">TEMP</tspan> <tspan class="ok">41°C</tspan></text>
+  <line x1="6" y1="218" x2="314" y2="218" class="div"/>
+  <text x="6" y="228"><tspan class="k">USO</tspan> 12.4/31.3GB <tspan class="ok">(40%)</tspan>  <tspan class="k">DISP</tspan> 18.9GB</text>
+
+  <text x="6" y="242" class="t">DISCOS</text>
+  <line x1="6" y1="245" x2="314" y2="245" class="div"/>
+  <text x="6" y="255"><tspan class="k">M.2</tspan> 0.42/2.00TB <tspan class="ok">(21%)</tspan> <tspan class="k">LIVRE</tspan> 1.58TB</text><text x="314" y="255" class="ok" style="text-anchor:end">38°C</text>
+  <text x="6" y="266"><tspan class="k">2T </tspan> 1.40/2.00TB <tspan class="ok">(70%)</tspan> <tspan class="k">LIVRE</tspan> 600GB</text><text x="314" y="266" class="ok" style="text-anchor:end">30°C</text>
+  <text x="6" y="277"><tspan class="k">4T </tspan> 3.50/4.00TB <tspan class="am">(88%)</tspan> <tspan class="k">LIVRE</tspan> 500GB</text><text x="314" y="277" class="ok" style="text-anchor:end">33°C</text>
+
+  <text x="6" y="291" class="t">TERRAMASTER</text>
+  <line x1="6" y1="294" x2="314" y2="294" class="div"/>
+  <text x="6" y="304"><tspan class="k">1</tspan> 12TB <tspan class="ok">MONTADO</tspan></text><text x="164" y="304"><tspan class="k">2</tspan> 500GB DESMONT.</text>
+  <text x="6" y="315"><tspan class="k">3</tspan> 8TB DESMONT.</text><text x="164" y="315"><tspan class="k">4</tspan> 480GB DESMONT.</text>
+
+  <text x="6" y="329" class="t">REFRIGERAÇÃO</text>
+  <line x1="6" y1="332" x2="314" y2="332" class="div"/>
+  <text x="6" y="342"><tspan class="k">BOMBA</tspan> <tspan class="ok">5600</tspan>  <tspan class="k">RAD</tspan> <tspan class="ok">1400</tspan>  <tspan class="k">PLACA</tspan> 34°C</text>
+  <text x="6" y="353"><tspan class="k">SQUAMA INF</tspan> <tspan class="ok">1400</tspan>  <tspan class="k">LAT</tspan> <tspan class="ok">1400</tspan>  <tspan class="k">TRA</tspan> <tspan class="ok">1400</tspan></text>
+
+  <text x="6" y="367" class="t">REDE</text><text x="314" y="367" style="text-anchor:end"><tspan class="k">PING</tspan> <tspan class="ok">18ms</tspan>  <tspan class="ok">INTERNET OK</tspan></text>
+  <line x1="6" y1="370" x2="314" y2="370" class="div"/>
+  <text x="6" y="380">↓12.4MB/s ↑1.8MB/s  <tspan class="k">TX</tspan> 38.2GB  <tspan class="k">RX</tspan> 284.1GB</text>
+  <text x="6" y="391"><tspan class="k">ETH</tspan> <tspan class="ok">ATIVA</tspan> 1Gb/s   <tspan class="k">WIFI</tspan> N/D</text>
+
+  <!-- rodapé: sistema à esquerda, clima à direita -->
+  <line x1="6" y1="399" x2="314" y2="399" class="div"/>
+  <text x="6" y="412" class="k">SÁB 07/11/2026</text>
+  <text x="6" y="438" class="ok" style="font-size:24px" filter="url(#glow)">14:55:00</text>
+  <text x="6" y="454"><tspan class="k">UP</tspan> 02d05h18m</text>
+  <text x="6" y="466" class="k">DEBIAN 13 TRIXIE</text>
+  <text x="314" y="412" class="k" style="text-anchor:end">RIO DO SUL</text>
+  <text x="314" y="440" class="ok" style="font-size:22px;text-anchor:end">22°C</text>
+  <text x="314" y="454" style="text-anchor:end">NUBLADO</text>
+  <text x="314" y="466" class="k" style="text-anchor:end">há 4 min</text>
+</svg>

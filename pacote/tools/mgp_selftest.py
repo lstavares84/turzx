@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-# MATRIX GREEN PRO | versão 3.1.1 | 07/11/2026 18:15 (-03) | testes dos estilos selecionáveis (Claude, para Lucas Tavares)
+# MATRIX GREEN PRO | versão 3.2.0 | 07/11/2026 18:40 (-03) | testes dos estilos selecionáveis (Claude, para Lucas Tavares)
+# histórico: 3.2.0 07/11/2026 18:40 estilo de estudo gamma-gamma-coluna na lista de estilos
 # histórico: 3.1.1 07/11/2026 18:15 teste de baias invertidas isolado das montagens reais do PC; 2.1.0 31/10/2026 23:55 testes de rede x internet e do estado da coleta
 # histórico: 2.0.0 31/10/2026 23:45 criação: testes de cenários e de coletores
 # Testes automáticos SEM hardware (rodam em qualquer Debian e no instalador).
@@ -293,7 +294,7 @@ def main():
     from library.sensors.matrixgreenpro.estilos import renderer
     for nome in ("matrix", "gamma", "gamma-sonar", "gamma-raiox", "gamma-uv", "gamma-escala", "gamma-barra",
                  "gamma-banner", "gamma-faixa", "gamma-n3", "gamma-alpha", "gamma-n3-abas", "gamma-n3-linha",
-                 "gamma-n3-eventos", "gamma-beta", "gamma-gamma-colmeia", "gamma-gamma-mini", "gamma-gamma-painel", "gamma-gamma", "pcb"):
+                 "gamma-n3-eventos", "gamma-beta", "gamma-gamma-colmeia", "gamma-gamma-mini", "gamma-gamma-painel", "gamma-gamma-coluna", "gamma-gamma", "pcb"):
         for sc in ("normal", "atencao", "critico"):
             key, draw = renderer(nome)
             img = draw(ViewModel(copy.deepcopy(DEFAULTS), (80, 90), (80, 87)).build(panel.demo_snapshot(sc)))

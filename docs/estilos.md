@@ -1,4 +1,5 @@
-<!-- docs/estilos.md | versão 1.0.0 | 07/11/2026 15:10 (-03) | criação original (Claude, para Lucas Tavares). Fonte: código v1.6.0 e histórico do projeto. -->
+<!-- docs/estilos.md | versão 1.1.0 | 07/11/2026 18:45 (-03) | criação original (Claude, para Lucas Tavares). Fonte: código v1.6.0 e histórico do projeto. -->
+<!-- histórico: 1.1.0 07/11/2026 18:45 variante de estudo GAMMA GAMMA COLUNA -->
 
 # Estilos
 
@@ -74,6 +75,17 @@ A folga vertical é praticamente zero: qualquer linha nova exige reorganizar o l
 
 Cores das baias: montado em verde, desmontado em branco, livre em cinza.
 
+## GAMMA GAMMA COLUNA (`gamma-gamma-coluna`), variante de estudo
+
+Quarta variante do GAMMA GAMMA, ainda não entregue nos ZIPs. Mesmos dados, mesmas cores e mesmos 7 hexágonos, em outra disposição:
+
+- **Coluna à esquerda.** Os hexágonos (raio 21) ficam empilhados numa linha vertical. O CORE é o do topo, ao lado da escala N0/N1/N2; abaixo dele vêm CPU, GPU, RAM, DISCOS, REFR. e REDE, cada um centralizado na faixa dos seus números. Assim o estado de cada grupo fica encostado nos dados que o explicam.
+- **Faixa colorida.** Grupo em atenção ganha fundo âmbar na faixa inteira; grupo crítico ganha fundo vermelho, que pisca junto com a escala.
+- **TERRAMASTER** aparece com um hexágono pequeno e vazio na coluna: as baias são informativas e não têm estado.
+- **Sem títulos de grupo.** O nome está no hexágono; LOAD, FPS, FAN, TEMP da RAM e PING voltaram para as linhas.
+- **Relógio e data** no alto à direita. Rodapé com UP, sistema e idade do clima à esquerda e o clima à direita.
+- Selo `COLUNA` no canto superior direito.
+
 ## Estilos legados e experimentais
 
-O código ainda contém estilos de fases anteriores que **não são entregues nos ZIPs**: `matrix` (minimalista, usado como reserva), `gamma` (o favo original), `gamma-sonar`, `gamma-raiox`, `gamma-uv`, `gamma-escala`, `gamma-barra`, `gamma-banner`, `gamma-faixa`, `gamma-n3`, `gamma-n3-abas`, `gamma-n3-linha`, `gamma-n3-eventos`, as variantes de estudo do GAMMA GAMMA (`gamma-gamma-colmeia`, `gamma-gamma-mini`, `gamma-gamma-painel`) e `pcb` (placa de circuito). Eles podem ser usados com `--estilo NOME`, mas não recebem manutenção. A decisão de arquivar ou remover está no [roteiro](roteiro.md).
+O código ainda contém estilos de fases anteriores que **não são entregues nos ZIPs**: `matrix` (minimalista, usado como reserva), `gamma` (o favo original), `gamma-sonar`, `gamma-raiox`, `gamma-uv`, `gamma-escala`, `gamma-barra`, `gamma-banner`, `gamma-faixa`, `gamma-n3`, `gamma-n3-abas`, `gamma-n3-linha`, `gamma-n3-eventos`, as variantes de estudo do GAMMA GAMMA (`gamma-gamma-colmeia`, `gamma-gamma-mini`, `gamma-gamma-painel`, `gamma-gamma-coluna`) e `pcb` (placa de circuito). Eles podem ser usados com `--estilo NOME`, mas não recebem manutenção. A decisão de arquivar ou remover está no [roteiro](roteiro.md).

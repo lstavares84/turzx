@@ -1,4 +1,5 @@
-# GAMMA | estilos selecionáveis | versão 1.5.0 | 02/11/2026 22:45 (-03) | GAMMA GAMMA definitivo (7 colmeias de resumo)
+# GAMMA | estilos selecionáveis | versão 1.7.0 | 07/11/2026 18:40 (-03) | variante de estudo GAMMA GAMMA COLUNA
+# histórico: 1.5.0 02/11/2026 22:45 GAMMA GAMMA definitivo (7 colmeias de resumo)
 # histórico: 1.4.0 02/11/2026 22:00 GAMMA ALPHA, BETA e GAMMA (3 variantes)
 # histórico: 1.0.0 02/11/2026 20:10 GAMMA SENTINELA e GAMMA DOSÍMETRO
 # histórico: 3.6.0 02/11/2026 19:40 gamma-n3-compacto
@@ -26,6 +27,7 @@ ESTILOS = {
     "gamma-gamma-colmeia": ("GAMMA GAMMA COLMEIA", "reator_gamma_gamma_colmeia"),
     "gamma-gamma-mini": ("GAMMA GAMMA MINI", "reator_gamma_gamma_mini"),
     "gamma-gamma-painel": ("GAMMA GAMMA PAINEL", "reator_gamma_gamma_painel"),
+    "gamma-gamma-coluna": ("GAMMA GAMMA COLUNA", "reator_gamma_gamma_coluna"),   # hexágonos em coluna, ao lado de cada grupo
     "gamma-gamma": ("GAMMA GAMMA", "reator_gamma_gamma"),                  # 7 colmeias de resumo, CORE no centro
     "gamma-n3-eventos": ("GAMMA N3 EVENTOS", "reator_gamma_n3_eventos"),
     "pcb": ("13-C PLACA DE CIRCUITO", "blueprint_pcb"),

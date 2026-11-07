@@ -7,6 +7,8 @@ Segue [SemVer](https://semver.org/lang/pt-BR/) (MAJOR.MINOR.PATCH). Os três est
 
 ## [Não lançado]
 
+- Nova variante de estudo do GAMMA GAMMA, `gamma-gamma-coluna` (GAMMA GAMMA COLUNA): os hexágonos de resumo viram uma coluna à esquerda, cada um ao lado dos números do seu grupo, e a faixa do grupo fica âmbar ou vermelha quando ele sai do verde. Relógio no alto à direita, ao lado da escala. Não entra nos ZIPs.
+- `construir/matriz_previas.py --extra coluna` acrescenta a variante como quarta coluna da matriz.
 - Autoteste: o caso "baias: inverter troca a numeração" lia as montagens reais do PC e falhava quando `/dev/sdc1` estava montado; agora usa a mesma simulação de partições da leitura normal.
 - Utilitário do PC `pc/espelho-github/`: espelho local de todos os repositórios do GitHub no HDD de 12TB, sincronizado por timer do systemd. Não entra nos ZIPs.
 - Script de desenvolvimento `construir/aplicar-na-tela.sh`: aplica o código atual na tela do PC (monta o ZIP do estilo e roda o instalador). Não entra nos ZIPs.

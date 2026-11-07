@@ -1,4 +1,4 @@
-<!-- docs/desenvolvimento.md | versão 1.0.0 | 07/11/2026 15:35 (-03) | criação original (Claude, para Lucas Tavares). Fonte: tools/, construir/construir_zips.py e regras do projeto na v1.6.0. -->
+<!-- docs/desenvolvimento.md | versão 1.1.0 | 07/11/2026 18:45 (-03) | criação original (Claude, para Lucas Tavares). Fonte: tools/, construir/construir_zips.py e regras do projeto na v1.6.0. -->
 
 # Desenvolvimento
 
@@ -63,7 +63,7 @@ Toda modificação é mostrada ao Lucas como uma matriz em PNG: as 3 versões (A
 python3 -I construir/matriz_previas.py previas/matriz.png ~/turing-smart-screen-linux
 ```
 
-O segundo argumento é uma cópia do Turing Smart Screen, usada só pelas fontes de `res/fonts`. Requer Pillow e psutil. A pasta `previas/` fica fora do Git.
+Com `--extra coluna` a variante de estudo GAMMA GAMMA COLUNA entra como quarta coluna. O segundo argumento é uma cópia do Turing Smart Screen, usada só pelas fontes de `res/fonts`. Requer Pillow e psutil. A pasta `previas/` fica fora do Git.
 
 ## Aplicar na tela do PC
 

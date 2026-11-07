@@ -1,8 +1,10 @@
-# GAMMA | construir/matriz_previas.py | versão 1.0.0 | 07/11/2026 15:10 (-03) | criação original (Claude, para Lucas Tavares)
+# GAMMA | construir/matriz_previas.py | versão 1.1.0 | 07/11/2026 18:40 (-03) | criação original (Claude, para Lucas Tavares)
+# histórico: 1.1.0 07/11/2026 18:40 opção --extra para variantes de estudo em colunas a mais
 # Matriz de prévias: as 3 versões (ALPHA, BETA, GAMMA) nos 3 estados (normal, atenção, crítico), num único PNG.
 # Desenha com o código ATUAL de pacote/ (não com o que está instalado) e os dados de demonstração do painel.
 # Uso, na raiz do repositório:
-#   python3 -I construir/matriz_previas.py SAIDA.png [pasta_do_turing]
+#   python3 -I construir/matriz_previas.py SAIDA.png [pasta_do_turing] [--extra coluna]
+# --extra NOME (repetível): acrescenta uma variante de estudo como coluna a mais (veja EXTRAS).
 # pasta_do_turing: cópia do turing-smart-screen, só para as fontes em res/fonts (padrão: ~/turing-smart-screen-linux).
 # Requer Pillow e psutil. Também confere limites, sobreposições, glifos e cobertura de métricas de cada quadro.
 import copy, importlib, itertools, os, shutil, subprocess, sys, tempfile, time
@@ -14,6 +16,7 @@ time.tzset()
 COLUNAS = [("gamma-alpha", "reator_gamma_alpha", "ALPHA", "escala N0/N1/N2, percentuais"),
            ("gamma-beta", "reator_gamma_beta", "BETA", "percentuais entre parênteses, baias"),
            ("gamma-gamma", "reator_gamma_gamma", "GAMMA", "7 colmeias e painel por grupo")]
+EXTRAS = {"coluna": ("gamma-gamma-coluna", "reator_gamma_gamma_coluna", "GAMMA COLUNA", "estudo: hexágonos em coluna")}
 LINHAS = [("normal", "NORMAL", (110, 255, 110)), ("atencao", "ATENÇÃO", (255, 190, 40)), ("critico", "CRÍTICO", (255, 80, 70))]
 
 
@@ -61,8 +64,19 @@ def conferir(c, v, nome, required):
 def main():
     if len(sys.argv) < 2:
         sys.exit(f"[{ts()}] uso: python3 -I construir/matriz_previas.py SAIDA.png [pasta_do_turing]")
-    saida = Path(sys.argv[1]).resolve()
-    turing = Path(sys.argv[2] if len(sys.argv) > 2 else Path.home() / "turing-smart-screen-linux")
+    args, extras = [], []
+    it = iter(sys.argv[1:])
+    for a in it:
+        if a == "--extra":
+            nome = next(it, "")
+            if nome not in EXTRAS:
+                sys.exit(f"[{ts()}] ERRO --extra aceita: {', '.join(EXTRAS)}")
+            extras.append(EXTRAS[nome])
+        else:
+            args.append(a)
+    COLUNAS[:] = COLUNAS + extras
+    saida = Path(args[0]).resolve()
+    turing = Path(args[1] if len(args) > 1 else Path.home() / "turing-smart-screen-linux")
     if not (turing / "res" / "fonts").is_dir():
         sys.exit(f"[{ts()}] ERRO fontes não encontradas em {turing}/res/fonts")
     versao = (RAIZ / "VERSION").read_text().strip()
@@ -98,11 +112,12 @@ def main():
         fr = Path(tmp) / "res" / "fonts" / "jetbrains-mono"
         f = lambda t, w: ImageFont.truetype(str(fr / f"JetBrainsMonoNL-{w}.ttf"), t)
         esq, topo, gx, gy, cab = 132, 96, 24, 24, 26
-        L = esq + 3 * 322 + 2 * gx + 22
+        nc = len(COLUNAS)
+        L = esq + nc * 322 + (nc - 1) * gx + 22
         A = topo + 3 * (cab + 482) + 2 * gy + 60
         m = Image.new("RGB", (L, A), (10, 16, 12))
         d = ImageDraw.Draw(m)
-        d.text((24, 14), f"GAMMA TUS-35 | v{versao} | todas as versões nos 3 estados", font=f(26, "Bold"), fill=(110, 255, 110))
+        d.text((24, 14), f"GAMMA TUS-35 | v{versao} | todas as versões nos 3 estados" + (" + estudo" if extras else ""), font=f(26, "Bold"), fill=(110, 255, 110))
         d.text((24, 50), f"{ts()} | código {ref} | dados de demonstração do painel", font=f(14, "Regular"), fill=(150, 170, 150))
         for k, (chave, _, rotulo, desc) in enumerate(COLUNAS):
             x = esq + k * (322 + gx)

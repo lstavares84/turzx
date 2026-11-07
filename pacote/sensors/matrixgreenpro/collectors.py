@@ -1,4 +1,5 @@
-# MATRIX GREEN PRO | versão 2.4.0 | 07/11/2026 19:00 (-03) | uso das baias montadas (ocupado, total, percentual)
+# MATRIX GREEN PRO | versão 2.5.0 | 07/11/2026 20:15 (-03) | dispositivo de cada disco (para o total sem duplicar)
+# histórico: 2.4.0 07/11/2026 19:00 uso das baias montadas (ocupado, total, percentual)
 # histórico: 2.3.0 02/11/2026 21:50 temperaturas de placa, RAM e SSD (Cpu.temps)
 # histórico: 2.2.0 02/11/2026 21:30 leitura de bomba e ventoinhas por papel (Cpu.cool)
 # histórico: 2.1.0 31/10/2026 23:45 erro do clima exposto para o estado da coleta
@@ -523,6 +524,7 @@ class Disks:
                 base = _bloco_base(self._dev_for(it, m)) if (m or st == "OFF") else None
                 d["temp"] = _temp_bloco(base)
                 d["hdd"] = _disco_rotativo(base) if base else None
+                d["dev"] = base
             except Exception:
                 d["temp"], d["hdd"] = None, None
             if m:

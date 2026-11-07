@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-# MATRIX GREEN PRO | versão 3.3.0 | 07/11/2026 19:00 (-03) | testes dos estilos selecionáveis (Claude, para Lucas Tavares)
+# MATRIX GREEN PRO | versão 3.4.0 | 07/11/2026 20:15 (-03) | testes dos estilos selecionáveis (Claude, para Lucas Tavares)
+# histórico: 3.4.0 07/11/2026 20:15 mudanças bruscas, total de TB, ping 20/100 ms e variantes do GAMMA DELTA
 # histórico: 3.3.0 07/11/2026 19:00 uso das baias e estilos gamma-delta e gamma-gamma-coluna; 3.2.0 07/11/2026 18:40 estilo de estudo na lista de estilos
 # histórico: 3.1.1 07/11/2026 18:15 teste de baias invertidas isolado das montagens reais do PC; 2.1.0 31/10/2026 23:55 testes de rede x internet e do estado da coleta
 # histórico: 2.0.0 31/10/2026 23:45 criação: testes de cenários e de coletores
@@ -189,6 +190,32 @@ def main():
         check("histórico: pico de 24 h por intervalo", sr["ram_max"][-1] is not None and sr["cpu_t_max"][-1] == 57)
         check("histórico: sobrevive a reinício (arquivo)", h2.series(t=1250)["ram"][-3] is not None)
         check("histórico: descarta o que passou de 24 h", all(x is None for x in h2.series(t=5000)["ram"]))
+    # ---- mudanças bruscas: marca ao saltar, continua 10 min depois de normalizar, entra no registro
+    from library.sensors.matrixgreenpro.brusco import Brusco
+    bz = Brusco()
+    sn = base(); sn["cpu"] = dict(sn["cpu"], util=20.0)
+    for t in range(0, 600, 5):
+        bz.atualizar(sn, now=t)
+    sj = base(); sj["cpu"] = dict(sj["cpu"], util=97.0)
+    mk, rg = bz.atualizar(sj, now=600)
+    check("brusco: salto do uso da CPU marca a leitura e entra no registro",
+          "cpu_util" in mk and rg and rg[0][1].startswith("CPU USO 20%→97%"), str(rg[:1]))
+    bz.atualizar(sn, now=605)
+    mk2, _ = bz.atualizar(sn, now=605 + 590)
+    mk3, rg3 = bz.atualizar(sn, now=605 + 620)
+    check("brusco: marca dura 10 min depois de normalizar", "cpu_util" in mk2 and "cpu_util" not in mk3 and len(rg3) == 1)
+    mk4, _ = Brusco().atualizar(sn, now=0)
+    check("brusco: primeira leitura não marca nada", not mk4)
+    # ---- total de TB: discos + baias montadas, sem contar o mesmo dispositivo duas vezes
+    vt = vm_of(base())["total_hd"]
+    check("total de TB: 3 discos + baia montada", vt and vt["total"] == "19.0TB" and vt["n"] == 4, str(vt))
+    s3 = base(); s3["disks"] = [dict(d) for d in s3["disks"]]; s3["disks"][2]["dev"] = "sdc"
+    check("total de TB: dispositivo repetido conta uma vez", vm_of(s3)["total_hd"]["n"] == 3)
+    # ---- ping: verde até 20 ms, âmbar até 100 ms, vermelho acima
+    def _ping(ms):
+        s4 = base(); s4["ping"] = {"ok": True, "ms": ms}
+        return vm_of(s4)["ping"][1]
+    check("ping: 18 ms verde, 60 ms âmbar, 150 ms vermelho", (_ping(18), _ping(60), _ping(150)) == (OK, WARN, CRIT))
     s2 = base(); s2["baias"] = None
     check("baias: recurso ausente = lista vazia", vm_of(s2)["baias"] == [])
 
@@ -265,7 +292,7 @@ def main():
     check("histerese evita piscar", seq == [OK, WARN, WARN, WARN, WARN, OK, CRIT, CRIT, WARN], str(seq))
 
     # ---- contagem dos cenários demo
-    for sc, exp in (("normal", "● SISTEMA OK"), ("atencao", "▲ 5 AVISOS"), ("critico", "● 3 CRÍTICOS ▲1")):
+    for sc, exp in (("normal", "● SISTEMA OK"), ("atencao", "▲ 5 AVISOS"), ("critico", "● 3 CRÍTICOS ▲2")):   # ▲2: ping de 34 ms é âmbar (limite de 20 ms)
         got = vm_of(panel.demo_snapshot(sc))["hdr_status"][0]
         check(f"cenário {sc}: '{exp}'", got == exp, got)
 
@@ -315,7 +342,7 @@ def main():
     from library.sensors.matrixgreenpro.estilos import renderer
     for nome in ("matrix", "gamma", "gamma-sonar", "gamma-raiox", "gamma-uv", "gamma-escala", "gamma-barra",
                  "gamma-banner", "gamma-faixa", "gamma-n3", "gamma-alpha", "gamma-n3-abas", "gamma-n3-linha",
-                 "gamma-n3-eventos", "gamma-beta", "gamma-gamma-colmeia", "gamma-gamma-mini", "gamma-gamma-painel", "gamma-gamma-coluna", "gamma-delta", "gamma-gamma", "pcb"):
+                 "gamma-n3-eventos", "gamma-beta", "gamma-gamma-colmeia", "gamma-gamma-mini", "gamma-gamma-painel", "gamma-gamma-coluna", "gamma-delta", "gamma-gamma", "gamma-delta-1", "gamma-delta-2", "gamma-delta-3", "gamma-delta-4", "gamma-delta-5", "gamma-delta-6", "v2-concreto", "v2-silencio", "v2-hud", "v2-root", "v2-dossie", "v2-vital", "v2-cockpit", "v2-metro", "v2-anunciador", "v2-8bits", "v2-osciloscopio", "v2-grade", "pcb"):   # "pcb" fica por último (o construtor dos ZIPs depende disso)
         for sc in ("normal", "atencao", "critico"):
             key, draw = renderer(nome)
             img = draw(ViewModel(copy.deepcopy(DEFAULTS), (80, 90), (80, 87)).build(panel.demo_snapshot(sc)))

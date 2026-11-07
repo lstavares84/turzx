@@ -91,6 +91,7 @@ Cada coletor (CPU, GPU, discos, rede, clima...) roda isolado: se um falhar, os o
 | [Desenvolvimento](docs/desenvolvimento.md) | quem vai mexer no código | testes, prévias, geração dos ZIPs, versão e critérios de pronto |
 | [Decisões e lições](docs/decisoes-e-licoes.md) | todos | por que o projeto é como é e os erros que não devem voltar |
 | [Roteiro](docs/roteiro.md) | todos | pendências e próximos passos |
+| [Brainstorm](docs/brainstorm/README.md) | todos | as 12 propostas da v2.0.0 e as variantes de estudo do DELTA, com imagens |
 | [Histórico de versões](CHANGELOG.md) | todos | o que mudou em cada versão |
 
 ## Estado do projeto

@@ -47,7 +47,7 @@ rede:
   wifi: "nenhuma"
   ethernet_obrigatoria: false   # true = Ethernet caída gera aviso mesmo com Wi-Fi ativo
 
-ping: {host: 8.8.8.8, intervalo_s: 5, warn_ms: 80, crit_ms: 200}
+ping: {host: 8.8.8.8, intervalo_s: 5, warn_ms: 20, crit_ms: 100}   # verde até 20 ms, âmbar até 100 ms, vermelho acima
 
 clima:
   cidade: "RIO DO SUL"
@@ -63,4 +63,4 @@ energia:
   host: ""                 # IP da tomada inteligente (tasmota/shelly_gen2)
   psu_watts: 0             # capacidade da fonte para alertas (0 = sem alerta)
 
-histerese: {temperatura: 3, percentual: 2, ping_ms: 15}
+histerese: {temperatura: 3, percentual: 2, ping_ms: 5}

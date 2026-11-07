@@ -1,4 +1,5 @@
-# MATRIX GREEN PRO | versão 2.3.0 | 07/11/2026 19:10 (-03) | séries de 24 h repassadas aos estilos (vm['hist'])
+# MATRIX GREEN PRO | versão 2.4.0 | 07/11/2026 20:15 (-03) | total de TB dos discos, mudanças bruscas e registro
+# histórico: 2.3.0 07/11/2026 19:10 séries de 24 h repassadas aos estilos (vm['hist'])
 # histórico: 2.2.0 07/11/2026 19:00 baias com uso, total e percentual (cor só informativa)
 # histórico: 2.1.0 31/10/2026 23:40 ajustes finais: rede x internet, estado da coleta
 #   (OK/PARCIAL/FALHOU) separado da saúde, ventoinha GPU 'FAN 72% | 1800RPM'
@@ -102,6 +103,8 @@ class ViewModel:
         psu = float(cfg["energia"].get("psu_watts") or 0)
         self.h_pwr = Hyst(psu * 0.8 if psu else None, psu * 0.9 if psu else None, 10)
         self.cpu_limits, self.gpu_limits = cpu_limits, gpu_limits
+        from .brusco import Brusco
+        self.brusco = Brusco()
         tl = cfg["cpu"].get("temps_limites") or {}
         self.h_t = {k: Hyst(tl[k][0], tl[k][1], hy["temperatura"]) for k in ("ram", "ssd") if k in tl and len(tl[k]) == 2}
 
@@ -280,6 +283,27 @@ class ViewModel:
         vm["baias"] = baias
         vm["hist"] = s.get("hist")                             # séries de 24 h (historico.py), para os gráficos
 
+        # ---------- Total de todos os HDs (discos + baias montadas); o mesmo dispositivo conta uma vez
+        t_uso = t_cap = 0.0
+        devs, n = set(), 0
+        for d in s["disks"][:3]:
+            if d.get("state") == "OK" and d.get("total"):
+                if d.get("dev") and d["dev"] in devs:
+                    continue
+                devs.add(d.get("dev"))
+                t_uso, t_cap, n = t_uso + d["used"], t_cap + d["used"] + d["free"], n + 1
+        for b in (s.get("baias") or []):
+            if b.get("estado") == "MONT" and b.get("total") and not (b.get("dev") and b["dev"] in devs):
+                devs.add(b.get("dev"))
+                t_uso, t_cap, n = t_uso + b["usado"], t_cap + b["total"], n + 1
+        if t_cap:
+            tb = lambda x: f"{x / 1e12:.2f}TB" if x < 10e12 else f"{x / 1e12:.1f}TB"
+            vm["total_hd"] = {"uso": tb(t_uso), "total": tb(t_cap), "livre": tb(t_cap - t_uso),
+                              "pct": 100.0 * t_uso / t_cap, "pct_txt": f"{round(100.0 * t_uso / t_cap)}%", "n": n,
+                              "fora": sum(1 for b in (s.get("baias") or []) if b.get("estado") == "DESM")}
+        else:
+            vm["total_hd"] = None
+
         # ---------- Rede
         n = s["net"]
         vm["net_down"] = (rate(n.get("down")), NEUTRAL if n.get("down") is not None else NA)
@@ -414,4 +438,11 @@ class ViewModel:
         if vm["coleta"][0] == "COLETA FALHOU":
             # sem dados não há como afirmar que o sistema está bem
             vm["hdr_status"] = ("■ SEM DADOS", CRIT)
+        # ---------- Mudanças bruscas (só visual) e o registro delas
+        if s.get("demo_brusco") is not None:
+            marcadas, reg = s["demo_brusco"]
+        else:
+            marcadas, reg = self.brusco.atualizar(s, now)
+        vm["brusco"] = set(marcadas)
+        vm["registro"] = reg
         return vm

@@ -1,4 +1,5 @@
-# MATRIX GREEN PRO | versão 3.6.0 | 07/11/2026 14:10 (-03) | terramaster (baias do DAS USB)
+# MATRIX GREEN PRO | versão 3.7.0 | 07/11/2026 20:15 (-03) | ping verde até 20 ms, âmbar até 100 ms, vermelho acima
+# histórico: 3.6.0 07/11/2026 14:10 terramaster (baias do DAS USB)
 # histórico: 3.3.0 02/11/2026 21:30 cpu.fans (mapa de bomba e ventoinhas) e fans.yaml
 # histórico: 3.2.0 02/11/2026 17:40 estilos gamma*
 # histórico: 3.1.0 01/11/2026 10:50 opção painel.estilo
@@ -68,7 +69,7 @@ DEFAULTS = {
     # ethernet_obrigatoria: True = Ethernet desconectada gera aviso mesmo com o Wi-Fi ativo.
     # Sem nenhum enlace (nem Ethernet nem Wi-Fi) é sempre crítico.
     "rede": {"ethernet": "auto", "wifi": "auto", "ethernet_obrigatoria": False},
-    "ping": {"host": "8.8.8.8", "intervalo_s": 5, "warn_ms": 80, "crit_ms": 200},
+    "ping": {"host": "8.8.8.8", "intervalo_s": 5, "warn_ms": 20, "crit_ms": 100},
     "clima": {
         "cidade": "RIO DO SUL",
         "latitude": -27.2139,
@@ -85,7 +86,7 @@ DEFAULTS = {
         "max_age_s": 10,
         "psu_watts": 0,           # capacidade nominal da fonte para alertas (0 = sem alerta)
     },
-    "histerese": {"temperatura": 3, "percentual": 2, "ping_ms": 15},
+    "histerese": {"temperatura": 3, "percentual": 2, "ping_ms": 5},
 }
 
 

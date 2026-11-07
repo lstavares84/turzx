@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-# MATRIX GREEN PRO | versão 3.1.0 | 01/11/2026 10:55 (-03) | linha painel.estilo no modelo
+# MATRIX GREEN PRO | versão 3.2.0 | 07/11/2026 20:15 (-03) | ping verde até 20 ms, âmbar até 100 ms
+# histórico: 3.1.0 01/11/2026 10:55 linha painel.estilo no modelo
 # histórico: 2.1.0 31/10/2026 23:45 Ethernet não obrigatória por padrão
 # histórico: 2.0.0 31/10/2026 23:40 criação: detecção de discos (UUID) e rede
 # Gera ~/.config/matrixgreenpro/config.yaml com os volumes identificados de
@@ -128,7 +129,7 @@ rede:
   wifi: "{wifi or 'nenhuma'}"
   ethernet_obrigatoria: false   # true = Ethernet caída gera aviso mesmo com Wi-Fi ativo
 
-ping: {{host: 8.8.8.8, intervalo_s: 5, warn_ms: 80, crit_ms: 200}}
+ping: {{host: 8.8.8.8, intervalo_s: 5, warn_ms: 20, crit_ms: 100}}
 
 clima:
   cidade: "RIO DO SUL"
@@ -144,7 +145,7 @@ energia:
   host: ""                 # IP da tomada inteligente (tasmota/shelly_gen2)
   psu_watts: 0             # capacidade da fonte para alertas (0 = sem alerta)
 
-histerese: {{temperatura: 3, percentual: 2, ping_ms: 15}}
+histerese: {{temperatura: 3, percentual: 2, ping_ms: 5}}
 """
 
 

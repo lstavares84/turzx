@@ -1,4 +1,6 @@
-# GAMMA | estilos selecionáveis | versão 1.11.0 | 07/11/2026 19:40 (-03) | GAMMA DELTA com 3 gráficos de 24 h e pico marcado
+# GAMMA | estilos selecionáveis | versão 1.13.0 | 07/11/2026 20:25 (-03) | 6 variantes do GAMMA DELTA (gamma-delta-1 a 6)
+# histórico: 1.12.0 07/11/2026 20:00 12 propostas da v2.0.0 (v2-*)
+# histórico: 1.11.0 07/11/2026 19:40 GAMMA DELTA com 3 gráficos de 24 h e pico marcado
 # histórico: 1.10.0 07/11/2026 19:30 opções de pico p1, p2, p3
 # histórico: 1.9.0 07/11/2026 19:15 propostas de gráficos do GAMMA DELTA (3g e 2g)
 # histórico: 1.8.0 07/11/2026 19:00 GAMMA DELTA (derivado do GAMMA GAMMA) e GAMMA GAMMA COLUNA
@@ -33,9 +35,29 @@ ESTILOS = {
     "gamma-gamma-painel": ("GAMMA GAMMA PAINEL", "reator_gamma_gamma_painel"),
     "gamma-gamma-coluna": ("GAMMA GAMMA COLUNA", "reator_gamma_gamma_coluna"),   # estudo: hexágonos em coluna
     "gamma-delta": ("GAMMA DELTA", "reator_gamma_delta"),                  # GAMMA GAMMA com uso das baias, colmeia à direita e 3 gráficos de 24 h
+    # variantes do DELTA: total de TB, mudanças bruscas, refrigeração numa linha e registro (reator_delta2.py)
+    "gamma-delta-1": ("GAMMA DELTA 1", "reator_gamma_delta_v1"),
+    "gamma-delta-2": ("GAMMA DELTA 2", "reator_gamma_delta_v2"),
+    "gamma-delta-3": ("GAMMA DELTA 3", "reator_gamma_delta_v3"),
+    "gamma-delta-4": ("GAMMA DELTA 4", "reator_gamma_delta_v4"),
+    "gamma-delta-5": ("GAMMA DELTA 5", "reator_gamma_delta_v5"),
+    "gamma-delta-6": ("GAMMA DELTA 6", "reator_gamma_delta_v6"),
     "gamma-gamma": ("GAMMA GAMMA", "reator_gamma_gamma"),                  # 7 colmeias de resumo, CORE no centro
     "gamma-n3-eventos": ("GAMMA N3 EVENTOS", "reator_gamma_n3_eventos"),
     "pcb": ("13-C PLACA DE CIRCUITO", "blueprint_pcb"),
+    # propostas da v2.0.0 (mesma paleta, desenho novo); não entram nos ZIPs
+    "v2-concreto": ("v2 BRUTALISTA: CONCRETO", "v2_brutal"),
+    "v2-silencio": ("v2 MINIMALISTA: SILÊNCIO", "v2_minimal"),
+    "v2-hud": ("v2 SCI-FI: HUD ORBITAL", "v2_scifi"),
+    "v2-root": ("v2 HACKING: ROOT", "v2_hacking"),
+    "v2-dossie": ("v2 ESPIONAGEM: DOSSIÊ", "v2_espiao"),
+    "v2-vital": ("v2 UTI: MONITOR VITAL", "v2_uti"),
+    "v2-cockpit": ("v2 COCKPIT: PAINEL DE VOO", "v2_cockpit"),
+    "v2-metro": ("v2 METRÔ: LINHA GAMMA", "v2_metro"),
+    "v2-anunciador": ("v2 SALA DE CONTROLE: ANUNCIADOR", "v2_anunciador"),
+    "v2-8bits": ("v2 ARCADE: 8 BITS", "v2_arcade"),
+    "v2-osciloscopio": ("v2 LABORATÓRIO: OSCILOSCÓPIO", "v2_osciloscopio"),
+    "v2-grade": ("v2 SUÍÇO: GRADE", "v2_suico"),
 }
 ALIASES = {"uranio": "gamma", "urânio": "gamma",                  # nomes antigos continuam valendo
            "gamma-n3-esq": "gamma-alpha", "gamma-n3-compacto": "gamma-beta",

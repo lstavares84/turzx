@@ -1,4 +1,6 @@
 # GAMMA | construir/matriz_previas.py | versão 1.1.0 | 07/11/2026 18:40 (-03) | criação original (Claude, para Lucas Tavares)
+# histórico: 1.3.0 07/11/2026 20:25 opção --deltas: as 6 variantes do GAMMA DELTA
+# histórico: 1.2.0 07/11/2026 20:00 opção --v2: as 12 propostas da v2.0.0 no lugar das colunas normais
 # histórico: 1.1.0 07/11/2026 18:40 opção --extra para variantes de estudo em colunas a mais
 # Matriz de prévias: as 3 versões (ALPHA, BETA, GAMMA) nos 3 estados (normal, atenção, crítico), num único PNG.
 # Desenha com o código ATUAL de pacote/ (não com o que está instalado) e os dados de demonstração do painel.
@@ -18,6 +20,19 @@ COLUNAS = [("gamma-alpha", "reator_gamma_alpha", "ALPHA", "escala N0/N1/N2, perc
            ("gamma-gamma", "reator_gamma_gamma", "GAMMA", "7 colmeias e painel por grupo")]
 EXTRAS = {"delta": ("gamma-delta", "reator_gamma_delta", "DELTA", "gráficos de 24 h, baias com uso"),
           "coluna": ("gamma-gamma-coluna", "reator_gamma_gamma_coluna", "COLUNA", "estudo: hexágonos em coluna")}
+DELTAS = [("gamma-delta-1", "reator_gamma_delta_v1", "DELTA 1", "variante 1"), ("gamma-delta-2", "reator_gamma_delta_v2", "DELTA 2", "variante 2"), ("gamma-delta-3", "reator_gamma_delta_v3", "DELTA 3", "variante 3"), ("gamma-delta-4", "reator_gamma_delta_v4", "DELTA 4", "variante 4"), ("gamma-delta-5", "reator_gamma_delta_v5", "DELTA 5", "variante 5"), ("gamma-delta-6", "reator_gamma_delta_v6", "DELTA 6", "variante 6")]
+V2 = [("v2-concreto", "v2_brutal", "BRUTALISTA", "concreto"),
+      ("v2-silencio", "v2_minimal", "MINIMALISTA", "silêncio"),
+      ("v2-hud", "v2_scifi", "SCI-FI", "hud orbital"),
+      ("v2-root", "v2_hacking", "HACKING", "root"),
+      ("v2-dossie", "v2_espiao", "ESPIONAGEM", "dossiê"),
+      ("v2-vital", "v2_uti", "UTI", "monitor vital"),
+      ("v2-cockpit", "v2_cockpit", "COCKPIT", "painel de voo"),
+      ("v2-metro", "v2_metro", "METRÔ", "linha gamma"),
+      ("v2-anunciador", "v2_anunciador", "SALA DE CONTROLE", "anunciador"),
+      ("v2-8bits", "v2_arcade", "ARCADE", "8 bits"),
+      ("v2-osciloscopio", "v2_osciloscopio", "LABORATÓRIO", "osciloscópio"),
+      ("v2-grade", "v2_suico", "SUÍÇO", "grade")]
 LINHAS = [("normal", "NORMAL", (110, 255, 110)), ("atencao", "ATENÇÃO", (255, 190, 40)), ("critico", "CRÍTICO", (255, 80, 70))]
 
 
@@ -68,7 +83,13 @@ def main():
     args, extras = [], []
     it = iter(sys.argv[1:])
     for a in it:
-        if a == "--extra":
+        if a == "--deltas":
+            COLUNAS[:] = []
+            extras.extend(DELTAS)
+        elif a == "--v2":
+            COLUNAS[:] = []
+            extras.extend(V2)
+        elif a == "--extra":
             nome = next(it, "")
             if nome not in EXTRAS:
                 sys.exit(f"[{ts()}] ERRO --extra aceita: {', '.join(EXTRAS)}")

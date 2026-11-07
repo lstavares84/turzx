@@ -1,4 +1,5 @@
-# MATRIX GREEN PRO | versão 3.4.0 | 07/11/2026 19:10 (-03) | histórico de 24 h para os gráficos (historico.py)
+# MATRIX GREEN PRO | versão 3.5.0 | 07/11/2026 20:20 (-03) | demonstração de mudanças bruscas e do registro
+# histórico: 3.4.0 07/11/2026 19:10 histórico de 24 h para os gráficos (historico.py)
 # histórico: 3.3.0 07/11/2026 19:00 demonstração com uso da baia montada
 # histórico: 3.2.0 02/11/2026 17:40 estilos gamma* e apelido uranio
 # histórico: 3.1.0 01/11/2026 10:50 estilo selecionável (matrix, uranio, pcb)
@@ -78,6 +79,16 @@ def demo_snapshot(scenario="normal"):
     }
     from .historico import demo_series
     s["hist"] = demo_series(s, scenario)          # 24 h fictícias para os gráficos do GAMMA DELTA
+    m = lambda minutos: now - 60 * minutos         # mudanças bruscas fictícias (marcas e registro)
+    s["demo_brusco"] = {
+        "normal": (set(), [(m(52), "GPU USO 3%→97%"), (m(95), "DOWNLOAD 0.4M→21.0M")]),
+        "atencao": ({"cpu_temp", "gpu_util", "net_down", "fps"},
+                    [(m(1), "CPU TEMP 61°C→84°C"), (m(3), "GPU USO 4%→97%"), (m(4), "DOWNLOAD 0.6M→12.4M"),
+                     (m(6), "FPS 60→96"), (m(48), "PING 18ms→95ms")]),
+        "critico": ({"cpu_util", "cpu_temp", "ram_used", "ram_avail", "gpu_w"},
+                    [(m(0), "CPU TEMP 58°C→96°C"), (m(1), "CPU USO 12%→100%"), (m(2), "RAM 41%→91%"),
+                     (m(5), "GPU W 120W→284W"), (m(31), "PING 18ms→34ms")]),
+    }.get(scenario, (set(), []))
     return s
 
 

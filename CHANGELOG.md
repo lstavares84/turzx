@@ -7,6 +7,12 @@ Segue [SemVer](https://semver.org/lang/pt-BR/) (MAJOR.MINOR.PATCH). Os estilos (
 
 ## [Não lançado]
 
+- Seis variantes do GAMMA DELTA (`gamma-delta-1` a `gamma-delta-6`, motor `reator_delta2.py`) com: total de TB de todos os HDs (discos + baias montadas, cada dispositivo contado uma vez); marca das mudanças bruscas em uso, temperatura, frequência, carga, potência, ventoinhas, FPS, rede e ping, visível por até 10 min depois de normalizar (`brusco.py`, só visual, não altera N0/N1/N2); refrigeração numa linha (SQUAMA INF e LAT são a mesma leitura); sistema compacto e registro das últimas mudanças bruscas. As variantes diferem no lugar do total, no formato do registro e na forma da marca. `construir/matriz_previas.py --deltas` desenha as seis.
+- Ping: verde até 20 ms, âmbar até 100 ms, vermelho acima (padrão, `config.exemplo.yaml` e `mgp_detect.py`; histerese de 5 ms). Na demonstração Crítico, o ping de 34 ms passa a contar como aviso.
+- Discos: o coletor guarda o dispositivo de cada disco, para o total não contar duas vezes um disco que também está numa baia.
+- Autoteste: a lista de estilos mantém `"pcb"` por último, como o construtor dos ZIPs espera.
+- `docs/brainstorm/`: as 12 propostas da v2.0.0 e as 6 variantes do DELTA guardadas como brainstorm, com imagens.
+- 12 propostas de desenho para a v2.0.0 (mesma paleta, mesmos dados): `v2-concreto` (brutalista), `v2-silencio` (minimalista), `v2-hud` (sci-fi), `v2-root` (hacking), `v2-dossie` (espionagem), `v2-vital` (UTI), `v2-cockpit` (cockpit), `v2-metro` (metrô), `v2-anunciador` (sala de controle), `v2-8bits` (arcade), `v2-osciloscopio` (laboratório) e `v2-grade` (suíço). Base comum em `estilos/v2_base.py`. Não entram nos ZIPs. `construir/matriz_previas.py --v2` desenha as 12.
 ## [1.7.0] - 07/11/2026 19:42 (-03)
 
 - Quarto pacote, `Gamma-Delta-v1.7.0.zip`, e `./instalar-gamma.sh --versao delta` (também no menu do instalador e em `construir/aplicar-na-tela.sh delta`).

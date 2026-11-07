@@ -55,6 +55,16 @@ cd <turing> && .venv/bin/python3 tools/mgp_selftest.py
 
 Resultados de referência da v1.6.0: autoteste 135 de 135 no repositório inteiro e 82 de 82 em cada ZIP. No repositório inteiro, o estilo experimental `pcb` acusa "métricas omitidas" (ele não é entregue).
 
+## Matriz de prévias
+
+Toda modificação é mostrada ao Lucas como uma matriz em PNG: as 3 versões (ALPHA, BETA, GAMMA) nas colunas e os 3 estados (normal, atenção, crítico) nas linhas, desenhadas com o código atual de `pacote/`. A ferramenta também confere limites, sobreposição de textos, glifos e cobertura de métricas de cada quadro e sai com código 1 se houver problema.
+
+```bash
+python3 -I construir/matriz_previas.py previas/matriz.png ~/turing-smart-screen-linux
+```
+
+O segundo argumento é uma cópia do Turing Smart Screen, usada só pelas fontes de `res/fonts`. Requer Pillow e psutil. A pasta `previas/` fica fora do Git.
+
 ## Gerar os ZIPs
 
 ```bash

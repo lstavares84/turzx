@@ -19,6 +19,7 @@ Este repositório é o GAMMA TUS-35, tema de monitoramento para a tela USB TURZX
 ## Regras de trabalho
 
 - Não inventar fatos sobre o hardware. Faltando informação, pedir a saída de um comando somente leitura.
+- Mostrar toda modificação visual ou de código do tema na matriz de prévias em PNG (3 versões x 3 estados), gerada por `construir/matriz_previas.py`.
 - Seguir os critérios de pronto de [docs/desenvolvimento.md](docs/desenvolvimento.md): autoteste verde, prévias sem problema de layout, instalação do zero com usuário comum, SemVer e CHANGELOG atualizados.
 - Pacotes enxutos: nada que não seja essencial entra nos ZIPs.
 - ZIPs são artefatos de lançamento, não vão para o Git.

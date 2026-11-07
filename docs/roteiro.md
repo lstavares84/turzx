@@ -23,7 +23,7 @@ Pendências em ordem de prioridade. Os itens marcados com ⚠️ exigem ação d
 7. Reescrever ou remover `construir-zips.sh` (substituído por `construir/construir_zips.py`) e adaptar `publicar-no-github.sh` à estrutura atual: uma pasta de projeto, SemVer e ZIPs como artefatos de Release. Atualizar o `pacote/README.md`, que ainda descreve as versões 1.3.0 e anteriores.
 8. Decidir se os estilos experimentais (sonar, raio-x, uv, n3, faixa e outros), as variantes antigas do GAMMA GAMMA (colmeia, mini, painel), se o GAMMA DELTA substitui o GAMMA GAMMA nos ZIPs, o destino da variante coluna e o `pcb` (que tem erros de cobertura de métricas) serão arquivados ou removidos.
 9. Revisar redundâncias: taxas de ETH repetidas, SSD° no favo do BETA e na linha do disco, e o CORE duplicando a escala N0/N1/N2.
-10. Os ZIPs 1.6.0 já entregues têm um travessão residual e invisível (texto interno do campo `gpu_fan_rpm`, que não aparece na tela) em `viewmodel.py` e `mgp_selftest.py`. Já está corrigido neste fonte; sai na próxima versão PATCH.
+10. Resolvido na 1.7.0: os ZIPs 1.6.0 tinham um travessão residual e invisível (texto interno do campo `gpu_fan_rpm`, que não aparece na tela) em `viewmodel.py` e `mgp_selftest.py`. Já está corrigido neste fonte; sai na próxima versão PATCH.
 
 ## Qualidade
 

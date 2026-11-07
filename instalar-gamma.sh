@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # GAMMA TUS-35 | instalador automático | versão 1.0.0 | 02/11/2026 19:15 (-03) | criação original (Claude, para Lucas Tavares)
+# histórico: 1.7.0 07/11/2026 19:42 versão delta (GAMMA DELTA)
 # histórico: 1.5.0 07/11/2026 14:25 dica para conferir a numeração das baias do TerraMaster
 # histórico: 1.4.0 02/11/2026 22:46 versões alpha, beta e gamma (nomes antigos continuam valendo)
 # histórico: 1.3.0 02/11/2026 22:40 módulo drivetemp automático (temperatura dos HDDs)
@@ -18,6 +19,7 @@
 #   ./instalar-gamma.sh --versao alpha          GAMMA ALPHA (ex SENTINELA: escala N0/N1/N2 sem tarja, percentuais)
 #   ./instalar-gamma.sh --versao beta           GAMMA BETA (ex DOSÍMETRO: percentuais entre parênteses, infos à esquerda)
 #   ./instalar-gamma.sh --versao gamma          GAMMA GAMMA (7 colmeias de resumo e painel numérico por grupo)
+#   ./instalar-gamma.sh --versao delta          GAMMA DELTA (GAMMA GAMMA com gráficos de 24 h)
 #   ./instalar-gamma.sh --mangohud              também configura o FPS real (MangoHud)
 #   ./instalar-gamma.sh --invertido | --normal  gira a imagem 180 graus (ou não)
 #   ./instalar-gamma.sh --dir CAMINHO           pasta do Turing (padrão ~/turing-smart-screen-linux)
@@ -51,7 +53,8 @@ while [[ $# -gt 0 ]]; do
                 alpha|sentinela|esquerda) ESTILO="gamma-alpha" ;;
                 beta|dosimetro|dosímetro|compacto) ESTILO="gamma-beta" ;;
                 gamma) ESTILO="gamma-gamma" ;;
-                *) die "--versao aceita: alpha, beta ou gamma (sentinela, dosimetro, esquerda e compacto ainda funcionam)" ;;
+                delta) ESTILO="gamma-delta" ;;
+                *) die "--versao aceita: alpha, beta, gamma ou delta (sentinela, dosimetro, esquerda e compacto ainda funcionam)" ;;
               esac; shift ;;
     --estilo) ESTILO="${2:-}"; shift ;;
     --dir) DIR="${2%/}"; shift ;;
@@ -83,8 +86,9 @@ if [[ -z "$ESTILO" ]]; then
     echo "  1) ALPHA  escala N0/N1/N2 sem tarja, com brilho no nome"
     echo "  2) BETA   percentuais entre parênteses e informações à esquerda"
     echo "  3) GAMMA  7 colmeias de resumo (CORE no centro) e painel numérico por grupo"
+    echo "  4) DELTA  o GAMMA com gráficos de 24 h (temperatura, VRAM e RAM, rede)"
     read -r -p "Número (Enter = 3): " n
-    case "$n" in 1) ESTILO="gamma-alpha" ;; 2) ESTILO="gamma-beta" ;; *) ESTILO="gamma-gamma" ;; esac
+    case "$n" in 1) ESTILO="gamma-alpha" ;; 2) ESTILO="gamma-beta" ;; 4) ESTILO="gamma-delta" ;; *) ESTILO="gamma-gamma" ;; esac
   else
     ESTILO="gamma-gamma"
   fi

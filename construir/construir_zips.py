@@ -1,14 +1,16 @@
-# GAMMA | construir/construir_zips.py | versão 1.0.0 | 07/11/2026 14:30 (-03) | criação original (Claude, para Lucas Tavares)
+# GAMMA | construir/construir_zips.py | versão 1.1.0 | 07/11/2026 19:42 (-03) | criação original (Claude, para Lucas Tavares)
+# histórico: 1.1.0 07/11/2026 19:42 versão 1.7.0 e o quarto pacote, GAMMA DELTA
 # Monta os ZIPs enxutos (um por estilo) a partir de pacote/. Uso, na raiz do repositório:
-#   python3 -I construir/construir_zips.py SAIDA 1.6.0:Alpha 1.6.0:Beta 1.6.0:Gamma
+#   python3 -I construir/construir_zips.py SAIDA 1.7.0:Alpha 1.7.0:Beta 1.7.0:Gamma 1.7.0:Delta
 # Gera SAIDA/Gamma-<Nome>-v<versão>/ e o ZIP correspondente (permissões preservadas, instalador executável).
 # Para uma nova versão, adicione uma linha em V (e uma entrada em ENT, o histórico de versões).
 import os, re, shutil, stat, sys, time, zipfile
 from pathlib import Path
 SRC=str(Path(__file__).resolve().parent.parent); OUT=sys.argv[1]
-V={"1.6.0:Alpha":("gamma-alpha","GAMMA ALPHA","Alpha",["gamma-n3-esq","gamma-sentinela"],"escala N0/N1/N2 sem tarja, percentuais, bomba, ventoinhas, temperaturas e selo de versão na tela (ex GAMMA SENTINELA)"),
-   "1.6.0:Beta":("gamma-beta","GAMMA BETA","Beta",["gamma-n3-compacto","gamma-dosimetro"],"percentuais entre parênteses, bomba, ventoinhas, temperaturas, 4 baias do TerraMaster e selo de versão na tela (ex GAMMA DOSÍMETRO)"),
-   "1.6.0:Gamma":("gamma-gamma","GAMMA GAMMA","Gamma",["gamma-gamma-fronteira"],"7 colmeias de resumo e painel numérico por grupo, com temperatura dos discos, 4 baias do TerraMaster e selo de versão na tela")}
+V={"1.7.0:Alpha":("gamma-alpha","GAMMA ALPHA","Alpha",["gamma-n3-esq","gamma-sentinela"],"escala N0/N1/N2 sem tarja, percentuais, bomba, ventoinhas, temperaturas e selo de versão na tela (ex GAMMA SENTINELA)"),
+   "1.7.0:Beta":("gamma-beta","GAMMA BETA","Beta",["gamma-n3-compacto","gamma-dosimetro"],"percentuais entre parênteses, bomba, ventoinhas, temperaturas, 4 baias do TerraMaster e selo de versão na tela (ex GAMMA DOSÍMETRO)"),
+   "1.7.0:Gamma":("gamma-gamma","GAMMA GAMMA","Gamma",["gamma-gamma-fronteira"],"7 colmeias de resumo e painel numérico por grupo, com temperatura dos discos, 4 baias do TerraMaster e selo de versão na tela"),
+   "1.7.0:Delta":("gamma-delta","GAMMA DELTA","Delta",[],"GAMMA GAMMA com gráficos de 24 h (temperatura de CPU e GPU, VRAM com RAM, rede) e o pico de cada um, uso das baias do TerraMaster e colmeia à direita")}
 KEEP={"__init__.py","base.py","reator.py","alerta.py","reator_gamma.py","reator_grupos.py"}
 def sub(p,a,b):
     s=open(p,encoding="utf-8").read(); assert a in s,(p,a[:40]); open(p,"w",encoding="utf-8").write(s.replace(a,b,1))
@@ -21,8 +23,8 @@ for chave,(est,tit,nome,antigo,desc) in V.items():
     open(f"{R}/sensors/matrixgreenpro/versao.py","w",encoding="utf-8").write(f'# MATRIX GREEN PRO | versao.py | versão {ver} | {time.strftime("%d/%m/%Y %H:%M")} (-03) | gerado pelo construtor dos ZIPs\nVERSAO = "{ver}"\n')
     E=f"{R}/sensors/matrixgreenpro/estilos"; mod=est.replace("-","_")
     for f in os.listdir(E):
-        if f.endswith(".py") and f not in KEEP and f!=f"reator_{mod}.py": os.remove(f"{E}/{f}")
-    if est!="gamma-gamma": os.remove(f"{E}/reator_grupos.py")
+        if f.endswith(".py") and f not in KEEP and f!=f"reator_{mod}.py" and not (est=="gamma-delta" and f=="graficos.py"): os.remove(f"{E}/{f}")
+    if est not in ("gamma-gamma","gamma-delta"): os.remove(f"{E}/reator_grupos.py")
     s=open(f"{E}/__init__.py",encoding="utf-8").read()
     i=s.index("ESTILOS = {"); j=s.index("def renderer")
     s=s[:i]+f'''ESTILOS = {{
@@ -39,7 +41,7 @@ ALIASES = {{"uranio": "gamma", "urânio": "gamma"{"".join(f", {chr(34)}{a}{chr(3
     T=f"{R}/tools"
     p=f"{T}/mgp_selftest.py"; s=open(p,encoding="utf-8").read()
     s=re.sub(r'for nome in \("matrix", "gamma".*?"pcb"\):',f'for nome in ("matrix", "gamma", "{est}"):',s,flags=re.S)
-    cond=" and ".join(f'renderer("{a}")[0] == "{est}"' for a in antigo)
+    cond=" and ".join(f'renderer("{a}")[0] == "{est}"' for a in antigo) or f'renderer("{est}")[0] == "{est}"'
     s=re.sub(r'    check\("apelidos antigos abrem os novos estilos".*?(?=\n    key, _ = renderer)',f'    check("apelidos antigos abrem o estilo atual", {cond})',s,flags=re.S)
     s=s.replace('os.environ["MGP_ESTILO"] = "pcb"',f'os.environ["MGP_ESTILO"] = "{est}"').replace('eng2.estilo == "pcb"',f'eng2.estilo == "{est}"').replace("motor real com estilo pcb",f"motor real com estilo {est}")
     open(p,"w",encoding="utf-8").write(s)
@@ -69,7 +71,8 @@ Detalhes técnicos: `README-pacote.md`.
 
 Autoria: criação original de Claude para Lucas Tavares. Fontes JetBrains Mono e Roboto (OFL). Base: turing-smart-screen-python (GPL-3.0).
 """)
-    ENT=[("1.6.0","07/11/2026 14:20","Selo no canto superior direito da tela com o estilo (ALPHA, BETA ou GAMMA) e a versão do pacote, por exemplo BETA v1.6.0. A versão vem do arquivo VERSION do lançamento."),
+    ENT=[("1.7.0","07/11/2026 19:42","Novo estilo GAMMA DELTA (pacote Gamma-Delta, --versao delta): o GAMMA GAMMA com gráficos de 24 h no alto (temperatura de CPU e GPU, VRAM com RAM, rede com download e upload), o pico de 24 h de cada série marcado por um ponto, baias do TerraMaster com ocupado, total e percentual, colmeia à direita e rodapé sem a linha do sistema e sem a idade do clima. Histórico de 24 h gravado em ~/.local/state/matrixgreenpro/historico.json. Removido o travessão residual do texto interno do campo gpu_fan_rpm."),
+         ("1.6.0","07/11/2026 14:20","Selo no canto superior direito da tela com o estilo (ALPHA, BETA ou GAMMA) e a versão do pacote, por exemplo BETA v1.6.0. A versão vem do arquivo VERSION do lançamento."),
          ("1.5.0","07/11/2026 14:30","Leitura das 4 baias do TerraMaster (DAS USB): por baia, capacidade e estado (montado, desmontado ou livre); GAMMA BETA mostra 2x2 no rodapé e GAMMA GAMMA ganha o grupo TERRAMASTER. Títulos de grupo do GAMMA GAMMA passam a levar dados-chave (LOAD, FPS e FAN, TEMP da RAM, PING). Ferramenta tools/mgp_baias.py para conferir a numeração."),
          ("1.4.0","02/11/2026 22:50","Nomes ALPHA (ex SENTINELA), BETA (ex DOSÍMETRO) e GAMMA (novo: 7 colmeias de resumo com CORE no centro e painel numérico por grupo). Temperatura de cada disco (HDD pelo módulo drivetemp, NVMe direto) com limites e alerta; o instalador carrega o drivetemp. Instalador com --versao alpha, beta ou gamma (nomes antigos continuam valendo)."),
          ("1.3.0","02/11/2026 21:50","Temperaturas de PLACA, RAM e SSD nas células (no lugar de LOAD, TOT W e COLETA, que já aparecem nas linhas); RAM e SSD com limites e alerta. GAMMA SENTINELA ganha a bomba e as ventoinhas."),

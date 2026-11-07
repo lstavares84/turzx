@@ -1,4 +1,4 @@
-<!-- README | GAMMA TUS-35 | versão 2.0.0 | 07/11/2026 14:55 (-03) | criação original (Claude, para Lucas Tavares) -->
+<!-- README | GAMMA TUS-35 | versão 2.1.0 | 07/11/2026 19:42 (-03) | criação original (Claude, para Lucas Tavares) -->
 <!-- histórico: 1.0.0 02/11/2026 19:20 primeira página (SENTINELA e DOSÍMETRO) -->
 
 <div align="center">
@@ -9,7 +9,7 @@
 
 Verde fluorescente, favo de hexágonos e brilho: CPU, GPU, RAM, discos, ventoinhas, bomba do water cooler, rede, clima e o gabinete de discos externo, tudo numa tela vertical de 320x480 pixels.
 
-![versão](https://img.shields.io/badge/vers%C3%A3o-1.6.0-78ff5a?style=flat-square&labelColor=030a04)
+![versão](https://img.shields.io/badge/vers%C3%A3o-1.7.0-78ff5a?style=flat-square&labelColor=030a04)
 ![Debian 13](https://img.shields.io/badge/Debian-13-78ff5a?style=flat-square&labelColor=030a04)
 ![Python](https://img.shields.io/badge/Python-3-78ff5a?style=flat-square&labelColor=030a04)
 ![licença](https://img.shields.io/badge/licen%C3%A7a-GPL--3.0-78ff5a?style=flat-square&labelColor=030a04)
@@ -28,16 +28,16 @@ O GAMMA transforma uma tela USB barata de 3,5" (TURZX / Turing Smart Screen TUS-
 
 A ideia central é que **a tela diga em um segundo se está tudo bem**. Cada número tem cor de saúde (verde, âmbar, vermelho), e um indicador geral no topo resume o pior estado do sistema em três níveis: **N0 NORMAL**, **N1 AVISO** e **N2 ALERTA**, com o crítico piscando.
 
-## Os três estilos
+## Os estilos
 
 | | GAMMA ALPHA | GAMMA BETA | GAMMA GAMMA |
 |---|---|---|---|
 | Ideia | Favo de 19 hexágonos com todos os números e linhas de texto abaixo | Igual ao ALPHA, mais compacto e com o gabinete de discos | Layout por grupos: 7 hexágonos de resumo e painel numérico |
 | Destaque | Escala N0/N1/N2, percentuais, bomba e ventoinhas | Percentuais entre parênteses, DISP, LIVRE e LIM junto do uso, 4 baias do TerraMaster em 2x2 | CORE no centro, estado OK, ATEN ou CRIT por grupo, temperatura de cada disco, grupo TERRAMASTER |
 | Nome antigo | SENTINELA | DOSÍMETRO | (novo) |
-| Pacote | `Gamma-Alpha-v1.6.0.zip` | `Gamma-Beta-v1.6.0.zip` | `Gamma-Gamma-v1.6.0.zip` |
+| Pacote | `Gamma-Alpha-v1.7.0.zip` | `Gamma-Beta-v1.7.0.zip` | `Gamma-Gamma-v1.7.0.zip` |
 
-O **GAMMA GAMMA** é o estilo mais recente e o recomendado. Detalhes de cada um em [docs/estilos.md](docs/estilos.md).
+O **GAMMA DELTA** (`Gamma-Delta-v1.7.0.zip`, `--versao delta`) é o mais novo: o GAMMA GAMMA com gráficos de 24 h no alto (temperatura de CPU e GPU, VRAM com RAM, rede com download e upload) e o pico de cada um, uso das baias do TerraMaster e colmeia à direita. Detalhes de cada um em [docs/estilos.md](docs/estilos.md).
 
 ## O que aparece na tela
 
@@ -55,7 +55,7 @@ O **GAMMA GAMMA** é o estilo mais recente e o recomendado. Detalhes de cada um 
 ⚠️ Num Debian 13 (ou derivado) com a tela conectada, como usuário comum (nunca com `sudo`):
 
 ```bash
-unzip Gamma-Gamma-v1.6.0.zip && cd Gamma-Gamma-v1.6.0 && ./instalar-gamma.sh
+unzip Gamma-Gamma-v1.7.0.zip && cd Gamma-Gamma-v1.7.0 && ./instalar-gamma.sh
 ```
 
 O instalador faz tudo em sequência: dependências, permissão da porta serial (grupo `dialout`), download do Turing Smart Screen, drivers de sensores (`nct6775` e `drivetemp`), serviço systemd de usuário e o tema. Para instalar direto deste repositório, sem ZIP:
@@ -83,7 +83,7 @@ Cada coletor (CPU, GPU, discos, rede, clima...) roda isolado: se um falhar, os o
 
 | Documento | Para quem | Conteúdo |
 |---|---|---|
-| [Estilos](docs/estilos.md) | quem vai usar | os três estilos, cores, estados e o que cada área mostra |
+| [Estilos](docs/estilos.md) | quem vai usar | os quatro estilos, cores, estados e o que cada área mostra |
 | [Instalação](docs/instalacao.md) | quem vai usar | instalador, opções, diagnóstico e restauração |
 | [Configuração](docs/configuracao.md) | quem vai ajustar | `config.yaml`, limites de alerta, ventoinhas, discos e baias |
 | [Hardware de referência](docs/hardware-de-referencia.md) | quem tem máquina parecida | o PC em que o GAMMA foi feito e como cada sensor é lido |
@@ -95,7 +95,7 @@ Cada coletor (CPU, GPU, discos, rede, clima...) roda isolado: se um falhar, os o
 
 ## Estado do projeto
 
-Versão **1.6.0** (07/11/2026). O código foi testado em ambiente de desenvolvimento: autoteste com 135 de 135 verificações no repositório e 82 de 82 em cada pacote, e prévias sem nenhum problema de layout. **Ainda falta validar no hardware real** a tela física, o mapeamento das ventoinhas e a numeração das baias. Veja o [roteiro](docs/roteiro.md).
+Versão **1.7.0** (07/11/2026). O código foi testado em ambiente de desenvolvimento: autoteste com 135 de 135 verificações no repositório e 82 de 82 em cada pacote, e prévias sem nenhum problema de layout. **Ainda falta validar no hardware real** a tela física, o mapeamento das ventoinhas e a numeração das baias. Veja o [roteiro](docs/roteiro.md).
 
 ## Créditos e licença
 

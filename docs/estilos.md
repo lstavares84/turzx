@@ -3,7 +3,7 @@
 
 # Estilos
 
-O GAMMA tem três estilos de entrega. Os três usam os mesmos dados, as mesmas regras de saúde e a mesma coleta: muda só o desenho. Todos mostram, no canto superior direito, o selo do estilo e da versão (por exemplo `GAMMA v1.6.0`), com o nome em verde-claro e a versão em cinza.
+O GAMMA tem quatro estilos de entrega. Todos usam os mesmos dados, as mesmas regras de saúde e a mesma coleta: muda só o desenho. Todos mostram, no canto superior direito, o selo do estilo e da versão (por exemplo `GAMMA v1.6.0`), com o nome em verde-claro e a versão em cinza.
 
 [Voltar ao README](../README.md)
 
@@ -77,7 +77,7 @@ Cores das baias: montado em verde, desmontado em branco, livre em cinza.
 
 ## GAMMA DELTA (`gamma-delta`), o mais novo
 
-O GAMMA GAMMA com quatro ajustes e três gráficos de 24 h. Ainda não é entregue nos ZIPs.
+O GAMMA GAMMA com quatro ajustes e três gráficos de 24 h. Pacote `Gamma-Delta-v1.7.0.zip`, instalado com `--versao delta`.
 
 - **TERRAMASTER com uso.** Baia montada mostra ocupado/total e percentual, como na seção DISCOS: `1 6.24/11.99TB (52%)`. A cor do percentual segue os limites dos discos (85% e 95%, 50 GB e 10 GB livres), mas só como informação: não entra na saúde. Por falta de largura, a palavra MONTADO sai da baia que mostra o uso. Baia desmontada ou livre continua como antes.
 - **Rodapé mais curto.** Sem a linha do sistema operacional (`DEBIAN 13 TRIXIE`) e sem a idade do clima (`OPEN-METEO HH:MM`).

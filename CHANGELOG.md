@@ -3,10 +3,13 @@
 
 # Histórico de versões
 
-Segue [SemVer](https://semver.org/lang/pt-BR/) (MAJOR.MINOR.PATCH). Os três estilos (ALPHA, BETA e GAMMA) saem juntos, na mesma versão.
+Segue [SemVer](https://semver.org/lang/pt-BR/) (MAJOR.MINOR.PATCH). Os estilos (ALPHA, BETA, GAMMA e DELTA) saem juntos, na mesma versão.
 
 ## [Não lançado]
 
+## [1.7.0] - 07/11/2026 19:42 (-03)
+
+- Quarto pacote, `Gamma-Delta-v1.7.0.zip`, e `./instalar-gamma.sh --versao delta` (também no menu do instalador e em `construir/aplicar-na-tela.sh delta`).
 - Gráficos de 24 h no GAMMA DELTA: temperatura de CPU e GPU no alto; VRAM com RAM e rede (download e upload) abaixo da escala. O pico de 24 h de cada série aparece como um ponto no gráfico, com o valor ao lado; VRAM e RAM em GB. Histórico com média e máximo por intervalo em `historico.py`, gravado em `~/.local/state/matrixgreenpro/historico.json`.
 - Novo estilo GAMMA DELTA (`gamma-delta`), derivado do GAMMA GAMMA: o TERRAMASTER mostra ocupado, total e percentual das baias montadas (como em DISCOS); somem a linha do sistema operacional e a idade do clima; o painel de texto desce 14 px e a colmeia fica alinhada à direita. Ainda não entra nos ZIPs.
 - Baias do TerraMaster: o coletor passa a ler o uso das partições montadas (ocupado e total), e o modelo de visão gera o texto e o percentual. A cor do percentual segue os limites dos discos, mas não entra na saúde nem nos alertas.

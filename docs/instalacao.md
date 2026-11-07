@@ -16,7 +16,7 @@
 ⚠️ Use `unzip`, que preserva a permissão de execução do instalador:
 
 ```bash
-unzip Gamma-Gamma-v1.6.0.zip && cd Gamma-Gamma-v1.6.0 && ./instalar-gamma.sh
+unzip Gamma-Gamma-v1.7.0.zip && cd Gamma-Gamma-v1.7.0 && ./instalar-gamma.sh
 ```
 
 Troque `Gamma` por `Alpha` ou `Beta` para os outros estilos. Cada ZIP já sabe qual é o seu estilo (arquivo `ESTILO_PADRAO`).
@@ -44,7 +44,7 @@ Tudo é registrado com data e hora em `~/.local/state/matrixgreenpro/instalar-ga
 
 | Opção | Efeito |
 |---|---|
-| `--versao alpha\|beta\|gamma` | escolhe o estilo (aceita também `sentinela`, `dosimetro`, `esquerda`, `compacto`) |
+| `--versao alpha\|beta\|gamma\|delta` | escolhe o estilo (aceita também `sentinela`, `dosimetro`, `esquerda`, `compacto`) |
 | `--invertido` / `--normal` | gira a imagem 180 graus, ou desfaz |
 | `--mangohud` | configura o MangoHud para o FPS real dos jogos |
 | `--sem-apt` | não instala pacotes do sistema |

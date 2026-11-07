@@ -72,7 +72,7 @@ Numa sessão que roda no próprio PC, `construir/aplicar-na-tela.sh gamma` monta
 ## Gerar os ZIPs
 
 ```bash
-python3 -I construir/construir_zips.py SAIDA 1.6.0:Alpha 1.6.0:Beta 1.6.0:Gamma
+python3 -I construir/construir_zips.py SAIDA 1.7.0:Alpha 1.7.0:Beta 1.7.0:Gamma 1.7.0:Delta
 ```
 
 Para cada estilo, o construtor cria `SAIDA/Gamma-<Nome>-v<versão>/` e o ZIP correspondente. Ele copia `pacote/`, remove os estilos não usados, reescreve `ESTILOS` e `ALIASES`, ajusta o autoteste e a prévia ao estilo, grava `versao.py`, `VERSION`, `ESTILO_PADRAO`, `LEIA-ME.md` e `CHANGELOG.md`, copia o instalador e preserva as permissões. Contagem atual: Alpha e Beta com 35 arquivos, Gamma com 36.
@@ -89,7 +89,7 @@ Para uma nova versão, adicione a linha em `V` e a entrada em `ENT` dentro de `c
 - **MINOR:** recurso novo compatível.
 - **PATCH:** correção ou ajuste.
 
-Os três estilos saem juntos, na mesma versão.
+Os quatro estilos saem juntos, na mesma versão.
 
 ## Publicação
 

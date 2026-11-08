@@ -38,6 +38,7 @@ ESTILOS = {
     "gamma-gamma-coluna": ("GAMMA GAMMA COLUNA", "reator_gamma_gamma_coluna"),   # estudo: hexágonos em coluna
     "gamma-delta": ("GAMMA DELTA", "reator_gamma_delta"),                  # o antigo estudo DELTA 5B (apelido gamma-delta-5b)
     # variantes do DELTA: total de TB, mudanças bruscas, refrigeração numa linha e registro (reator_delta2.py)
+    "gamma-epsilon": ("GAMMA EPSILON (protótipo)", "reator_gamma_epsilon"),   # colmeias por grupo ao redor do CORE
     "gamma-delta-1": ("GAMMA DELTA 1", "reator_gamma_delta_v1"),
     "gamma-delta-2": ("GAMMA DELTA 2", "reator_gamma_delta_v2"),
     "gamma-delta-3": ("GAMMA DELTA 3", "reator_gamma_delta_v3"),

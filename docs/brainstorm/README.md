@@ -1,4 +1,5 @@
-<!-- docs/brainstorm/README.md | versão 1.0.0 | 07/11/2026 20:26 (-03) | criação original (Claude, para Lucas Tavares). Fonte: estilos v2-* e gamma-delta-1 a 6 do repositório. -->
+<!-- docs/brainstorm/README.md | versão 1.1.0 | 08/11/2026 12:35 (-03) | criação original (Claude, para Lucas Tavares). Fonte: estilos v2-*, gamma-delta-1 a 6 e gamma-epsilon do repositório. -->
+<!-- histórico: 1.1.0 08/11/2026 12:35 protótipo GAMMA EPSILON -->
 
 # Brainstorm para novas versões
 
@@ -36,3 +37,13 @@ Total de TB de todos os HDs, marca de mudanças bruscas (âmbar por até 10 min 
 ![As 6 variantes no estado atenção](deltas-atencao.png)
 
 ![As 6 variantes no estado crítico](deltas-critico.png)
+
+## GAMMA EPSILON: protótipo parado
+
+Pedido de 08/11/2026: todos os dados do DELTA (menos os gráficos) como células de colmeia em volta de um CORE grande, agrupadas por categoria: CPU, GPU, RAM, DISCOS, TERRAMASTER, REFRIGERAÇÃO e REDE. Dentro do grupo, as células ficam a 2 px umas das outras; entre grupos e até o CORE, 2 mm (cerca de 13 px). Em DISCOS e TERRAMASTER, cada disco e cada baia encostam no centro do grupo, com U, T e L do lado de fora. O LOG, o relógio e o clima continuam no rodapé.
+
+Estilo `gamma-epsilon` (`reator_gamma_epsilon.py`, versão 0.6.0). Matriz: `--extra epsilon`. As células são posicionadas sozinhas (`_empacotar`); os centros dos grupos (`LUGARES`) saíram de uma busca que exige caber tudo nos 3 estados, com 1 ou 4 baias montadas. Se algo não couber, o quadro mostra "não coube" no alto.
+
+Decisão do Lucas: fica como protótipo, não está pronto para lançamento e o desenvolvimento parou por ora. Pendências conhecidas: a célula DISCO fica perto da borda de baixo do grupo, a leitura exige atenção (muitas células pequenas, fontes de 7 e 8 px) e o encaixe depende do número de discos e baias.
+
+![GAMMA EPSILON nos estados normal, atenção e crítico](epsilon-prototipo.png)

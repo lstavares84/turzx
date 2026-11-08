@@ -1,4 +1,5 @@
-<!-- docs/estilos.md | versão 2.0.0 | 07/11/2026 22:24 (-03) | criação original (Claude, para Lucas Tavares). Fonte: código da v1.8.2 (estilos/, reator_gamma.py, alerts.py) e histórico do projeto. -->
+<!-- docs/estilos.md | versão 2.1.0 | 08/11/2026 12:35 (-03) | criação original (Claude, para Lucas Tavares). Fonte: código da v1.8.2 (estilos/, reator_gamma.py, alerts.py) e histórico do projeto. -->
+<!-- histórico: 2.1.0 08/11/2026 12:35 protótipo GAMMA EPSILON nos estudos -->
 <!-- histórico: 2.0.0 07/11/2026 22:24 revisão para a v1.8.2: paleta com códigos, GAMMA DELTA reescrito, estudos atuais -->
 <!-- histórico: 1.3.0 07/11/2026 19:40 gráficos de 24 h; 1.2.0 07/11/2026 19:00 GAMMA DELTA; 1.1.0 07/11/2026 18:45 variante COLUNA -->
 
@@ -123,6 +124,7 @@ Guardados como brainstorm, com imagens em [docs/brainstorm](brainstorm/README.md
 
 - **Propostas da v2.0.0:** `v2-concreto` (brutalista), `v2-silencio` (minimalista), `v2-hud` (sci-fi), `v2-root` (hacking), `v2-dossie` (espionagem), `v2-vital` (UTI), `v2-cockpit` (cockpit), `v2-metro` (metrô), `v2-anunciador` (sala de controle), `v2-8bits` (arcade), `v2-osciloscopio` (laboratório) e `v2-grade` (suíço).
 - **Variantes do DELTA:** `gamma-delta-1` a `gamma-delta-6`, `gamma-delta-5a` e `gamma-delta-5c` (formas de mostrar o total dos discos, o registro e as marcas).
+- **Protótipo GAMMA EPSILON:** `gamma-epsilon`, tudo em colmeia em volta do CORE, agrupado por categoria (parado; veja o brainstorm).
 - **Variantes do GAMMA GAMMA:** `gamma-gamma-colmeia`, `gamma-gamma-mini`, `gamma-gamma-painel` e `gamma-gamma-coluna` (hexágonos em coluna, ao lado de cada grupo).
 - **Legados:** `matrix` (minimalista, usado como reserva), `gamma` (o favo original), `gamma-sonar`, `gamma-raiox`, `gamma-uv`, `gamma-escala`, `gamma-barra`, `gamma-banner`, `gamma-faixa`, `gamma-n3`, `gamma-n3-abas`, `gamma-n3-linha`, `gamma-n3-eventos` e `pcb` (placa de circuito).
 

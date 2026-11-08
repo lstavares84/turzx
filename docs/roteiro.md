@@ -1,4 +1,5 @@
-<!-- docs/roteiro.md | versão 2.0.0 | 07/11/2026 22:24 (-03) | criação original (Claude, para Lucas Tavares). Fonte: pendências do projeto em 07/11/2026, depois da v1.8.2. -->
+<!-- docs/roteiro.md | versão 2.1.0 | 08/11/2026 12:35 (-03) | criação original (Claude, para Lucas Tavares). Fonte: pendências do projeto em 07/11/2026, depois da v1.8.2. -->
+<!-- histórico: 2.1.0 08/11/2026 12:35 protótipo GAMMA EPSILON nos estudos -->
 <!-- histórico: 2.0.0 07/11/2026 22:24 validações feitas na tela física, drivetemp, LOG em disco, estudos e Releases -->
 
 # Roteiro
@@ -25,7 +26,7 @@ Já validados na tela física (07/11/2026): imagem, selo de versão, sensores de
 ## Organização do repositório
 
 8. Remover `construir-zips.sh` e `publicar-no-github.sh`, substituídos por `construir/construir_zips.py` e `gh release create` (veja o [desenvolvimento](desenvolvimento.md)).
-9. Decidir o destino dos estilos de estudo e legados (propostas v2, variantes do DELTA e do GAMMA GAMMA, sonar, raio-x, uv, n3, faixa, `pcb`): arquivar, remover ou levar adiante na v2.0.0.
+9. Decidir o destino dos estilos de estudo e legados (propostas v2, variantes do DELTA e do GAMMA GAMMA, protótipo EPSILON, sonar, raio-x, uv, n3, faixa, `pcb`): arquivar, remover ou levar adiante na v2.0.0.
 10. Revisar redundâncias: taxas de ETH repetidas, SSD° no favo do BETA e na linha do disco, e o CORE duplicando a escala N0/N1/N2.
 
 ## Qualidade

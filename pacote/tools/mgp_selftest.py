@@ -405,7 +405,7 @@ def main():
     from library.sensors.matrixgreenpro.estilos import renderer
     for nome in ("matrix", "gamma", "gamma-sonar", "gamma-raiox", "gamma-uv", "gamma-escala", "gamma-barra",
                  "gamma-banner", "gamma-faixa", "gamma-n3", "gamma-alpha", "gamma-n3-abas", "gamma-n3-linha",
-                 "gamma-n3-eventos", "gamma-beta", "gamma-gamma-colmeia", "gamma-gamma-mini", "gamma-gamma-painel", "gamma-gamma-coluna", "gamma-delta", "gamma-gamma", "gamma-delta-1", "gamma-delta-2", "gamma-delta-3", "gamma-delta-4", "gamma-delta-5", "gamma-delta-6", "v2-concreto", "v2-silencio", "v2-hud", "v2-root", "v2-dossie", "v2-vital", "v2-cockpit", "v2-metro", "v2-anunciador", "v2-8bits", "v2-osciloscopio", "v2-grade", "gamma-delta-5a", "gamma-delta-5c", "pcb"):   # "pcb" fica por último (o construtor dos ZIPs depende disso)
+                 "gamma-n3-eventos", "gamma-beta", "gamma-gamma-colmeia", "gamma-gamma-mini", "gamma-gamma-painel", "gamma-gamma-coluna", "gamma-delta", "gamma-gamma", "gamma-delta-1", "gamma-delta-2", "gamma-delta-3", "gamma-delta-4", "gamma-delta-5", "gamma-delta-6", "v2-concreto", "v2-silencio", "v2-hud", "v2-root", "v2-dossie", "v2-vital", "v2-cockpit", "v2-metro", "v2-anunciador", "v2-8bits", "v2-osciloscopio", "v2-grade", "gamma-epsilon", "gamma-delta-5a", "gamma-delta-5c", "pcb"):   # "pcb" fica por último (o construtor dos ZIPs depende disso)
         for sc in ("normal", "atencao", "critico"):
             key, draw = renderer(nome)
             img = draw(ViewModel(copy.deepcopy(DEFAULTS), (80, 90), (80, 87)).build(panel.demo_snapshot(sc)))

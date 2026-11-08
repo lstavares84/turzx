@@ -1,4 +1,5 @@
-# GAMMA | estilos selecionáveis | versão 1.13.0 | 07/11/2026 20:25 (-03) | 6 variantes do GAMMA DELTA (gamma-delta-1 a 6)
+# GAMMA | estilos selecionáveis | versão 1.14.0 | 07/11/2026 20:35 (-03) | variantes 5A, 5B e 5C do GAMMA DELTA
+# histórico: 1.13.0 07/11/2026 20:25 6 variantes do GAMMA DELTA (gamma-delta-1 a 6)
 # histórico: 1.12.0 07/11/2026 20:00 12 propostas da v2.0.0 (v2-*)
 # histórico: 1.11.0 07/11/2026 19:40 GAMMA DELTA com 3 gráficos de 24 h e pico marcado
 # histórico: 1.10.0 07/11/2026 19:30 opções de pico p1, p2, p3
@@ -42,6 +43,9 @@ ESTILOS = {
     "gamma-delta-4": ("GAMMA DELTA 4", "reator_gamma_delta_v4"),
     "gamma-delta-5": ("GAMMA DELTA 5", "reator_gamma_delta_v5"),
     "gamma-delta-6": ("GAMMA DELTA 6", "reator_gamma_delta_v6"),
+    "gamma-delta-5a": ("GAMMA DELTA 5A", "reator_gamma_delta_v5a"),
+    "gamma-delta-5b": ("GAMMA DELTA 5B", "reator_gamma_delta_v5b"),
+    "gamma-delta-5c": ("GAMMA DELTA 5C", "reator_gamma_delta_v5c"),
     "gamma-gamma": ("GAMMA GAMMA", "reator_gamma_gamma"),                  # 7 colmeias de resumo, CORE no centro
     "gamma-n3-eventos": ("GAMMA N3 EVENTOS", "reator_gamma_n3_eventos"),
     "pcb": ("13-C PLACA DE CIRCUITO", "blueprint_pcb"),

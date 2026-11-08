@@ -1,4 +1,4 @@
-# MATRIX GREEN PRO | versão 2.1.0 | gerado em 31/10/2026 23:22:13 por mgp_detect.py
+# MATRIX GREEN PRO | versão 3.8.0 | 07/11/2026 21:00 (-03) | limites de manuais e do Zabbix (RAM 90/95, discos 80/90)
 # Configuração do painel. Edite à vontade: o instalador nunca sobrescreve
 # este arquivo (use --forcar no mgp_detect.py para regenerar).
 painel:
@@ -24,7 +24,7 @@ fps:
   mangohud_dir: /tmp/mgp-mangohud
   max_age_s: 3.5
 
-ram: {warn: 85, crit: 95}
+ram: {warn: 90, crit: 95}
 
 # Três volumes, identificados por UUID (persistente). Desmontado = OFF.
 discos:
@@ -37,8 +37,8 @@ discos:
   - nome: "4T"
     uuid: ""        # ⚠️ NÃO DETECTADO: preencha com o UUID (lsblk -f)
     montagem: ""
-disco_warn: 85
-disco_crit: 95
+disco_warn: 80
+disco_crit: 90
 disco_livre_warn_gb: 50
 disco_livre_crit_gb: 10
 

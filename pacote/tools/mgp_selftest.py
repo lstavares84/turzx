@@ -83,13 +83,15 @@ def main():
     check("ventoinha do gabinete a 0 RPM quente = CRÍTICO", vm_of(s)["fan_sqt"][1] == CRIT)
     # ---- temperaturas de placa, RAM e SSD
     v = vm_of(base())
-    check("temperaturas: placa informativa e RAM e SSD normais", v["t_placa"] == ("34°C", NEUTRAL) and v["t_ram"][1] == OK and v["t_ssd"][1] == OK)
+    check("temperaturas: placa, RAM e SSD normais", v["t_placa"] == ("34°C", OK) and v["t_ram"][1] == OK and v["t_ssd"][1] == OK)
     s = base(); s["cpu"]["temps"]["ram"]["c"] = 56
-    check("RAM a 56 °C = CRÍTICO (conta no cabeçalho)", vm_of(s)["t_ram"][1] == CRIT and "CRÍTIC" in vm_of(s)["hdr_status"][0])
-    s = base(); s["cpu"]["temps"]["ssd"]["c"] = 72
-    check("SSD a 72 °C = AVISO", vm_of(s)["t_ssd"][1] == WARN)
-    s = base(); s["cpu"]["temps"]["placa"]["c"] = 90
-    check("placa quente não gera alerta (sem limite conhecido)", vm_of(s)["t_placa"][1] == NEUTRAL and vm_of(s)["hdr_status"][1] == OK)
+    check("RAM DDR5 a 56 °C = AVISO (limite alto do SPD5118)", vm_of(s)["t_ram"][1] == WARN)
+    s = base(); s["cpu"]["temps"]["ram"]["c"] = 86
+    check("RAM DDR5 a 86 °C = CRÍTICO (conta no cabeçalho)", vm_of(s)["t_ram"][1] == CRIT and "CRÍTIC" in vm_of(s)["hdr_status"][0])
+    s = base(); s["cpu"]["temps"]["ssd"]["c"] = 82
+    check("NVMe a 82 °C = AVISO, 91 °C = CRÍTICO", vm_of(s)["t_ssd"][1] == WARN and (lambda s2: (s2["cpu"]["temps"]["ssd"].update(c=91), vm_of(s2)["t_ssd"][1])[1])(base()) == CRIT)
+    s = base(); s["cpu"]["temps"]["placa"]["c"] = 72
+    check("placa a 72 °C = AVISO, 81 °C = CRÍTICO", vm_of(s)["t_placa"][1] == WARN and (lambda s2: (s2["cpu"]["temps"]["placa"].update(c=81), vm_of(s2)["t_placa"][1])[1])(base()) == CRIT)
     s = base(); s["cpu"]["temps"]["ssd"] = {"c": None, "visto": True}
     check("SSD que sumiu = perdido (LOST), não é saúde", vm_of(s)["t_ssd"][1] == LOST and vm_of(s)["hdr_status"][1] == OK)
     s = base(); s["cpu"].pop("temps")
@@ -118,8 +120,8 @@ def main():
           v["disks"][1]["use"] == "DESMONTADO" and v["disks"][1]["pct"] is None and v["disks"][1]["lvl"] == WARN)
 
     # ---- temperatura por disco (HDD tem limites próprios; sem leitura não alerta)
-    s = base(); s["disks"][2].update(temp=57.0, hdd=True)
-    check("HDD a 57 °C = CRÍTICO", vm_of(s)["disks"][2]["temp_lvl"] == CRIT)
+    s = base(); s["disks"][2].update(temp=61.0, hdd=True)
+    check("HDD a 61 °C = CRÍTICO (manual: até 60 °C)", vm_of(s)["disks"][2]["temp_lvl"] == CRIT)
     s = base(); s["disks"][1].update(temp=52.0, hdd=True)
     check("HDD a 52 °C = ATENÇÃO", vm_of(s)["disks"][1]["temp_lvl"] == WARN)
     s = base(); s["disks"][0].update(temp=57.0, hdd=False)
@@ -206,6 +208,35 @@ def main():
     check("brusco: marca dura 10 min depois de normalizar", "cpu_util" in mk2 and "cpu_util" not in mk3 and len(rg3) == 1)
     mk4, _ = Brusco().atualizar(sn, now=0)
     check("brusco: primeira leitura não marca nada", not mk4)
+    # ---- filtro de 2 s, limites sustentados (Zabbix), ventoinha lenta e LOG de alertas
+    from library.sensors.matrixgreenpro.alerts import Confirma, Sustentado
+    cf = Confirma(2.0)
+    seq = [cf.update(OK, 0), cf.update(CRIT, 1), cf.update(OK, 1.5), cf.update(CRIT, 2), cf.update(CRIT, 3.9), cf.update(CRIT, 4.1)]
+    check("2 s: pico de leitura não vira alerta; alerta que dura 2 s sobe", seq == [OK, OK, OK, OK, OK, CRIT], str(seq))
+    st = Sustentado(90, 300)
+    check("CPU a 95 % só vira aviso depois de 5 min seguidos",
+          [st.update(95, 0), st.update(95, 299), st.update(95, 300), st.update(50, 301)] == [OK, OK, WARN, OK])
+    vmx = ViewModel(copy.deepcopy(DEFAULTS), (80, 90), (80, 87))
+    s = base(); s["cpu"] = dict(s["cpu"], temp=50); s.pop("demo_alertas", None)   # LOG real, não o da demonstração
+    vmx.build(copy.deepcopy(s), now=100)
+    s["cpu"]["temp"] = 96
+    a = vmx.build(copy.deepcopy(s), now=101)["cpu_temp"][1]
+    b = vmx.build(copy.deepcopy(s), now=103.5)
+    check("modelo de visão: CPU a 96 °C só fica vermelha depois de 2 s", a == OK and b["cpu_temp"][1] == CRIT, str((a, b["cpu_temp"])))
+    check("LOG registra a CPU entrando no vermelho", b["registro"] and b["registro"][0][1].startswith("CPU 96°C VERMELHO") and b["registro"][0][2] == CRIT, str(b["registro"][:1]))
+    s["cpu"]["temp"] = 50
+    c2 = vmx.build(copy.deepcopy(s), now=110)
+    check("LOG registra a volta ao verde", c2["registro"][0][1].startswith("CPU 50°C VERDE"), str(c2["registro"][:1]))
+    s = base(); s["cpu"]["cool"]["sq_tras"] = {"rpm": 450, "visto": True}
+    check("ventoinha girando a 450 RPM = AVISO (abaixo de 600)", vm_of(s)["fan_sqt"][1] == WARN)
+    s = base(); s["gpu"] = dict(s["gpu"], throttle=0x40)
+    check("GPU com redução de clock por hardware = CRÍTICO", vm_of(s)["gpu_mhz"][1] == CRIT)
+    s = base(); s["gpu"] = dict(s["gpu"], throttle=0x4)
+    check("GPU no limite de potência não é alerta", vm_of(s)["gpu_mhz"][1] == NEUTRAL)
+    vml = ViewModel(copy.deepcopy(DEFAULTS), (80, 90), (80, 87))
+    s = base(); vml.build(copy.deepcopy(s))
+    s["net"] = copy.deepcopy(s["net"]); s["net"]["eth"]["speed"] = 100
+    check("Ethernet que caiu de 1 Gb/s para 100 Mb/s = AVISO", vml.build(s)["eth"]["info"][1] == WARN)
     # ---- total de TB: discos + baias montadas, sem contar o mesmo dispositivo duas vezes
     vt = vm_of(base())["total_hd"]
     check("total de TB: 3 discos + baia montada", vt and vt["total"] == "19.0TB" and vt["n"] == 4, str(vt))
@@ -292,7 +323,7 @@ def main():
     check("histerese evita piscar", seq == [OK, WARN, WARN, WARN, WARN, OK, CRIT, CRIT, WARN], str(seq))
 
     # ---- contagem dos cenários demo
-    for sc, exp in (("normal", "● SISTEMA OK"), ("atencao", "▲ 5 AVISOS"), ("critico", "● 3 CRÍTICOS ▲2")):   # ▲2: ping de 34 ms é âmbar (limite de 20 ms)
+    for sc, exp in (("normal", "● SISTEMA OK"), ("atencao", "▲ 5 AVISOS"), ("critico", "● 2 CRÍTICOS ▲3")):   # HDD a 57 °C passou a aviso (crítico a 60 °C)
         got = vm_of(panel.demo_snapshot(sc))["hdr_status"][0]
         check(f"cenário {sc}: '{exp}'", got == exp, got)
 
@@ -342,7 +373,7 @@ def main():
     from library.sensors.matrixgreenpro.estilos import renderer
     for nome in ("matrix", "gamma", "gamma-sonar", "gamma-raiox", "gamma-uv", "gamma-escala", "gamma-barra",
                  "gamma-banner", "gamma-faixa", "gamma-n3", "gamma-alpha", "gamma-n3-abas", "gamma-n3-linha",
-                 "gamma-n3-eventos", "gamma-beta", "gamma-gamma-colmeia", "gamma-gamma-mini", "gamma-gamma-painel", "gamma-gamma-coluna", "gamma-delta", "gamma-gamma", "gamma-delta-1", "gamma-delta-2", "gamma-delta-3", "gamma-delta-4", "gamma-delta-5", "gamma-delta-6", "v2-concreto", "v2-silencio", "v2-hud", "v2-root", "v2-dossie", "v2-vital", "v2-cockpit", "v2-metro", "v2-anunciador", "v2-8bits", "v2-osciloscopio", "v2-grade", "pcb"):   # "pcb" fica por último (o construtor dos ZIPs depende disso)
+                 "gamma-n3-eventos", "gamma-beta", "gamma-gamma-colmeia", "gamma-gamma-mini", "gamma-gamma-painel", "gamma-gamma-coluna", "gamma-delta", "gamma-gamma", "gamma-delta-1", "gamma-delta-2", "gamma-delta-3", "gamma-delta-4", "gamma-delta-5", "gamma-delta-6", "v2-concreto", "v2-silencio", "v2-hud", "v2-root", "v2-dossie", "v2-vital", "v2-cockpit", "v2-metro", "v2-anunciador", "v2-8bits", "v2-osciloscopio", "v2-grade", "gamma-delta-5a", "gamma-delta-5b", "gamma-delta-5c", "pcb"):   # "pcb" fica por último (o construtor dos ZIPs depende disso)
         for sc in ("normal", "atencao", "critico"):
             key, draw = renderer(nome)
             img = draw(ViewModel(copy.deepcopy(DEFAULTS), (80, 90), (80, 87)).build(panel.demo_snapshot(sc)))

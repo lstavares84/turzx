@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# MATRIX GREEN PRO | versão 3.6.1 | 02/11/2026 19:25 (-03) | ESTILO_PADRAO do pacote
+# MATRIX GREEN PRO | versão 3.7.0 | 07/11/2026 20:40 (-03) | estilo conferido pelo registro ESTILOS (aceita gamma-delta-5b e v2-*)
+# histórico: 3.6.1 02/11/2026 19:25 ESTILO_PADRAO do pacote
 # histórico: 3.2.0 02/11/2026 17:45 edição GAMMA: estilo padrão gamma e 3 variantes
 # histórico: 3.1.1 02/11/2026 15:50 edição URÂNIO, estilo padrão uranio
 # histórico: 3.1.0 01/11/2026 11:10 opção --estilo (matrix, uranio, pcb)
@@ -68,8 +69,9 @@ if [[ -z "$ESTILO" ]]; then   # sem --estilo: mantém a escolha já gravada; ins
   [[ "$ESTILO" == "uranio" || -z "$ESTILO" || "$ESTILO" == "matrix" ]] && ESTILO="gamma"
 fi
 case "$ESTILO" in gamma-n3-esq|gamma-sentinela) ESTILO="gamma-alpha" ;; gamma-n3-compacto|gamma-dosimetro) ESTILO="gamma-beta" ;; gamma-gamma-fronteira) ESTILO="gamma-gamma" ;; esac   # nomes antigos
-case "$ESTILO" in matrix|pcb|gamma|gamma-*) ;; *) die "estilo inválido: $ESTILO (use matrix, pcb, gamma ou gamma-NOME; veja o README)" ;; esac
-[[ "$ESTILO" == gamma-* && ! -f "$ROOT/sensors/matrixgreenpro/estilos/reator_${ESTILO//-/_}.py" ]] && die "estilo desconhecido: $ESTILO (veja a lista no README)"
+case "$ESTILO" in matrix|pcb|gamma|gamma-*|v2-*) ;; *) die "estilo inválido: $ESTILO (use matrix, pcb, gamma, gamma-NOME ou v2-NOME; veja o README)" ;; esac
+# o estilo precisa estar registrado em ESTILOS (o nome do arquivo nem sempre segue o nome do estilo)
+[[ "$ESTILO" != matrix ]] && ! grep -q "^ *\"$ESTILO\": (" "$ROOT/sensors/matrixgreenpro/estilos/__init__.py" && die "estilo desconhecido: $ESTILO (veja a lista no README)"
 [[ $EUID -eq 0 ]] && die "não execute como root. Use seu usuário: o programa roda como serviço systemd --user"
 for f in MatrixGreenPro/theme.yaml MatrixGreenPro/background.png sensors/matrixgreenpro/panel.py \
          sensors/sensors_custom_hook.txt tools/mgp_selftest.py; do

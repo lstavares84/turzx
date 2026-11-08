@@ -1,4 +1,5 @@
-# MATRIX GREEN PRO | versão 2.5.0 | 07/11/2026 20:15 (-03) | dispositivo de cada disco (para o total sem duplicar)
+# MATRIX GREEN PRO | versão 2.6.0 | 07/11/2026 21:00 (-03) | motivos de redução de clock da GPU (NVML)
+# histórico: 2.5.0 07/11/2026 20:15 dispositivo de cada disco (para o total sem duplicar)
 # histórico: 2.4.0 07/11/2026 19:00 uso das baias montadas (ocupado, total, percentual)
 # histórico: 2.3.0 02/11/2026 21:50 temperaturas de placa, RAM e SSD (Cpu.temps)
 # histórico: 2.2.0 02/11/2026 21:30 leitura de bomba e ventoinhas por papel (Cpu.cool)
@@ -387,6 +388,12 @@ class Gpu:
                     d["fan_rpm"] = None
             q("power", lambda: nv.nvmlDeviceGetPowerUsage(h) / 1000.0)
             q("power_limit", lambda: nv.nvmlDeviceGetEnforcedPowerLimit(h) / 1000.0)
+            # motivos de redução de clock (bits da NVML: 0x8 HW slowdown, 0x20 SW térmico, 0x40 HW térmico,
+            # 0x80 HW power brake); o nome da função mudou nas versões novas da NVML
+            fz = getattr(nv, "nvmlDeviceGetCurrentClocksEventReasons", None) or \
+                getattr(nv, "nvmlDeviceGetCurrentClocksThrottleReasons", None)
+            if fz:
+                q("throttle", lambda: int(fz(h)))
             return d
         out = subprocess.run(
             ["nvidia-smi", f"--id={self.idx}", f"--query-gpu={self.FIELDS}",

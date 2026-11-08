@@ -25,7 +25,7 @@ class Texto:
         self.marcadas, self.modo = marcadas, P.get("marca", "cor")
 
     def marcada(self, chave, lv):
-        return chave in self.marcadas and lv in (OK, NEUTRAL)
+        return self.modo != "nenhuma" and chave in self.marcadas and lv in (OK, NEUTRAL)
 
     def valor(self, nome, x, y, s, fnt, chave, lv, anchor="ls"):
         """Escreve um valor; se a leitura está marcada, aplica a marca escolhida."""
@@ -108,7 +108,16 @@ def render(vm, P):
     t, _ = v("gpu_wlim"); b = c.text("gpu.wlim", 314, y, t, F["xs"], P["sub"], anchor="rs")
     T.par("gpu.w", b[0] - 6, y, "W", "gpu_w", right=True)
     # RAM
-    y = _titulo_dados(T, "RAM", y + gap + 1, [par("ram.temp", "TEMP", "t_ram")]) + step - 2
+    yr = y + gap + 1
+    y = _titulo_dados(T, "RAM", yr, [par("ram.temp", "TEMP", "t_ram")]) + step - 2
+    if P.get("ram_barra"):                                      # barra de uso da RAM junto da palavra RAM
+        rp_, rl_ = vals["ram"][1]
+        cor = {WARN: P["amber"], CRIT: P["red"]}.get(rl_, P["accent"])
+        xr = 6 + int(c.width("RAM", F["g"]))
+        bx = xr + 24                                            # mesma distância da barra do título DISCOS (DELTA 6)
+        c.rect((xr + 1, yr + 1, bx + 63, yr + 9), fill=P["bg"])   # refaz o trecho: linha curta, vão e barra
+        c.line((xr + 5, yr + 4, bx - 5, yr + 4), P["dim"])
+        c.hbar(bx, yr + 1, 60, 7, v.raw("ram_pct") or 0, cor, mix(cor, P["bg"], 0.85), seg=3, gap=1)
     _, xe = T.par("ram.used", 6, y, "USO", "ram_used")
     t2, _ = v("ram_total"); rb = c.text("ram.total", xe + 1, y, t2, F["sb"], P["white"])
     rp, rl = vals["ram"][1]; pb = T.valor("ram.pct", rb[2] + 6, y, _paren(rp), F["sb"], "ram_used", rl)
@@ -117,7 +126,27 @@ def render(vm, P):
     # DISCOS (com o total)
     tot = v.raw("total_hd")
     modo_t = P.get("total", "coluna")
-    if modo_t == "barra" and tot:                               # barra do total dentro do título DISCOS
+    if modo_t == "mapa" and tot:                                # mapa de capacidade: cada HD é um trecho proporcional
+        def f_mapa(x, yy):
+            b = c.text("tot.livre", x, yy, f"{tot['livre']} LIVRE", F["xs"], P["accent"], anchor="rs")
+            b2 = c.text("tot.uso", b[0] - 6, yy, f"{tot['uso']}/{tot['total']}", F["sb"], P["white"], anchor="rs")
+            x1, x0 = int(b2[0]) - 6, 54
+            cap = sum(p_[1] for p_ in tot["partes"]) or 1
+            xx = x0
+            for k, (nm, cp, us, lv) in enumerate(tot["partes"]):
+                w = max(3, round((x1 - x0) * cp / cap)) if k < len(tot["partes"]) - 1 else x1 - xx
+                cor = {WARN: P["amber"], CRIT: P["red"]}.get(lv, P["accent"])
+                c.rect((xx, yy - 9, xx + w - 2, yy - 1), fill=mix(cor, P["bg"], 0.85), outline=mix(cor, P["bg"], 0.5))
+                c.rect((xx + 1, yy - 8, xx + 1 + max(0, round((w - 4) * us / max(1, cp))), yy - 2), fill=cor)
+                xx += w
+            return x0 - 4
+        y = _titulo_dados(T, "DISCOS", y + gap, [f_mapa])
+    elif modo_t == "rosca" and tot and P.get("rosca_hex"):      # título curto: o hexágono ocupa o canto direito
+        y = y + gap
+        b = c.text("tit.DISCOS", 6, y + 7, "DISCOS", F["g"], P["accent"])
+        c.line((b[2] + 5, y + 4, 206, y + 4), P["dim"])
+        y += 9
+    elif modo_t in ("barra", "barra_disco") and tot:            # barra do total dentro do título DISCOS
         def f_bar(x, yy):
             b = c.text("tot.livre", x, yy, f"{tot['livre']} LIVRE", F["xs"], P["accent"], anchor="rs")
             b2 = c.text("tot.uso", b[0] - 6, yy, f"{tot['uso']}/{tot['total']}", F["sb"], P["white"], anchor="rs")
@@ -136,17 +165,58 @@ def render(vm, P):
     discos = v.raw("disks", [])[:3]
     y0d = y
     coluna = modo_t == "coluna" and tot
+    rosca = modo_t == "rosca" and tot
     for i, d in enumerate(discos):
         y += step
         c.text(f"dsk{i}.name", 6, y, d["name"], F["sb"], P["white"])
         ub = c.text(f"dsk{i}.use", 44, y, d["use"], F["s"], col(d.get("use_lvl", NEUTRAL)))
-        pbx = c.text(f"dsk{i}.pct", ub[2] + 6, y, _paren(d["pct_txt"]), F["sb"], col(d["lvl"]))
+        if modo_t == "barra_disco":                             # barrinha de ocupação em cada disco
+            cor = {WARN: P["amber"], CRIT: P["red"]}.get(d["lvl"], P["accent"])
+            c.hbar(int(ub[2]) + 6, y - 8, 36, 7, d.get("pct"), cor, mix(cor, P["bg"], 0.85), seg=3, gap=1)
+            pbx = c.text(f"dsk{i}.pct", int(ub[2]) + 46, y, d["pct_txt"], F["sb"], col(d["lvl"]))
+        else:
+            pbx = c.text(f"dsk{i}.pct", ub[2] + 6, y, _paren(d["pct_txt"]), F["sb"], col(d["lvl"]))
         fb = c.text(f"dsk{i}.free", pbx[2] + 10, y, d["free"], F["sb"], col(d["lvl"]))
-        if not coluna:
+        if rosca:
+            v.raw("disks")
+        elif not coluna:
             c.text(f"dsk{i}.freelab", fb[2] + 4, y, "LIVRE", F["xs"], P["sub"])
             c.text(f"dsk{i}.temp", 314, y, d.get("temp_txt", "N/D"), F["sb"], col(d.get("temp_lvl", NA)), anchor="rs")
         else:
             v.raw("disks")
+    if rosca and P.get("rosca_hex"):                            # hexágono do total: o contorno se enche com o uso
+        import math
+        from .reator import hexagon
+        r = 27
+        # centro vertical exato entre a linha do título RAM e a linha do título seguinte (TERRAMASTER ou REFRIGERAÇÃO)
+        linha_sup = yr + 4
+        linha_inf = (y + gap + 3 + 4) if v.raw("baias", []) else (y + gap + 1 + 4)
+        cxh, cyh = 277, (linha_sup + linha_inf) / 2
+        pts = hexagon(cxh, cyh, r)
+        topo = min(range(6), key=lambda k: pts[k][1])          # começa no vértice de cima, sentido horário
+        pts = pts[topo:] + pts[:topo]
+        c.poly(pts, fill=mix(P["accent"], P["bg"], 0.93))
+        lados = [(pts[k], pts[(k + 1) % 6]) for k in range(6)]
+        c.line(pts + [pts[0]], mix(P["accent"], P["bg"], 0.78), 5)
+        resto = 6 * tot["pct"] / 100
+        cor = P["accent"]
+        for a, b in lados:
+            if resto <= 0:
+                break
+            t = min(1.0, resto)
+            c.line((a, (a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t)), cor, 5)
+            resto -= 1
+        c.text("tot.pct", cxh, cyh + 5, tot["pct_txt"], font(JB, 13, "Bold"), P["white"], anchor="ms")
+        c.text("tot.uso", cxh, cyh + 15, tot["uso"], font(JB, 8, "Regular"), P["sub"], anchor="ms")
+    elif rosca:                                                 # rosca do total à direita das linhas dos discos
+        cxr, cyr, r = 236, (y0d + y) / 2 + 1, 17
+        c.d.ellipse((cxr - r, cyr - r, cxr + r, cyr + r), outline=mix(P["accent"], P["bg"], 0.82), width=6)
+        c.d.arc((cxr - r, cyr - r, cxr + r, cyr + r), -90, -90 + 360 * tot["pct"] / 100, fill=P["accent"], width=6)
+        c.text("tot.pct", cxr, cyr + 4, tot["pct_txt"], font(JB, 9, "Bold"), P["white"], anchor="ms")
+        c.text("tot.livre", 314, y0d + step, tot["livre"], F["sb"], P["accent"], anchor="rs")
+        c.text("tot.l2", 314, y0d + 2 * step, "LIVRE", F["xs"], P["sub"], anchor="rs")
+        c.text("tot.tot", 314, y0d + 3 * step, f"de {tot['total']}", font(JB, 9, "Regular"), P["sub"], anchor="rs")
+        c.text("tot.uso", cxr, y0d + 3 * step + 10, "", F["xs"], P["sub"]) if False else None
     if coluna:                                                  # bloco do total no lugar da temperatura (N/D no PC)
         xc = 222
         c.line((xc - 6, y0d + 3, xc - 6, y + 3), P["dim"])
@@ -187,7 +257,10 @@ def render(vm, P):
               ("fan.sqt", "TRA", "fan_sqt")), folga=10)
     # REDE
     def inet_txt(x, yy):
-        t, lv = v("inet"); return c.text("inet", x, yy, t, F["xs"], col(lv), anchor="rs")[0]
+        t, lv = v("inet")
+        if P.get("inet_onoff"):                                 # INTERNET ON / OFF (instável continua por extenso)
+            t = "INTERNET ON" if lv == OK else "INTERNET OFF" if lv == CRIT else t
+        return c.text("inet", x, yy, t, F["xs"], col(lv), anchor="rs")[0]
     y = _titulo_dados(T, "REDE", y + gap + 3, [inet_txt, par("png", "PING", "ping")]) + step - 1
     t, lv = v("net_down"); b = T.valor("net.down", 6, y, "↓" + t, F["sb"], "net_down", NEUTRAL)
     t, lv = v("net_up"); T.valor("net.up", b[2] + 8, y, "↑" + t, F["sb"], "net_up", NEUTRAL)
@@ -225,19 +298,23 @@ def _sistema(c, v, P, col, F, x, y, alinhar="ls", relogio=18):
 
 
 def _registro(c, v, P, F, x0, y0, x1, n, modo, y_max=477):
-    """As últimas mudanças bruscas: hora, leitura e de quanto para quanto. As marcadas agora ficam em âmbar."""
+    """LOG dos alertas: hora, item, leitura e a nova cor; a linha tem a cor do nível (âmbar, vermelho ou verde).
+    Alertas com mais de 1 hora ficam esmaecidos."""
     reg = v.raw("registro") or []
-    ativos = v.raw("brusco") or set()
     f = font(JB, 9, "Regular")
     agora = time.time()
     if not reg:
-        c.text("reg.vazio", x0, y0 + 10, "sem mudanças bruscas", f, P["sub"])
+        c.text("reg.vazio", x0, y0 + 10, "nenhum alerta", f, P["sub"])
         return
     n = max(1, min(n, int((y_max - (y0 + 10)) // 11) + 1))
-    for i, (ts, txt) in enumerate(reg[:n]):
+    for i, item in enumerate(reg[:n]):
+        ts, txt = item[0], item[1]
+        lv = item[2] if len(item) > 2 else WARN
         y = y0 + 10 + i * 11
-        recente = agora - ts < 600 + 120
-        cor = P["amber"] if recente else P["sub"]
+        recente = agora - ts < 3600
+        cor = {CRIT: P["red"], WARN: P["amber"], OK: P["accent"]}.get(lv, P["amber"])
+        if not recente:
+            cor = mix(cor, P["bg"], 0.45)
         if modo == "barras":
             c.rect((x0, y - 8, x0 + 2, y + 1), fill=cor)
             xx = x0 + 6
@@ -259,20 +336,20 @@ def _rodape(c, v, P, col, F, ytopo):
     if modo in ("esq", "caixa", "barras"):
         if modo == "caixa":
             c.rect((4, yb - 4, 206, 478), outline=P["dim"])
-            c.text("tit.REG", 10, yb + 6, "REGISTRO", F["g"], P["accent"])
+            c.text("tit.REG", 10, yb + 6, P.get("nome_log", "REGISTRO"), F["g"], P["accent"])
             _registro(c, v, P, F, 10, yb + 8, 200, 5, modo)
         else:
-            b = c.text("tit.REG", 6, yb + 6, "REGISTRO", F["g"], P["accent"])
+            b = c.text("tit.REG", 6, yb + 6, P.get("nome_log", "REGISTRO"), F["g"], P["accent"])
             c.line((b[2] + 5, yb + 3, 206, yb + 3), P["dim"])
             _registro(c, v, P, F, 6, yb + 8, 206, 5, modo)
         _sistema(c, v, P, col, F, 314, 432, alinhar="rs")              # ancorado no rodapé
     elif modo == "dir":
         _sistema(c, v, P, col, F, 6, 432)
-        b = c.text("tit.REG", 116, yb + 6, "REGISTRO", F["g"], P["accent"])
+        b = c.text("tit.REG", 116, yb + 6, P.get("nome_log", "REGISTRO"), F["g"], P["accent"])
         c.line((b[2] + 5, yb + 3, 314, yb + 3), P["dim"])
         _registro(c, v, P, F, 116, yb + 8, 314, 5, modo)
     else:                                                       # faixa e tabela: registro na largura toda
-        b = c.text("tit.REG", 6, yb + 6, "REGISTRO", F["g"], P["accent"])
+        b = c.text("tit.REG", 6, yb + 6, P.get("nome_log", "REGISTRO"), F["g"], P["accent"])
         t2, l2 = v("wdesc"); wd = c.text("wx.desc", 314, yb + 7, c.fit(t2, F["xs"], 70), F["xs"], col(l2) if l2 != NA else P["sub"], anchor="rs")
         t, lv = v("wtemp"); tw = c.text("wx.temp", wd[0] - 5, yb + 8, t, F["sb"], col(lv), anchor="rs")
         cb = c.text("wx.city", tw[0] - 5, yb + 7, c.fit(v.raw("city", ""), F["xs"], 80), F["xs"], P["sub"], anchor="rs")

@@ -1,4 +1,5 @@
-# MATRIX GREEN PRO | versão 2.0.0 | 31/10/2026 23:05 (-03) | V2: paleta preto/branco/verde/amarelo, N/D neutro
+# MATRIX GREEN PRO | versão 2.1.0 | 07/11/2026 21:00 (-03) | Confirma (subida só após 2 s) e Sustentado (limite por 5 min)
+# histórico: 2.0.0 31/10/2026 23:05 V2: paleta preto/branco/verde/amarelo, N/D neutro
 # histórico: 1.0.0 31/10/2026 22:40 criação inicial
 # Estados visuais e histerese (evita piscar entre verde/amarelo/vermelho).
 
@@ -94,3 +95,44 @@ class Streak:
         if self.n >= self.warn_after:
             return WARN
         return OK
+
+
+class Confirma:
+    """Filtro contra ruído de leitura: o nível só SOBE depois de se manter por 'seg' segundos; desce na hora
+    (a descida já tem a histerese da Hyst). A primeira leitura vale de imediato (início do painel)."""
+
+    def __init__(self, seg=2.0):
+        self.seg = float(seg)
+        self.nivel, self.cand, self.desde = None, None, None
+
+    def update(self, lv, now):
+        if lv not in (OK, WARN, CRIT):
+            self.nivel = self.cand = None
+            return lv
+        if self.nivel is None or lv <= self.nivel:
+            self.nivel, self.cand = lv, None
+            return lv
+        if self.cand != lv:
+            self.cand, self.desde = lv, now
+        if now - self.desde >= self.seg:
+            self.nivel, self.cand = lv, None
+        return self.nivel
+
+
+class Sustentado:
+    """Aviso quando o valor fica no limite ou acima dele por 'janela' segundos seguidos (ex.: CPU 90 % por 5 min)."""
+
+    def __init__(self, limite, janela=300.0):
+        self.limite, self.janela = float(limite), float(janela)
+        self.desde = None
+
+    def update(self, valor, now):
+        if valor is None:
+            self.desde = None
+            return NA
+        if float(valor) < self.limite:
+            self.desde = None
+            return OK
+        if self.desde is None:
+            self.desde = now
+        return WARN if now - self.desde >= self.janela else OK

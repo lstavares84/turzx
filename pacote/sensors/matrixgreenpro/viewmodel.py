@@ -1,4 +1,5 @@
-# MATRIX GREEN PRO | versão 2.4.0 | 07/11/2026 20:15 (-03) | total de TB dos discos, mudanças bruscas e registro
+# MATRIX GREEN PRO | versão 2.5.0 | 07/11/2026 21:00 (-03) | alertas confirmados em 2 s, limites sustentados, clock da GPU, link e LOG de alertas
+# histórico: 2.4.0 07/11/2026 20:15 total de TB dos discos, mudanças bruscas e registro
 # histórico: 2.3.0 07/11/2026 19:10 séries de 24 h repassadas aos estilos (vm['hist'])
 # histórico: 2.2.0 07/11/2026 19:00 baias com uso, total e percentual (cor só informativa)
 # histórico: 2.1.0 31/10/2026 23:40 ajustes finais: rede x internet, estado da coleta
@@ -21,7 +22,7 @@
 #     do ping é consequência e não é contada de novo.
 import time
 
-from .alerts import Hyst, Streak, OK, WARN, CRIT, NA, LOST, NEUTRAL
+from .alerts import Hyst, Streak, Confirma, Sustentado, OK, WARN, CRIT, NA, LOST, NEUTRAL
 
 DIAS = ["SEG", "TER", "QUA", "QUI", "SEX", "SÁB", "DOM"]
 ND = ("N/D", NA)
@@ -106,7 +107,24 @@ class ViewModel:
         from .brusco import Brusco
         self.brusco = Brusco()
         tl = cfg["cpu"].get("temps_limites") or {}
-        self.h_t = {k: Hyst(tl[k][0], tl[k][1], hy["temperatura"]) for k in ("ram", "ssd") if k in tl and len(tl[k]) == 2}
+        self.h_t = {k: Hyst(tl[k][0], tl[k][1], hy["temperatura"]) for k in ("placa", "ram", "ssd") if k in tl and len(tl[k]) == 2}
+        # leituras contínuas só sobem de nível depois de 2 s (ruído de leitura não vira alerta); ping e discos não
+        self.conf = {}
+        self._now = time.time()
+        import os
+        janela = float(cfg["cpu"].get("uso_janela_s", 300))
+        self.s_uso = Sustentado(cfg["cpu"].get("uso_warn", 90), janela)
+        self.s_carga = Sustentado(float(cfg["cpu"].get("carga_por_nucleo", 1.5)) * (os.cpu_count() or 1), janela)
+        self.fan_min = float(cfg["cpu"].get("fan_min_rpm", 600))
+        self.eth_vel = 0                                   # maior velocidade de link já vista na Ethernet
+        from .alertas import Alertas
+        self.alertas = Alertas()
+
+    def _cf(self, chave, lv):
+        """Nível confirmado (subida só depois de 2 s)."""
+        if chave not in self.conf:
+            self.conf[chave] = Confirma(2.0)
+        return self.conf[chave].update(lv, self._now)
 
     def _fan_level(self, stopped, temp, limits):
         """Ventoinha parada só é problema com o componente aquecido (modo semipassivo é normal)."""
@@ -120,6 +138,7 @@ class ViewModel:
 
     def build(self, s, now=None):
         now = now or time.time()
+        self._now = now
         vm = {"demo": s.get("demo", False)}
         health = {}   # indicador -> nível (base da contagem do cabeçalho)
 
@@ -130,7 +149,7 @@ class ViewModel:
         vm["cpu_ghz"] = (f"{c['ghz']:.2f}GHz", NEUTRAL) if c.get("ghz") else ND
         t = c.get("temp")
         if t is not None:
-            vm["cpu_temp"] = (f"{round(t)}°C", self.h_cpu_t.update(t))
+            vm["cpu_temp"] = (f"{round(t)}°C", self._cf("cpu_temp", self.h_cpu_t.update(t)))
         else:
             vm["cpu_temp"] = ("N/D", LOST if c.get("temp_lost") else NA)
         if t is not None:
@@ -139,7 +158,7 @@ class ViewModel:
         if fan is None:
             vm["cpu_fan"] = ("N/D", LOST if c.get("fan_lost") else NA)
         else:
-            vm["cpu_fan"] = (f"{int(fan)}RPM", self._fan_level(fan <= 0, t, self.cpu_limits))
+            vm["cpu_fan"] = (f"{int(fan)}RPM", self._cf("cpu_fan", self._fan_level(fan <= 0, t, self.cpu_limits)))
             health["cpu_fan"] = vm["cpu_fan"][1]
         # temperaturas de placa, RAM e SSD (placa é informativa; RAM e SSD têm limites e entram no alerta)
         tt = c.get("temps") or {}
@@ -151,7 +170,7 @@ class ViewModel:
                 vm[chave] = ("N/D", LOST if d.get("visto") else NA)
             else:
                 x = d["c"]
-                lv = self.h_t[papel].update(x) if papel in self.h_t else NEUTRAL
+                lv = self._cf(chave, self.h_t[papel].update(x)) if papel in self.h_t else NEUTRAL
                 vm[chave] = (f"{round(x)}°C", lv)
                 if papel in self.h_t:
                     health[chave] = lv
@@ -164,22 +183,35 @@ class ViewModel:
                 rpm = (d or {}).get("rpm")
                 if rpm is None:
                     return ("N/D", LOST if (d or {}).get("visto") else NA)
-                if rpm > 0:
-                    return (f"{int(rpm)}RPM", OK)
+                if rpm > 0:                           # girando devagar demais = aviso (alarme típico de BIOS)
+                    return (f"{int(rpm)}RPM", WARN if rpm < self.fan_min else OK)
                 if not (d or {}).get("visto"):
                     return ("0RPM", NA)               # nunca girou: conector vazio ou mapa errado, não alarma
                 return ("0RPM", CRIT if papel == "bomba" else self._fan_level(True, t, self.cpu_limits))
             for papel, chave in (("bomba", "pump"), ("sq_inf", "fan_sqi"), ("sq_lat", "fan_sql"), ("sq_tras", "fan_sqt")):
                 if papel in cool:
                     vm[chave] = nivel(papel, cool[papel])
+                    vm[chave] = (vm[chave][0], self._cf(chave, vm[chave][1]))
                     if vm[chave][1] not in (NA, LOST):
                         health[chave] = vm[chave][1]
             if "radiador" in cool:
                 vm["cpu_fan"] = nivel("radiador", cool["radiador"])
+                vm["cpu_fan"] = (vm["cpu_fan"][0], self._cf("cpu_fan", vm["cpu_fan"][1]))
                 if vm["cpu_fan"][1] not in (NA, LOST):
                     health["cpu_fan"] = vm["cpu_fan"][1]
         la = c.get("load")
         vm["cpu_load"] = ("/".join(_ld(x) for x in la), NEUTRAL) if la else ND
+        # uso e carga sustentados por 5 min (Zabbix): aviso; abaixo disso o número segue neutro
+        lu = self.s_uso.update(c.get("util"), now)
+        if lu == WARN:
+            vm["cpu_util"] = (vm["cpu_util"][0], WARN)
+        if c.get("util") is not None:
+            health["cpu_uso"] = lu
+        lc = self.s_carga.update(la[0] if la else None, now)
+        if lc == WARN:
+            vm["cpu_load"] = (vm["cpu_load"][0], WARN)
+        if la:
+            health["carga"] = lc
 
         # ---------- GPU
         gp = s["gpu"]
@@ -198,13 +230,22 @@ class ViewModel:
             vm["gpu_util"] = (f"{round(gp['util'])}%", NEUTRAL) if gp.get("util") is not None else ND
             vm["gpu_pct"] = gp.get("util")
             vm["gpu_mhz"] = (f"{int(gp['mhz'])}MHz", NEUTRAL) if gp.get("mhz") is not None else ND
+            # motivos de redução de clock (NVML): térmico por software = aviso; por hardware = crítico.
+            # O limite de potência (300 W) é o próprio controle da placa em jogo: não é alerta.
+            rz = gp.get("throttle")
+            if rz is not None and gp.get("mhz") is not None:
+                lvz = CRIT if rz & (0x8 | 0x40 | 0x80) else WARN if rz & 0x20 else OK
+                lvz = self._cf("gpu_clock", lvz)
+                if lvz != OK:
+                    vm["gpu_mhz"] = (vm["gpu_mhz"][0], lvz)
+                health["gpu_clock"] = lvz
             gt = gp.get("temp")
-            vm["gpu_temp"] = (f"{round(gt)}°C", self.h_gpu_t.update(gt)) if gt is not None else ND
+            vm["gpu_temp"] = (f"{round(gt)}°C", self._cf("gpu_temp", self.h_gpu_t.update(gt))) if gt is not None else ND
             health["gpu_temp"] = vm["gpu_temp"][1]
             vu, vt = gp.get("vram_used"), gp.get("vram_total")
             if vu is not None and vt:
                 p = 100.0 * vu / vt
-                lv = self.h_vram.update(p)
+                lv = self._cf("vram", self.h_vram.update(p))
                 vm["vram_txt"] = (f"{vu:.1f}/{vt:.1f}GB", lv)
                 vm["vram_pct_txt"] = (f"{round(p)}%", lv)
                 vm["vram_pct"] = p
@@ -213,7 +254,7 @@ class ViewModel:
                 vm["vram_txt"] = vm["vram_pct_txt"] = ND
             rpm, pct = gp.get("fan_rpm"), gp.get("fan_pct")
             stopped = (rpm is not None and rpm <= 0) or (rpm is None and pct is not None and pct <= 0)
-            fl = self._fan_level(stopped, gt, self.gpu_limits)
+            fl = self._cf("gpu_fan", self._fan_level(stopped, gt, self.gpu_limits))
             # percentual = comando do driver; RPM = medição do tacômetro. Nunca se estima um pelo outro.
             vm["gpu_fan_pct"] = (f"{round(pct)}%", fl) if pct is not None else ND
             vm["gpu_fan_rpm"] = (f"{int(rpm)}RPM", fl) if rpm is not None else ("RPM -", NA)
@@ -226,7 +267,7 @@ class ViewModel:
 
         # ---------- RAM (nível pela memória efetivamente disponível)
         r = s["ram"]
-        lv = self.h_ram.update(r["pct"])
+        lv = self._cf("ram", self.h_ram.update(r["pct"]))
         vm["ram_used"] = (f"{r['used']:.1f}", lv)
         vm["ram_total"] = (f"/{r['total']:.1f}GB", NEUTRAL)
         vm["ram_avail"] = (f"{r['avail']:.1f}GB", lv)
@@ -285,22 +326,24 @@ class ViewModel:
 
         # ---------- Total de todos os HDs (discos + baias montadas); o mesmo dispositivo conta uma vez
         t_uso = t_cap = 0.0
-        devs, n = set(), 0
-        for d in s["disks"][:3]:
+        devs, n, partes = set(), 0, []
+        for i, d in enumerate(s["disks"][:3]):
             if d.get("state") == "OK" and d.get("total"):
                 if d.get("dev") and d["dev"] in devs:
                     continue
                 devs.add(d.get("dev"))
                 t_uso, t_cap, n = t_uso + d["used"], t_cap + d["used"] + d["free"], n + 1
+                partes.append((d.get("nome", "---"), d["used"] + d["free"], d["used"], disks[i]["lvl"] if i < len(disks) else OK))
         for b in (s.get("baias") or []):
             if b.get("estado") == "MONT" and b.get("total") and not (b.get("dev") and b["dev"] in devs):
                 devs.add(b.get("dev"))
                 t_uso, t_cap, n = t_uso + b["usado"], t_cap + b["total"], n + 1
+                partes.append((f"B{b['n']}", b["total"], b["usado"], OK))
         if t_cap:
             tb = lambda x: f"{x / 1e12:.2f}TB" if x < 10e12 else f"{x / 1e12:.1f}TB"
             vm["total_hd"] = {"uso": tb(t_uso), "total": tb(t_cap), "livre": tb(t_cap - t_uso),
                               "pct": 100.0 * t_uso / t_cap, "pct_txt": f"{round(100.0 * t_uso / t_cap)}%", "n": n,
-                              "fora": sum(1 for b in (s.get("baias") or []) if b.get("estado") == "DESM")}
+                              "fora": sum(1 for b in (s.get("baias") or []) if b.get("estado") == "DESM"), "partes": partes}
         else:
             vm["total_hd"] = None
 
@@ -348,6 +391,13 @@ class ViewModel:
                 ei["info"] = (f"{e.get('name', '')} SEM LINK", NA)
         if "conexao" not in health and any_link:
             health["conexao"] = OK
+        # Ethernet ativa abaixo da maior velocidade já vista (ex.: 1 Gb/s caiu para 100 Mb/s) = aviso
+        if eth_up and e.get("speed"):
+            self.eth_vel = max(self.eth_vel, int(e["speed"]))
+            if int(e["speed"]) < self.eth_vel:
+                ei["info"] = (f"{e.get('name', '')} {speed_txt(e['speed'])} (era {speed_txt(self.eth_vel)})", WARN)
+                if health.get("conexao") == OK:
+                    health["conexao"] = WARN
         vm["eth"], vm["wifi"] = ei, wi
         no_link = any_iface and not any_link
 
@@ -438,11 +488,14 @@ class ViewModel:
         if vm["coleta"][0] == "COLETA FALHOU":
             # sem dados não há como afirmar que o sistema está bem
             vm["hdr_status"] = ("■ SEM DADOS", CRIT)
-        # ---------- Mudanças bruscas (só visual) e o registro delas
+        # ---------- Mudanças bruscas (só nas variantes de estudo) e LOG dos alertas por limite
         if s.get("demo_brusco") is not None:
-            marcadas, reg = s["demo_brusco"]
+            marcadas = s["demo_brusco"]
         else:
-            marcadas, reg = self.brusco.atualizar(s, now)
+            marcadas, _ = self.brusco.atualizar(s, now)
         vm["brusco"] = set(marcadas)
-        vm["registro"] = reg
+        if s.get("demo_alertas") is not None:
+            vm["registro"] = list(s["demo_alertas"])
+        else:
+            vm["registro"] = self.alertas.atualizar(health, vm, now)
         return vm

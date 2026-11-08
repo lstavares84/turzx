@@ -1,4 +1,5 @@
 # GAMMA | construir/matriz_previas.py | versão 1.1.0 | 07/11/2026 18:40 (-03) | criação original (Claude, para Lucas Tavares)
+# histórico: 1.4.0 07/11/2026 20:35 opção --delta5: o DELTA 5 e as variantes 5A, 5B e 5C
 # histórico: 1.3.0 07/11/2026 20:25 opção --deltas: as 6 variantes do GAMMA DELTA
 # histórico: 1.2.0 07/11/2026 20:00 opção --v2: as 12 propostas da v2.0.0 no lugar das colunas normais
 # histórico: 1.1.0 07/11/2026 18:40 opção --extra para variantes de estudo em colunas a mais
@@ -21,6 +22,7 @@ COLUNAS = [("gamma-alpha", "reator_gamma_alpha", "ALPHA", "escala N0/N1/N2, perc
 EXTRAS = {"delta": ("gamma-delta", "reator_gamma_delta", "DELTA", "gráficos de 24 h, baias com uso"),
           "coluna": ("gamma-gamma-coluna", "reator_gamma_gamma_coluna", "COLUNA", "estudo: hexágonos em coluna")}
 DELTAS = [("gamma-delta-1", "reator_gamma_delta_v1", "DELTA 1", "variante 1"), ("gamma-delta-2", "reator_gamma_delta_v2", "DELTA 2", "variante 2"), ("gamma-delta-3", "reator_gamma_delta_v3", "DELTA 3", "variante 3"), ("gamma-delta-4", "reator_gamma_delta_v4", "DELTA 4", "variante 4"), ("gamma-delta-5", "reator_gamma_delta_v5", "DELTA 5", "variante 5"), ("gamma-delta-6", "reator_gamma_delta_v6", "DELTA 6", "variante 6")]
+DELTA5 = [("gamma-delta-5", "reator_gamma_delta_v5", "DELTA 5", "base"), ("gamma-delta-5a", "reator_gamma_delta_v5a", "DELTA 5A", "barra por disco"), ("gamma-delta-5b", "reator_gamma_delta_v5b", "DELTA 5B", "rosca do total"), ("gamma-delta-5c", "reator_gamma_delta_v5c", "DELTA 5C", "mapa de capacidade")]
 V2 = [("v2-concreto", "v2_brutal", "BRUTALISTA", "concreto"),
       ("v2-silencio", "v2_minimal", "MINIMALISTA", "silêncio"),
       ("v2-hud", "v2_scifi", "SCI-FI", "hud orbital"),
@@ -83,7 +85,10 @@ def main():
     args, extras = [], []
     it = iter(sys.argv[1:])
     for a in it:
-        if a == "--deltas":
+        if a == "--delta5":
+            COLUNAS[:] = []
+            extras.extend(DELTA5)
+        elif a == "--deltas":
             COLUNAS[:] = []
             extras.extend(DELTAS)
         elif a == "--v2":

@@ -1,4 +1,4 @@
-<!-- docs/configuracao.md | versão 1.0.0 | 07/11/2026 15:20 (-03) | criação original (Claude, para Lucas Tavares). Fonte: pacote/sensors/matrixgreenpro/settings.py e pacote/extras/config.exemplo.yaml da v1.6.0. -->
+<!-- docs/configuracao.md | versão 1.1.0 | 07/11/2026 21:05 (-03) | criação original (Claude, para Lucas Tavares). Fonte: pacote/sensors/matrixgreenpro/settings.py e pacote/extras/config.exemplo.yaml da v1.6.0. -->
 
 # Configuração
 
@@ -22,23 +22,36 @@ systemctl --user restart turing-smart-screen
 
 ## Limites de alerta
 
-| Indicador | Atenção | Crítico | Chaves |
-|---|---|---|---|
-| CPU °C | automático pelo modelo (Ryzen 7000/8000/9000: 88) | automático (Ryzen 7000/8000/9000: 94) | `cpu.temp_warn`, `cpu.temp_crit` |
-| GPU °C | limite de desaceleração da NVML menos 10 | NVML menos 3 (sem NVML: 80/87) | `gpu.temp_warn`, `gpu.temp_crit` |
-| VRAM | 90% | 97% | `gpu.vram_warn`, `gpu.vram_crit` |
-| RAM | 85% | 95% | `ram.warn`, `ram.crit` |
-| RAM °C | 50 | 55 | `cpu.temps_limites.ram` |
-| SSD °C (NVMe) | 70 | 80 | `cpu.temps_limites.ssd` |
-| Disco (uso) | 85% ou menos de 50 GB livres | 95% ou menos de 10 GB livres | `disco_warn`, `disco_crit`, `disco_livre_warn_gb`, `disco_livre_crit_gb` |
-| Disco °C | HDD 50, SSD 70 | HDD 55, SSD 80 | `disco_temp_limites` |
-| Ping | 80 ms ou 1ª falha | 200 ms ou 3 falhas seguidas | `ping.warn_ms`, `ping.crit_ms` |
-| Bomba | | 0 RPM depois de já ter girado | |
-| Ventoinha parada | componente a 60 °C ou mais | componente na faixa de atenção | `cpu.fan_stop_ok_below_c` |
+Os limites vêm dos manuais, dos valores gravados no próprio hardware e das boas práticas de monitoramento (modelo Linux do Zabbix). Fontes ao lado de cada linha.
+
+| Indicador | Atenção (âmbar) | Crítico (vermelho) | Chaves | Fonte |
+|---|---|---|---|---|
+| CPU °C | automático pelo modelo (Ryzen 9000: 88) | automático (Ryzen 9000: 94) | `cpu.temp_warn`, `cpu.temp_crit` | Tjmax 95 °C do Ryzen 9 9900X ([AMD](https://www.amd.com/en/products/processors/desktops/ryzen/9000-series/amd-ryzen-9-9900x.html)) |
+| CPU uso | 90 % por 5 min seguidos | | `cpu.uso_warn`, `cpu.uso_janela_s` | gatilho "High CPU utilization" do [Zabbix](https://www.zabbix.com/br/integrations/debian) |
+| Carga (1 min) | 1,5 por núcleo lógico por 5 min (24 threads: 36) | | `cpu.carga_por_nucleo` | Zabbix |
+| GPU °C | limite de desaceleração da NVML menos 10 | NVML menos 3 (sem NVML: 80/87) | `gpu.temp_warn`, `gpu.temp_crit` | operação máxima ≈ 88 °C informada pelo driver (`nvidia-smi -q`) |
+| GPU clock | redução térmica por software | redução por hardware (térmica, slowdown ou power brake) | | motivos de redução de clock da NVML, como no [NVIDIA NVSentinel](https://docs.nvidia.com/nvsentinel/runbooks/gpu-thermal-margin); o limite de potência (300 W) não alerta |
+| VRAM | 90 % | 97 % | `gpu.vram_warn`, `gpu.vram_crit` | sem norma de fabricante |
+| RAM | 90 % | 95 % | `ram.warn`, `ram.crit` | Zabbix: 90 % |
+| RAM °C (DDR5) | 55 | 85 | `cpu.temps_limites.ram` | limites alto e crítico do próprio módulo (SPD5118, lidos do hwmon) |
+| SSD °C (NVMe) | 80 | 90 | `cpu.temps_limites.ssd` | aviso de 89,85 °C e crítico de 93,85 °C gravados no SSD |
+| Placa-mãe °C | 70 | 80 | `cpu.temps_limites.placa` | limite de 80 °C do chip NCT6799D (hwmon) |
+| Disco (uso) | 80 % ou menos de 50 GB livres | 90 % ou menos de 10 GB livres | `disco_warn`, `disco_crit`, `disco_livre_warn_gb`, `disco_livre_crit_gb` | Zabbix: 80 e 90 % |
+| Disco °C | HDD 50, SSD 80 | HDD 60, SSD 90 | `disco_temp_limites` | Seagate BarraCuda: operação até 60 °C ([manual](https://www.manualowl.com/m/Seagate/Barracuda/Manual/273400?page=21)) |
+| Ping | acima de 20 ms ou 1ª falha | acima de 100 ms ou 3 falhas seguidas | `ping.warn_ms`, `ping.crit_ms` | escolha do Lucas, mais rígida que a [ITU-T G.114](https://www.cs.columbia.edu/%7Eandreaf/new/documents/other/T-REC-G.114-200305.pdf) |
+| Bomba e ventoinhas | girando abaixo de 600 RPM | bomba parada depois de já ter girado | `cpu.fan_min_rpm` | alarme típico de BIOS |
+| Ventoinha parada | componente a 60 °C ou mais | componente na faixa de atenção | `cpu.fan_stop_ok_below_c` | |
+| Ethernet | link abaixo da maior velocidade já vista | sem nenhum link | | boa prática de monitoramento de interface |
+
+Informativos, sem cor de alerta: uso da GPU (100 % em jogo é o esperado), potência da GPU, frequência da CPU, FPS e velocidade de download e upload.
+
+**Contra ruído de leitura:** as leituras contínuas (temperaturas, VRAM, RAM, ventoinhas, clock da GPU) só sobem de cor depois de ficar 2 s no novo nível; a descida é imediata, com a histerese. O ping vale pela última leitura (é lido a cada 5 s), assim como discos e baias.
 
 Abaixo de `fan_stop_ok_below_c` (60 °C), ventoinha parada é modo semipassivo e não alerta. Uma entrada que nunca girou (conector vazio) aparece como `0` neutro.
 
-A **histerese** evita que a cor pisque entre dois níveis: `histerese: {temperatura: 3, percentual: 2, ping_ms: 15}`.
+A **histerese** evita que a cor pisque entre dois níveis: `histerese: {temperatura: 3, percentual: 2, ping_ms: 5}`.
+
+**LOG de alertas (GAMMA DELTA 5B):** cada mudança de cor de um indicador entra no LOG com a hora, a leitura e a nova cor (âmbar, vermelho ou a volta ao verde). Alertas com mais de 1 hora aparecem esmaecidos.
 
 ## Ventoinhas e temperaturas da placa
 

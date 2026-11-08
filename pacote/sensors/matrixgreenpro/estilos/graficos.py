@@ -1,4 +1,6 @@
-# GAMMA | estilos/graficos.py | versão 2.1.0 | 07/11/2026 19:40 (-03) | criação original (Claude, para Lucas Tavares)
+# GAMMA | estilos/graficos.py | versão 2.3.0 | 07/11/2026 20:40 (-03) | criação original (Claude, para Lucas Tavares)
+# histórico: 2.3.0 07/11/2026 20:40 rótulos girados recortados, centrados e com fonte que cabe na altura
+# histórico: 2.2.0 07/11/2026 20:30 rótulos girados 90° (P['rotulos_rot']) e gráficos mais largos
 # histórico: 2.1.0 07/11/2026 19:40 pico da VRAM e da RAM em GB
 # histórico: 2.0.0 07/11/2026 19:30 base na proposta B, gráfico de temperatura no alto e 3 formas de mostrar o pico
 # histórico: 1.0.0 07/11/2026 19:15 propostas A (3 gráficos) e B (2 gráficos)
@@ -61,6 +63,8 @@ class Grafico:
         return round(self.y1 - 1 - (self.y1 - self.y0 - 2) * max(0.0, min(1.0, t)))
 
     def x(self, i, n):
+        if n < self.larg and n > 1:                             # gráfico mais largo que a série: estica
+            return self.x0 + round(i * (self.larg - 1) / (n - 1))
         return self.x0 + self.larg - n + i
 
     def serie(self, vals, cor, preencher):
@@ -119,6 +123,27 @@ class Grafico:
         return pk
 
 
+def _vertical(c, x_dir, y0, y1, partes):
+    """Rótulo girado 90° (anti-horário), recortado na tinta, centrado na altura do gráfico (y0 a y1) e encostado
+    à esquerda dele (borda direita em x_dir). A fonte diminui até o texto caber na altura do gráfico."""
+    from PIL import Image, ImageDraw
+    alt = y1 - y0 - 2
+    for tam in (9, 8, 7, 6):
+        f = font(JB, tam, "Bold")
+        if sum(f.getlength(t) for t, _ in partes) <= alt:
+            break
+    w = int(sum(f.getlength(t) for t, _ in partes)) + 4
+    im = Image.new("RGBA", (w, tam + 8), (0, 0, 0, 0))
+    d = ImageDraw.Draw(im)
+    xx = 2
+    for t, cor in partes:
+        d.text((xx, tam + 3), t, font=f, fill=cor + (255,), anchor="ls")
+        xx += f.getlength(t)
+    im = im.crop(im.getbbox()).rotate(90, expand=True)
+    c.img.paste(im, (int(x_dir - 2 - im.width), int(round((y0 + y1) / 2 - im.height / 2))), im)
+    return x_dir - 2 - im.width
+
+
 def _pk(h, k):
     p = [x for x in (h.get(k + "_max") or []) if x is not None]
     return max(p) if p else None
@@ -132,16 +157,26 @@ def desenhar(c, v, P, col, F):
     verde, branco = P["accent"], P["white"]
     s = lambda k: h.get(k) or []
 
+    rot = P.get("rotulos_rot")
+    fv = font(JB, 9, "Bold")
+    xt, lt = (110, 101) if rot else (XT, LT)
+    x0g, larg = (16, 179) if rot else (X0, LARG)
+
     def legenda_pico(nome, x, y, tipo, k, cor):
         pk = _pk(h, k)
         return c.text(nome, x, y, _fmt(tipo, pk) if pk is not None else "--", f_pk, cor)
 
     # ---- temperatura (no alto, à direita da escala): faixa de 20 a 100 °C
-    g = Grafico(c, P, XT, LT, 28, 60, 20.0, 100.0)
+    g = Grafico(c, P, xt, lt, 28, 60, 20.0, 100.0)
     g.serie(_pares(s("cpu_t"), lambda p: sum(p) / len(p)), verde, True)
     g.serie(_pares(s("gpu_t"), lambda p: sum(p) / len(p)), branco, False)
+    if rot:
+        _vertical(c, xt, 28, 60, [("CPU ", verde), ("GPU", branco)])
     for i, (lab, k, cor) in enumerate((("CPU", "cpu_t", verde), ("GPU", "gpu_t", branco))):
         y = 28 + 12 + 13 * i
+        if rot:
+            g.pico(modo, f"gr.t{i}.pk", _pares(s(k + "_max"), max), cor, "temp", f_pk)
+            continue
         b = c.text(f"gr.t{i}.lab", XT_LEG, y, lab, f_lab, cor)
         if modo == "legenda":
             legenda_pico(f"gr.t{i}.pk", b[2] + 2, y, "temp", k, cor)
@@ -150,11 +185,15 @@ def desenhar(c, v, P, col, F):
 
     # ---- VRAM (área) e RAM (linha), de 0 a 100%
     y0, y1 = 68, 106
-    g = Grafico(c, P, X0, LARG, y0, y1, 0.0, 100.0)
+    g = Grafico(c, P, x0g, larg, y0, y1, 0.0, 100.0)
     g.serie(s("vram"), verde, True)
     g.serie(s("ram"), branco, False)
     gb_vram, gb_ram = ("gb", h.get("vram_total")), ("gb", h.get("ram_total"))
-    if modo == "legenda":
+    if rot:
+        _vertical(c, x0g, y0, y1, [("VRAM ", verde), ("RAM", branco)])
+        g.pico(modo, "gr.vram.pk", s("vram_max"), verde, gb_vram, f_pk)
+        g.pico(modo, "gr.ram.pk", s("ram_max"), branco, gb_ram, f_pk)
+    elif modo == "legenda":
         c.text("gr.vram.lab", 6, y0 + 8, "VRAM", f_lab, verde)
         legenda_pico("gr.vram.pk", 6, y0 + 17, gb_vram, "vram", verde)
         c.text("gr.ram.lab", 6, y0 + 28, "RAM", f_lab, branco)
@@ -168,9 +207,14 @@ def desenhar(c, v, P, col, F):
     # ---- rede: download (área) e upload (linha); escala até o pico de 24 h + 10%
     y0, y1 = 109, 146
     topo = max([x for k in ("down_max", "up_max") for x in s(k) if x is not None] or [0.0])
-    g = Grafico(c, P, X0, LARG, y0, y1, 0.0, max(topo * 1.1, 100e3))
+    g = Grafico(c, P, x0g, larg, y0, y1, 0.0, max(topo * 1.1, 100e3))
     g.serie(s("down"), verde, True)
     g.serie(s("up"), branco, False)
+    if rot:
+        _vertical(c, x0g, y0, y1, [("REDE ", verde), ("↓", verde), ("↑", branco)])
+        g.pico(modo, "gr.rede.dpk", s("down_max"), verde, "rede", f_pk)
+        g.pico(modo, "gr.rede.upk", s("up_max"), branco, "rede", f_pk)
+        return
     c.text("gr.rede.lab", 6, y0 + 8, "REDE", f_lab, verde)
     if modo == "legenda":
         b = c.text("gr.rede.down", 6, y0 + 19, "↓", f_pk, verde)

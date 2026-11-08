@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-# MATRIX GREEN PRO | versão 3.2.0 | 07/11/2026 20:15 (-03) | ping verde até 20 ms, âmbar até 100 ms
+# MATRIX GREEN PRO | versão 3.3.0 | 07/11/2026 21:00 (-03) | limites de manuais e do Zabbix (RAM 90/95, discos 80/90)
+# histórico: 3.2.0 07/11/2026 20:15 ping verde até 20 ms, âmbar até 100 ms
 # histórico: 3.1.0 01/11/2026 10:55 linha painel.estilo no modelo
 # histórico: 2.1.0 31/10/2026 23:45 Ethernet não obrigatória por padrão
 # histórico: 2.0.0 31/10/2026 23:40 criação: detecção de discos (UUID) e rede
@@ -115,12 +116,12 @@ fps:
   mangohud_dir: /tmp/mgp-mangohud
   max_age_s: 3.5
 
-ram: {{warn: 85, crit: 95}}
+ram: {{warn: 90, crit: 95}}
 
 # Três volumes, identificados por UUID (persistente). Desmontado = OFF.
 discos:
-{dk("M.2", disks["M.2"])}{dk("2T", disks["2T"])}{dk("4T", disks["4T"])}disco_warn: 85
-disco_crit: 95
+{dk("M.2", disks["M.2"])}{dk("2T", disks["2T"])}{dk("4T", disks["4T"])}disco_warn: 80
+disco_crit: 90
 disco_livre_warn_gb: 50
 disco_livre_crit_gb: 10
 

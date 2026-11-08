@@ -1,5 +1,5 @@
-<!-- README do pacote | GAMMA TUS-35 | versão 2.0.0 | 07/11/2026 22:35 (-03) | criação original (Claude, para Lucas Tavares) -->
-<!-- histórico: 2.0.0 07/11/2026 22:35 reescrito para a v1.8.2 (antes descrevia as versões 1.3.0 e anteriores; o histórico completo está no CHANGELOG) -->
+<!-- README do pacote | GAMMA TUS-35 | versão 2.0.0 | 07/11/2026 22:24 (-03) | criação original (Claude, para Lucas Tavares) -->
+<!-- histórico: 2.0.0 07/11/2026 22:24 reescrito para a v1.8.2 (antes descrevia as versões 1.3.0 e anteriores; o histórico completo está no CHANGELOG) -->
 
 # GAMMA TUS-35: conteúdo do pacote
 

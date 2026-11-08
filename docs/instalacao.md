@@ -1,5 +1,5 @@
-<!-- docs/instalacao.md | versão 2.0.0 | 07/11/2026 22:32 (-03) | criação original (Claude, para Lucas Tavares). Fonte: instalar-gamma.sh e pacote/scripts/ da v1.8.2. -->
-<!-- histórico: 2.0.0 07/11/2026 22:32 Releases, GAMMA DELTA, apelidos, selo dev e histórico de 24 h -->
+<!-- docs/instalacao.md | versão 2.0.0 | 07/11/2026 22:24 (-03) | criação original (Claude, para Lucas Tavares). Fonte: instalar-gamma.sh e pacote/scripts/ da v1.8.2. -->
+<!-- histórico: 2.0.0 07/11/2026 22:24 Releases, GAMMA DELTA, apelidos, selo dev e histórico de 24 h -->
 
 # Instalação
 

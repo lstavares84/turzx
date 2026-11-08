@@ -1,5 +1,5 @@
-<!-- docs/decisoes-e-licoes.md | versão 2.0.0 | 07/11/2026 22:30 (-03) | criação original (Claude, para Lucas Tavares). Fonte: histórico do projeto de 31/10/2026 a 07/11/2026. -->
-<!-- histórico: 2.0.0 07/11/2026 22:30 decisões e lições das versões 1.7.0 a 1.8.2 -->
+<!-- docs/decisoes-e-licoes.md | versão 2.0.0 | 07/11/2026 22:24 (-03) | criação original (Claude, para Lucas Tavares). Fonte: histórico do projeto de 31/10/2026 a 07/11/2026. -->
+<!-- histórico: 2.0.0 07/11/2026 22:24 decisões e lições das versões 1.7.0 a 1.8.2 -->
 
 # Decisões e lições
 

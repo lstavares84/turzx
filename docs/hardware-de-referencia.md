@@ -1,5 +1,5 @@
-<!-- docs/hardware-de-referencia.md | versão 2.0.0 | 07/11/2026 22:30 (-03) | criação original (Claude, para Lucas Tavares). Fonte: leituras de hardware no PC do Lucas entre 31/10/2026 e 07/11/2026 (hwmon, nvidia-smi, lsblk). -->
-<!-- histórico: 2.0.0 07/11/2026 22:30 limites lidos do hardware, discos e baias atuais, VeraCrypt, drivetemp -->
+<!-- docs/hardware-de-referencia.md | versão 2.0.0 | 07/11/2026 22:24 (-03) | criação original (Claude, para Lucas Tavares). Fonte: leituras de hardware no PC do Lucas entre 31/10/2026 e 07/11/2026 (hwmon, nvidia-smi, lsblk). -->
+<!-- histórico: 2.0.0 07/11/2026 22:24 limites lidos do hardware, discos e baias atuais, VeraCrypt, drivetemp -->
 
 # Hardware de referência e coleta
 

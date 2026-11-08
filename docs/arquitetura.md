@@ -1,5 +1,5 @@
-<!-- docs/arquitetura.md | versão 2.0.0 | 07/11/2026 22:26 (-03) | criação original (Claude, para Lucas Tavares). Fonte: código da v1.8.2 em pacote/. -->
-<!-- histórico: 2.0.0 07/11/2026 22:26 revisão para a v1.8.2: histórico, alertas confirmados, LOG, GAMMA DELTA, estudos -->
+<!-- docs/arquitetura.md | versão 2.0.0 | 07/11/2026 22:24 (-03) | criação original (Claude, para Lucas Tavares). Fonte: código da v1.8.2 em pacote/. -->
+<!-- histórico: 2.0.0 07/11/2026 22:24 revisão para a v1.8.2: histórico, alertas confirmados, LOG, GAMMA DELTA, estudos -->
 
 # Arquitetura
 

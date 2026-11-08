@@ -1,5 +1,5 @@
-<!-- docs/configuracao.md | versão 2.0.0 | 07/11/2026 22:33 (-03) | criação original (Claude, para Lucas Tavares). Fonte: pacote/sensors/matrixgreenpro/settings.py e pacote/extras/config.exemplo.yaml da v1.8.2. -->
-<!-- histórico: 2.0.0 07/11/2026 22:33 limites com fontes, alertas 2 s e 5 min, discos via VeraCrypt, INTERNET ON/OFF, histórico de 24 h -->
+<!-- docs/configuracao.md | versão 2.0.0 | 07/11/2026 22:24 (-03) | criação original (Claude, para Lucas Tavares). Fonte: pacote/sensors/matrixgreenpro/settings.py e pacote/extras/config.exemplo.yaml da v1.8.2. -->
+<!-- histórico: 2.0.0 07/11/2026 22:24 limites com fontes, alertas 2 s e 5 min, discos via VeraCrypt, INTERNET ON/OFF, histórico de 24 h -->
 
 # Configuração
 

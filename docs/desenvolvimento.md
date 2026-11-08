@@ -1,5 +1,5 @@
-<!-- docs/desenvolvimento.md | versão 2.0.0 | 07/11/2026 22:28 (-03) | criação original (Claude, para Lucas Tavares). Fonte: tools/, construir/ e regras do projeto na v1.8.2. -->
-<!-- histórico: 2.0.0 07/11/2026 22:28 revisão para a v1.8.2: quatro ZIPs, contagens, matriz 4 x 3, aplicar delta, Releases -->
+<!-- docs/desenvolvimento.md | versão 2.0.0 | 07/11/2026 22:24 (-03) | criação original (Claude, para Lucas Tavares). Fonte: tools/, construir/ e regras do projeto na v1.8.2. -->
+<!-- histórico: 2.0.0 07/11/2026 22:24 revisão para a v1.8.2: quatro ZIPs, contagens, matriz 4 x 3, aplicar delta, Releases -->
 
 # Desenvolvimento
 

@@ -1,5 +1,5 @@
-<!-- docs/roteiro.md | versão 2.0.0 | 07/11/2026 22:30 (-03) | criação original (Claude, para Lucas Tavares). Fonte: pendências do projeto em 07/11/2026, depois da v1.8.2. -->
-<!-- histórico: 2.0.0 07/11/2026 22:30 validações feitas na tela física, drivetemp, LOG em disco, estudos e Releases -->
+<!-- docs/roteiro.md | versão 2.0.0 | 07/11/2026 22:24 (-03) | criação original (Claude, para Lucas Tavares). Fonte: pendências do projeto em 07/11/2026, depois da v1.8.2. -->
+<!-- histórico: 2.0.0 07/11/2026 22:24 validações feitas na tela física, drivetemp, LOG em disco, estudos e Releases -->
 
 # Roteiro
 

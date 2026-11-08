@@ -9,7 +9,7 @@
 
 Verde fluorescente, favo de hexágonos e brilho: CPU, GPU, RAM, discos, ventoinhas, bomba do water cooler, rede, clima e o gabinete de discos externo, tudo numa tela vertical de 320x480 pixels.
 
-![versão](https://img.shields.io/badge/vers%C3%A3o-1.8.0-78ff5a?style=flat-square&labelColor=030a04)
+![versão](https://img.shields.io/badge/vers%C3%A3o-1.8.1-78ff5a?style=flat-square&labelColor=030a04)
 ![Debian 13](https://img.shields.io/badge/Debian-13-78ff5a?style=flat-square&labelColor=030a04)
 ![Python](https://img.shields.io/badge/Python-3-78ff5a?style=flat-square&labelColor=030a04)
 ![licença](https://img.shields.io/badge/licen%C3%A7a-GPL--3.0-78ff5a?style=flat-square&labelColor=030a04)
@@ -35,9 +35,9 @@ A ideia central é que **a tela diga em um segundo se está tudo bem**. Cada nú
 | Ideia | Favo de 19 hexágonos com todos os números e linhas de texto abaixo | Igual ao ALPHA, mais compacto e com o gabinete de discos | Layout por grupos: 7 hexágonos de resumo e painel numérico |
 | Destaque | Escala N0/N1/N2, percentuais, bomba e ventoinhas | Percentuais entre parênteses, DISP, LIVRE e LIM junto do uso, 4 baias do TerraMaster em 2x2 | CORE no centro, estado OK, ATEN ou CRIT por grupo, temperatura de cada disco, grupo TERRAMASTER |
 | Nome antigo | SENTINELA | DOSÍMETRO | (novo) |
-| Pacote | `Gamma-Alpha-v1.8.0.zip` | `Gamma-Beta-v1.8.0.zip` | `Gamma-Gamma-v1.8.0.zip` |
+| Pacote | `Gamma-Alpha-v1.8.1.zip` | `Gamma-Beta-v1.8.1.zip` | `Gamma-Gamma-v1.8.1.zip` |
 
-O **GAMMA DELTA** (`Gamma-Delta-v1.8.0.zip`, `--versao delta`) é o mais novo: o GAMMA GAMMA com gráficos de 24 h no alto e o pico de cada um, valores em alerta com fundo âmbar ou vermelho, total dos HDs num hexágono, barra de uso da RAM e LOG dos alertas. Detalhes de cada um em [docs/estilos.md](docs/estilos.md).
+O **GAMMA DELTA** (`Gamma-Delta-v1.8.1.zip`, `--versao delta`) é o mais novo: o GAMMA GAMMA com gráficos de 24 h no alto e o pico de cada um, valores em alerta com fundo âmbar ou vermelho, total dos HDs num hexágono, barra de uso da RAM e LOG dos alertas. Detalhes de cada um em [docs/estilos.md](docs/estilos.md).
 
 ## O que aparece na tela
 
@@ -55,7 +55,7 @@ O **GAMMA DELTA** (`Gamma-Delta-v1.8.0.zip`, `--versao delta`) é o mais novo: o
 ⚠️ Num Debian 13 (ou derivado) com a tela conectada, como usuário comum (nunca com `sudo`):
 
 ```bash
-unzip Gamma-Gamma-v1.8.0.zip && cd Gamma-Gamma-v1.8.0 && ./instalar-gamma.sh
+unzip Gamma-Gamma-v1.8.1.zip && cd Gamma-Gamma-v1.8.1 && ./instalar-gamma.sh
 ```
 
 O instalador faz tudo em sequência: dependências, permissão da porta serial (grupo `dialout`), download do Turing Smart Screen, drivers de sensores (`nct6775` e `drivetemp`), serviço systemd de usuário e o tema. Para instalar direto deste repositório, sem ZIP:
@@ -96,7 +96,7 @@ Cada coletor (CPU, GPU, discos, rede, clima...) roda isolado: se um falhar, os o
 
 ## Estado do projeto
 
-Versão **1.8.0** (07/11/2026). O código foi testado em ambiente de desenvolvimento: autoteste com 135 de 135 verificações no repositório e 82 de 82 em cada pacote, e prévias sem nenhum problema de layout. **Ainda falta validar no hardware real** a tela física, o mapeamento das ventoinhas e a numeração das baias. Veja o [roteiro](docs/roteiro.md).
+Versão **1.8.1** (07/11/2026). O código foi testado em ambiente de desenvolvimento: autoteste com 135 de 135 verificações no repositório e 82 de 82 em cada pacote, e prévias sem nenhum problema de layout. **Ainda falta validar no hardware real** a tela física, o mapeamento das ventoinhas e a numeração das baias. Veja o [roteiro](docs/roteiro.md).
 
 ## Créditos e licença
 

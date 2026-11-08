@@ -1,4 +1,5 @@
-# MATRIX GREEN PRO | versão 2.5.0 | 07/11/2026 21:00 (-03) | alertas confirmados em 2 s, limites sustentados, clock da GPU, link e LOG de alertas
+# MATRIX GREEN PRO | versão 2.6.0 | 07/11/2026 21:46 (-03) | alerta mantido 5 min; ping classificado pelo número exibido
+# histórico: 2.5.0 07/11/2026 21:00 alertas confirmados em 2 s, limites sustentados, clock da GPU, link e LOG de alertas
 # histórico: 2.4.0 07/11/2026 20:15 total de TB dos discos, mudanças bruscas e registro
 # histórico: 2.3.0 07/11/2026 19:10 séries de 24 h repassadas aos estilos (vm['hist'])
 # histórico: 2.2.0 07/11/2026 19:00 baias com uso, total e percentual (cor só informativa)
@@ -99,7 +100,7 @@ class ViewModel:
         self.h_disk = [Hyst(cfg["disco_warn"], cfg["disco_crit"], 1) for _ in range(3)]
         dl = cfg.get("disco_temp_limites") or {"hdd": [50, 55], "ssd": [70, 80]}
         self.h_dt = [{k: Hyst(dl[k][0], dl[k][1], hy["temperatura"]) for k in ("hdd", "ssd")} for _ in range(3)]
-        self.h_ping = Hyst(cfg["ping"]["warn_ms"], cfg["ping"]["crit_ms"], hy["ping_ms"])
+        self.h_ping = Hyst(cfg["ping"]["warn_ms"], cfg["ping"]["crit_ms"], hy["ping_ms"], estrito=True)   # "acima de"
         self.s_ping = Streak(1, 3)
         psu = float(cfg["energia"].get("psu_watts") or 0)
         self.h_pwr = Hyst(psu * 0.8 if psu else None, psu * 0.9 if psu else None, 10)
@@ -120,10 +121,12 @@ class ViewModel:
         from .alertas import Alertas
         self.alertas = Alertas()
 
-    def _cf(self, chave, lv):
-        """Nível confirmado (subida só depois de 2 s)."""
+    def _cf(self, chave, lv, seg=None):
+        """Nível confirmado: subida só depois de 2 s (seg=0 para leituras lentas, como o ping) e alerta mantido
+        no mínimo 5 min (alertas.manter_s)."""
         if chave not in self.conf:
-            self.conf[chave] = Confirma(2.0)
+            a = self.cfg.get("alertas") or {}
+            self.conf[chave] = Confirma(float(a.get("confirmar_s", 2)) if seg is None else seg, float(a.get("manter_s", 300)))
         return self.conf[chave].update(lv, self._now)
 
     def _fan_level(self, stopped, temp, limits):
@@ -202,12 +205,12 @@ class ViewModel:
         la = c.get("load")
         vm["cpu_load"] = ("/".join(_ld(x) for x in la), NEUTRAL) if la else ND
         # uso e carga sustentados por 5 min (Zabbix): aviso; abaixo disso o número segue neutro
-        lu = self.s_uso.update(c.get("util"), now)
+        lu = self._cf("cpu_uso", self.s_uso.update(c.get("util"), now), 0)
         if lu == WARN:
             vm["cpu_util"] = (vm["cpu_util"][0], WARN)
         if c.get("util") is not None:
             health["cpu_uso"] = lu
-        lc = self.s_carga.update(la[0] if la else None, now)
+        lc = self._cf("carga", self.s_carga.update(la[0] if la else None, now), 0)
         if lc == WARN:
             vm["cpu_load"] = (vm["cpu_load"][0], WARN)
         if la:
@@ -295,11 +298,12 @@ class ViewModel:
                 lv = WARN if st == "OFF" else NA   # configurado e ausente = atenção
                 disks.append({"name": name, "use": txt, "pct_txt": "OFF" if st == "OFF" else "N/D",
                               "free": "--", "pct": None, "lvl": lv, "use_lvl": lv})
+            disks[-1]["lvl"] = self._cf(f"disk{i}", disks[-1]["lvl"], 0)
             health[f"disk{i}"] = disks[-1]["lvl"]
             # temperatura do disco (HDD tem limites próprios; sem leitura = N/D, não alerta)
             x = d.get("temp")
             if x is not None:
-                lv = self.h_dt[i]["hdd" if d.get("hdd") else "ssd"].update(x)
+                lv = self._cf(f"disk{i}_t", self.h_dt[i]["hdd" if d.get("hdd") else "ssd"].update(x), 0)
                 disks[-1].update(temp_txt=f"{round(x)}°C", temp_lvl=lv)
                 health[f"disk{i}_t"] = lv
             else:
@@ -398,6 +402,8 @@ class ViewModel:
                 ei["info"] = (f"{e.get('name', '')} {speed_txt(e['speed'])} (era {speed_txt(self.eth_vel)})", WARN)
                 if health.get("conexao") == OK:
                     health["conexao"] = WARN
+        if "conexao" in health:
+            health["conexao"] = self._cf("conexao", health["conexao"], 0)
         vm["eth"], vm["wifi"] = ei, wi
         no_link = any_iface and not any_link
 
@@ -423,10 +429,12 @@ class ViewModel:
         elif pg.get("ok"):
             self.s_ping.update(False)
             ms = pg["ms"]
-            vm["ping"] = (f"{ms:.1f}ms" if ms < 10 else f"{ms:.0f}ms", self.h_ping.update(ms))
+            # classifica o número exibido (20,4 ms aparece como 20ms e é verde)
+            vm["ping"] = (f"{ms:.1f}ms" if ms < 10 else f"{ms:.0f}ms",
+                          self._cf("ping", self.h_ping.update(round(ms, 1) if ms < 10 else round(ms)), 0))
             vm["inet"] = ("INTERNET OK", OK)
         else:
-            lv = max(WARN, self.s_ping.update(True))
+            lv = self._cf("ping", max(WARN, self.s_ping.update(True)), 0)
             vm["ping"] = ("FALHA", lv)
             vm["inet"] = ("SEM REDE", CRIT) if no_link else (
                 ("SEM INTERNET", lv) if lv == CRIT else ("INSTÁVEL", WARN))

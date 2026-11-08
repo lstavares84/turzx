@@ -1,4 +1,5 @@
-# GAMMA DELTA | motor do GAMMA DELTA e das variantes | versão 0.2.0 | 07/11/2026 21:14 (-03) | criação original (Claude, para Lucas Tavares)
+# GAMMA DELTA | motor do GAMMA DELTA e das variantes | versão 0.3.0 | 07/11/2026 21:46 (-03) | criação original (Claude, para Lucas Tavares)
+# histórico: 0.3.0 07/11/2026 21:46 SQUAMA mostra INF ou LAT, a que tiver leitura
 # histórico: 0.2.0 07/11/2026 21:14 valor em alerta com fundo na cor do nível (alerta_inverso); passa a desenhar o GAMMA DELTA oficial
 # Base: GAMMA DELTA (colmeia à direita, gráficos de 24 h, baias com uso). Acrescenta:
 #   total de TB de todos os HDs (discos + baias montadas, sem contar o mesmo dispositivo duas vezes);
@@ -258,8 +259,11 @@ def render(vm, P):
             c.text(f"bay{i}.st", bx[2] + 5, y, b["palavra"], F["xs"], col(b["lvl"]))
     # REFRIGERAÇÃO numa linha (INF e LAT em série: uma leitura só)
     y = _titulo_dados(T, "REFRIGERAÇÃO", y + gap + 1, [par("fan.placa", "PLACA", "t_placa")]) + step - 2
-    v("fan_sql")
-    linha(y, (("fan.pump", "BOMBA", "pump"), ("fan.rad", "RAD", "cpu_fan"), ("fan.sq", "SQUAMA", "fan_sqi"),
+    # INF e LAT estão em série: mostra a que tem leitura (no PC, a entrada mapeada como INF lê 0 e nunca girou)
+    rpm_txt = lambda k: v.raw(k, ("N/D", NA))
+    k_sq = "fan_sqi" if rpm_txt("fan_sqi")[1] not in (NA, LOST) else "fan_sql"
+    v("fan_sqi"); v("fan_sql")
+    linha(y, (("fan.pump", "BOMBA", "pump"), ("fan.rad", "RAD", "cpu_fan"), ("fan.sq", "SQUAMA", k_sq),
               ("fan.sqt", "TRA", "fan_sqt")), folga=10)
     # REDE
     def inet_txt(x, yy):

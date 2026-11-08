@@ -225,8 +225,18 @@ def main():
     check("modelo de visão: CPU a 96 °C só fica vermelha depois de 2 s", a == OK and b["cpu_temp"][1] == CRIT, str((a, b["cpu_temp"])))
     check("LOG registra a CPU entrando no vermelho", b["registro"] and b["registro"][0][1].startswith("CPU 96°C VERMELHO") and b["registro"][0][2] == CRIT, str(b["registro"][:1]))
     s["cpu"]["temp"] = 50
-    c2 = vmx.build(copy.deepcopy(s), now=110)
-    check("LOG registra a volta ao verde", c2["registro"][0][1].startswith("CPU 50°C VERDE"), str(c2["registro"][:1]))
+    c1 = vmx.build(copy.deepcopy(s), now=110)
+    check("alerta fica no mínimo 5 min mesmo com a leitura normal", c1["cpu_temp"][1] == CRIT, str(c1["cpu_temp"]))
+    c2 = vmx.build(copy.deepcopy(s), now=103.5 + 301)
+    check("depois de 5 min volta ao verde e o LOG registra", c2["cpu_temp"][1] == OK and c2["registro"][0][1].startswith("CPU 50°C VERDE")
+          and len(c2["registro"]) == 2, str(c2["registro"][:2]))
+    vmp = ViewModel(copy.deepcopy(DEFAULTS), (80, 90), (80, 87))
+    s = base(); s.pop("demo_alertas", None)
+    lv_ping = []
+    for t_, ms in ((0, 20.4), (10, 21.0), (20, 18.0), (330, 18.0)):
+        s["ping"] = {"ok": True, "ms": ms}
+        lv_ping.append(vmp.build(copy.deepcopy(s), now=t_)["ping"][1])
+    check("ping: 20 ms (exibido) é verde; 21 ms acende; volta ao verde 5 min depois", lv_ping == [OK, WARN, WARN, OK], str(lv_ping))
     s = base(); s["cpu"]["cool"]["sq_tras"] = {"rpm": 450, "visto": True}
     check("ventoinha girando a 450 RPM = AVISO (abaixo de 600)", vm_of(s)["fan_sqt"][1] == WARN)
     s = base(); s["gpu"] = dict(s["gpu"], throttle=0x40)

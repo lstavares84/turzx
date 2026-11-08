@@ -146,7 +146,8 @@ energia:
   host: ""                 # IP da tomada inteligente (tasmota/shelly_gen2)
   psu_watts: 0             # capacidade da fonte para alertas (0 = sem alerta)
 
-histerese: {{temperatura: 3, percentual: 2, ping_ms: 5}}
+histerese: {{temperatura: 3, percentual: 2, ping_ms: 0}}
+alertas: {{confirmar_s: 2, manter_s: 300}}
 """
 
 

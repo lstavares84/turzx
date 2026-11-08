@@ -7,6 +7,11 @@ Segue [SemVer](https://semver.org/lang/pt-BR/) (MAJOR.MINOR.PATCH). Os estilos (
 
 ## [Não lançado]
 
+## [1.8.1] - 07/11/2026 21:46 (-03)
+
+- Correção do ping preso em âmbar: 20 ms (o número exibido) é verde (limite "acima de", em `Hyst(estrito=True)`), e a histerese do ping passou de 5 ms para 0. Antes, 20,4 ms acendia o âmbar e ele só apagava abaixo de 15 ms.
+- Âmbar e vermelho ficam no mínimo 5 minutos na tela (`alertas.manter_s`, em `Confirma`); depois o nível acompanha a leitura e volta ao verde quando ela normaliza. Vale para todos os indicadores, inclusive ping, discos e rede. O LOG continua acumulando e registra a volta ao verde.
+- GAMMA DELTA: SQUAMA mostra a entrada que tem leitura (INF ou LAT, em série); no PC, a entrada mapeada como INF lê 0.
 ## [1.8.0] - 07/11/2026 21:14 (-03)
 
 - GAMMA DELTA passa a ser o desenho estudado como DELTA 5B (o nome `gamma-delta-5b` continua aceito): valor em alerta com fundo âmbar ou vermelho e texto escuro, como na 1.7.0 de estudo; selo `DELTA` com a versão.

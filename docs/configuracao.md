@@ -45,11 +45,15 @@ Os limites vêm dos manuais, dos valores gravados no próprio hardware e das boa
 
 Informativos, sem cor de alerta: uso da GPU (100 % em jogo é o esperado), potência da GPU, frequência da CPU, FPS e velocidade de download e upload.
 
-**Contra ruído de leitura:** as leituras contínuas (temperaturas, VRAM, RAM, ventoinhas, clock da GPU) só sobem de cor depois de ficar 2 s no novo nível; a descida é imediata, com a histerese. O ping vale pela última leitura (é lido a cada 5 s), assim como discos e baias.
+**Contra ruído de leitura:** as leituras contínuas (temperaturas, VRAM, RAM, ventoinhas, clock da GPU) só sobem de cor depois de ficar 2 s no novo nível. O ping vale pela última leitura (é lido a cada 5 s), assim como discos e baias.
+
+**Tempo mínimo na tela:** âmbar e vermelho ficam pelo menos 5 minutos, para dar tempo de ver; depois a cor acompanha a leitura e volta ao verde quando ela normaliza. Chave: `alertas: {confirmar_s: 2, manter_s: 300}`.
+
+**Ping:** o limite é "acima de": 20 ms (o número exibido) ainda é verde.
 
 Abaixo de `fan_stop_ok_below_c` (60 °C), ventoinha parada é modo semipassivo e não alerta. Uma entrada que nunca girou (conector vazio) aparece como `0` neutro.
 
-A **histerese** evita que a cor pisque entre dois níveis: `histerese: {temperatura: 3, percentual: 2, ping_ms: 5}`.
+A **histerese** evita que a cor pisque entre dois níveis: `histerese: {temperatura: 3, percentual: 2, ping_ms: 0}` (no ping, a permanência de 5 minutos já evita piscar).
 
 **LOG de alertas (GAMMA DELTA 5B):** cada mudança de cor de um indicador entra no LOG com a hora, a leitura e a nova cor (âmbar, vermelho ou a volta ao verde). Alertas com mais de 1 hora aparecem esmaecidos.
 

@@ -1,4 +1,5 @@
-# MATRIX GREEN PRO | versão 2.1.0 | 07/11/2026 21:00 (-03) | Confirma (subida só após 2 s) e Sustentado (limite por 5 min)
+# MATRIX GREEN PRO | versão 2.2.0 | 07/11/2026 21:46 (-03) | alerta fica no mínimo 5 min; Hyst com limite estrito (acima de)
+# histórico: 2.1.0 07/11/2026 21:00 Confirma (subida só após 2 s) e Sustentado (limite por 5 min)
 # histórico: 2.0.0 31/10/2026 23:05 V2: paleta preto/branco/verde/amarelo, N/D neutro
 # histórico: 1.0.0 31/10/2026 22:40 criação inicial
 # Estados visuais e histerese (evita piscar entre verde/amarelo/vermelho).
@@ -51,10 +52,11 @@ class Hyst:
     """Classificador com histerese: sobe de nível ao atingir o limite e só
     desce quando o valor recua 'hyst' unidades abaixo dele."""
 
-    def __init__(self, warn, crit, hyst=2.0):
+    def __init__(self, warn, crit, hyst=2.0, estrito=False):
         self.warn = None if warn is None else float(warn)
         self.crit = None if crit is None else float(crit)
         self.hyst = float(hyst)
+        self.estrito = estrito          # True: o limite é "acima de" (ex.: ping verde até 20 ms, inclusive)
         self.level = OK
 
     def set_limits(self, warn, crit):
@@ -67,15 +69,17 @@ class Hyst:
             return NA
         v = float(value)
         lvl = self.level
+        passa = (lambda lim: v > lim) if self.estrito else (lambda lim: v >= lim)
+        abaixo = (lambda lim: v <= lim - self.hyst) if self.estrito else (lambda lim: v < lim - self.hyst)
         # subida imediata
-        if self.crit is not None and v >= self.crit:
+        if self.crit is not None and passa(self.crit):
             lvl = CRIT
-        elif self.warn is not None and v >= self.warn and lvl < WARN:
+        elif self.warn is not None and passa(self.warn) and lvl < WARN:
             lvl = WARN
         # descida somente após recuar a margem de histerese
-        if lvl == CRIT and (self.crit is None or v < self.crit - self.hyst):
+        if lvl == CRIT and (self.crit is None or abaixo(self.crit)):
             lvl = WARN
-        if lvl == WARN and (self.warn is None or v < self.warn - self.hyst):
+        if lvl == WARN and (self.warn is None or abaixo(self.warn)):
             lvl = OK
         self.level = lvl
         return lvl
@@ -98,24 +102,39 @@ class Streak:
 
 
 class Confirma:
-    """Filtro contra ruído de leitura: o nível só SOBE depois de se manter por 'seg' segundos; desce na hora
-    (a descida já tem a histerese da Hyst). A primeira leitura vale de imediato (início do painel)."""
+    """Filtro do nível de alerta:
+    - contra ruído: o nível só SOBE depois de se manter por 'seg' segundos (0 = na hora, para leituras lentas);
+    - para dar tempo de ver: âmbar e vermelho ficam no mínimo 'manter' segundos; depois disso o nível acompanha a
+      leitura (volta ao verde assim que ela estiver normal).
+    A primeira leitura vale de imediato (início do painel)."""
 
-    def __init__(self, seg=2.0):
-        self.seg = float(seg)
-        self.nivel, self.cand, self.desde = None, None, None
+    def __init__(self, seg=2.0, manter=300.0):
+        self.seg, self.manter = float(seg), float(manter)
+        self.nivel, self.cand, self.desde, self.acendeu = None, None, None, 0.0
+
+    def _fixa(self, lv, now):
+        if lv != self.nivel and lv in (WARN, CRIT):
+            self.acendeu = now                       # cada mudança para âmbar ou vermelho reinicia a permanência
+        self.nivel, self.cand = lv, None
 
     def update(self, lv, now):
         if lv not in (OK, WARN, CRIT):
             self.nivel = self.cand = None
             return lv
-        if self.nivel is None or lv <= self.nivel:
-            self.nivel, self.cand = lv, None
+        if self.nivel is None:
+            self._fixa(lv, now)
             return lv
-        if self.cand != lv:
-            self.cand, self.desde = lv, now
-        if now - self.desde >= self.seg:
-            self.nivel, self.cand = lv, None
+        if lv > self.nivel:                          # subida: confirma por 'seg' segundos
+            if self.cand != lv:
+                self.cand, self.desde = lv, now
+            if now - self.desde >= self.seg:
+                self._fixa(lv, now)
+        elif lv < self.nivel:                        # descida: só depois da permanência mínima
+            self.cand = None
+            if now - self.acendeu >= self.manter:
+                self._fixa(lv, now)
+        else:
+            self.cand = None
         return self.nivel
 
 

@@ -1,4 +1,5 @@
-# MATRIX GREEN PRO | versão 3.8.0 | 07/11/2026 21:00 (-03) | limites de manuais, do hardware e do Zabbix
+# MATRIX GREEN PRO | versão 3.9.0 | 07/11/2026 21:46 (-03) | alertas.manter_s (5 min) e histerese do ping 0
+# histórico: 3.8.0 07/11/2026 21:00 limites de manuais, do hardware e do Zabbix
 # histórico: 3.7.0 07/11/2026 20:15 ping verde até 20 ms, âmbar até 100 ms, vermelho acima
 # histórico: 3.6.0 07/11/2026 14:10 terramaster (baias do DAS USB)
 # histórico: 3.3.0 02/11/2026 21:30 cpu.fans (mapa de bomba e ventoinhas) e fans.yaml
@@ -93,7 +94,8 @@ DEFAULTS = {
         "max_age_s": 10,
         "psu_watts": 0,           # capacidade nominal da fonte para alertas (0 = sem alerta)
     },
-    "histerese": {"temperatura": 3, "percentual": 2, "ping_ms": 5},
+    "histerese": {"temperatura": 3, "percentual": 2, "ping_ms": 0},   # ping: a permanência de 5 min já evita piscar
+    "alertas": {"confirmar_s": 2, "manter_s": 300},   # subida só depois de 2 s; âmbar e vermelho ficam no mínimo 5 min
 }
 
 

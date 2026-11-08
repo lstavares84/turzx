@@ -77,7 +77,7 @@ Cores das baias: montado em verde, desmontado em branco, livre em cinza.
 
 ## GAMMA DELTA (`gamma-delta`), o mais novo
 
-O GAMMA GAMMA com a colmeia à direita, três gráficos de 24 h e um LOG de alertas. Pacote `Gamma-Delta-v1.8.0.zip`, instalado com `--versao delta`. Na 1.8.0 ele passou a ser o desenho estudado como DELTA 5B (o nome `gamma-delta-5b` continua aceito).
+O GAMMA GAMMA com a colmeia à direita, três gráficos de 24 h e um LOG de alertas. Pacote `Gamma-Delta-v1.8.1.zip`, instalado com `--versao delta`. Na 1.8.0 ele passou a ser o desenho estudado como DELTA 5B (o nome `gamma-delta-5b` continua aceito).
 
 - **Valor em alerta em destaque.** Qualquer leitura em atenção ou crítico aparece com fundo âmbar ou vermelho e texto escuro (por exemplo `FPS 96`, `TEMP 84°C`). Os limites estão em [configuração](configuracao.md).
 - **Nomes dos gráficos girados 90°**, centrados na altura de cada gráfico; os gráficos ficam mais largos.

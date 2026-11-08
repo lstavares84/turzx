@@ -1,9 +1,10 @@
-<!-- README do pacote | GAMMA TUS-35 | versão 2.0.0 | 07/11/2026 22:24 (-03) | criação original (Claude, para Lucas Tavares) -->
+<!-- README do pacote | GAMMA | versão 2.1.0 | 08/11/2026 13:30 (-03) | criação original (Claude, para Lucas Tavares) -->
+<!-- histórico: 2.1.0 08/11/2026 13:30 telas de 3,5" e 5,2" -->
 <!-- histórico: 2.0.0 07/11/2026 22:24 reescrito para a v1.8.2 (antes descrevia as versões 1.3.0 e anteriores; o histórico completo está no CHANGELOG) -->
 
-# GAMMA TUS-35: conteúdo do pacote
+# GAMMA: conteúdo do pacote
 
-Tema de monitoramento para a tela TURZX / Turing TUS-35 de 3,5" (320x480, retrato, USB `1a86:5722`), instalado como extensão do [turing-smart-screen-python](https://github.com/mathoudebine/turing-smart-screen-python). Cada ZIP traz um estilo (ALPHA, BETA, GAMMA ou DELTA), o instalador e as ferramentas. O design, o código e os scripts são criação original (Claude, para Lucas Tavares), sob a licença GPL-3.0-or-later.
+Tema de monitoramento para a tela TURZX / Turing de 3,5" (TUS-35, 320x480, USB `1a86:5722`) ou de 5,2" (720x1280, USB `1cbe:0050`), em retrato, instalado como extensão do [turing-smart-screen-python](https://github.com/mathoudebine/turing-smart-screen-python). Cada ZIP traz um estilo (ALPHA, BETA, GAMMA ou DELTA) para uma tela (`3.5` ou `5.2` no nome do arquivo), o instalador e as ferramentas. O design, o código e os scripts são criação original (Claude, para Lucas Tavares), sob a licença GPL-3.0-or-later.
 
 Documentação completa, com imagens: <https://github.com/lstavares84/turzx>.
 
@@ -15,7 +16,7 @@ Documentação completa, com imagens: <https://github.com/lstavares84/turzx>.
 ./instalar-gamma.sh
 ```
 
-Opções úteis: `--invertido` (imagem de ponta-cabeça), `--restaurar` (volta ao tema anterior), `--sem-apt` (não instala pacotes do sistema), `--ajuda`.
+Opções úteis: `--tela 3.5|5.2` (já vem certa no pacote), `--invertido` (imagem de ponta-cabeça), `--restaurar` (volta ao tema anterior), `--sem-apt` (não instala pacotes do sistema), `--ajuda`.
 
 ## Conteúdo
 
@@ -23,9 +24,10 @@ Opções úteis: `--invertido` (imagem de ponta-cabeça), `--restaurar` (volta a
 Gamma-<Estilo>-vX.Y.Z/
 ├── instalar-gamma.sh            instalador de ponta a ponta
 ├── VERSION, ESTILO_PADRAO       versão do pacote e estilo que ele instala
+├── TELA_PADRAO                  tela do pacote (3.5 ou 5.2)
 ├── LEIA-ME.md, CHANGELOG.md     resumo e histórico de versões
 ├── README-pacote.md             este arquivo
-├── MatrixGreenPro/              pasta do tema (vai para res/themes/MatrixGreenPro)
+├── telas/<tela>/MatrixGreenPro/ pasta do tema da tela (vai para res/themes/MatrixGreenPro)
 ├── sensors/
 │   ├── sensors_custom_hook.txt  bloco acrescentado ao sensors_custom.py do Turing
 │   └── matrixgreenpro/          extensão: coletores, modelo de visão, alertas, histórico e o estilo

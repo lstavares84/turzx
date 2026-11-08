@@ -1,4 +1,5 @@
-<!-- docs/desenvolvimento.md | versão 2.0.0 | 07/11/2026 22:24 (-03) | criação original (Claude, para Lucas Tavares). Fonte: tools/, construir/ e regras do projeto na v1.8.2. -->
+<!-- docs/desenvolvimento.md | versão 2.1.0 | 08/11/2026 13:30 (-03) | criação original (Claude, para Lucas Tavares). Fonte: tools/, construir/ e regras do projeto na v1.8.3. -->
+<!-- histórico: 2.1.0 08/11/2026 13:30 duas telas: pastas por tela, MGP_TELA, matriz --tela, ZIPs por tela -->
 <!-- histórico: 2.0.0 07/11/2026 22:24 revisão para a v1.8.2: quatro ZIPs, contagens, matriz 4 x 3, aplicar delta, Releases -->
 
 # Desenvolvimento
@@ -16,12 +17,15 @@
 ├── CLAUDE.md                 regras para agentes de IA que trabalham no projeto
 ├── instalar-gamma.sh         instalador de ponta a ponta
 ├── construir/
-│   ├── construir_zips.py     gera os quatro ZIPs enxutos
-│   ├── matriz_previas.py     matriz de prévias (4 estilos x 3 estados)
+│   ├── construir_zips.py     gera os ZIPs enxutos (4 estilos x 2 telas)
+│   ├── matriz_previas.py     matriz de prévias (4 estilos x 3 estados), da 3,5" ou da 5,2"
 │   └── aplicar-na-tela.sh    aplica um estilo na tela do PC a partir do ZIP
 ├── construir-zips.sh         OBSOLETO (modelo antigo, veja o roteiro)
 ├── publicar-no-github.sh     OBSOLETO para a estrutura atual (veja o roteiro)
-├── pacote/                   tema, extensão Python, scripts e ferramentas
+├── pacote/                   extensão Python, scripts e ferramentas (comuns às duas telas)
+│   └── telas/
+│       ├── 3.5/MatrixGreenPro/   tema da tela de 3,5" (320x480)
+│       └── 5.2/MatrixGreenPro/   tema da tela de 5,2" (720x1280)
 ├── pc/espelho-github/        utilitário do PC: espelho local dos repositórios (não entra nos ZIPs)
 └── docs/                     documentação (img/ com capturas, brainstorm/ com estudos)
 ```
@@ -57,7 +61,7 @@ cd <turing> && .venv/bin/python3 tools/mgp_selftest.py
 | `mgp_detect.py` | detecta discos e rede e cria a configuração inicial |
 | `mgp_orientation_test.py` | mostra uma seta TOPO na tela física |
 
-Resultados de referência da v1.8.2: autoteste 229 de 229 no repositório inteiro; 110 de 110 nos ZIPs Alpha, Beta e Gamma e 109 de 109 no Delta. No repositório inteiro, o estilo experimental `pcb` acusa "métricas omitidas" (ele não é entregue).
+Resultados de referência da v1.8.3 com as duas telas: autoteste 232 de 232 no repositório inteiro, tanto com `MGP_TELA=3.5` quanto com `MGP_TELA=5.2`; 110 de 110 nos ZIPs Alpha, Beta e Gamma e 109 de 109 no Delta, nas duas telas. Para testar a outra tela sem reinstalar, defina `MGP_TELA=5.2` (ou `3.5`) antes do autoteste ou das prévias. No repositório inteiro, o estilo experimental `pcb` acusa "métricas omitidas" (ele não é entregue).
 
 Para testar sem mexer na instalação do PC, monte uma cópia de desenvolvimento do Turing (pastas `library`, `tools`, `main.py`, `config.yaml` e um link para `res`), copie o `matrixgreenpro` e as ferramentas para ela e defina `MGP_HISTORICO` para um arquivo temporário, para o autoteste não gravar no histórico real:
 
@@ -73,21 +77,23 @@ Toda modificação é mostrada ao Lucas como uma matriz em PNG: as 4 versões (A
 
 ```bash
 python3 -I construir/matriz_previas.py previas/matriz.png ~/turing-smart-screen-linux
+python3 -I construir/matriz_previas.py previas/matriz-5.2.png ~/turing-smart-screen-linux --tela 5.2
 ```
 
 Opções: `--extra coluna` acrescenta a variante GAMMA GAMMA COLUNA; `--deltas` troca as colunas pelas 6 variantes de estudo do DELTA; `--delta5` mostra o DELTA e as variantes 5A e 5C; `--v2` mostra as 12 propostas da v2.0.0. O segundo argumento é uma cópia do Turing Smart Screen, usada só pelas fontes de `res/fonts`. Requer Pillow e psutil. A pasta `previas/` fica fora do Git.
 
 ## Aplicar na tela do PC
 
-Numa sessão que roda no próprio PC, `construir/aplicar-na-tela.sh delta` (ou `alpha`, `beta`, `gamma`) monta o ZIP do estilo a partir do código atual, extrai com `unzip` e roda o instalador com `--sem-apt`. O instalador guarda o tema anterior (volta com `--restaurar`) e reinicia o serviço da tela. Rodar com o usuário comum, sem sudo. Instalado assim, o selo mostra a versão; instalado direto do repositório (`./instalar-gamma.sh --estilo NOME`), mostra `dev`. ⚠️ Só com autorização explícita do Lucas, a cada envio, e antes do commit.
+Numa sessão que roda no próprio PC, `construir/aplicar-na-tela.sh delta 3.5` (ou `alpha`, `beta`, `gamma`; e `5.2` para a tela de 5,2") monta o ZIP do estilo a partir do código atual, extrai com `unzip` e roda o instalador com `--sem-apt`. O instalador guarda o tema anterior (volta com `--restaurar`) e reinicia o serviço da tela. Rodar com o usuário comum, sem sudo. Instalado assim, o selo mostra a versão; instalado direto do repositório (`./instalar-gamma.sh --estilo NOME`), mostra `dev`. ⚠️ Só com autorização explícita do Lucas, a cada envio, e antes do commit.
 
 ## Gerar os ZIPs
 
 ```bash
-python3 -I construir/construir_zips.py SAIDA 1.8.3:Alpha 1.8.3:Beta 1.8.3:Gamma 1.8.3:Delta
+python3 -I construir/construir_zips.py SAIDA 1.8.3:Alpha:3.5 1.8.3:Beta:3.5 1.8.3:Gamma:3.5 1.8.3:Delta:3.5 \
+    1.8.3:Alpha:5.2 1.8.3:Beta:5.2 1.8.3:Gamma:5.2 1.8.3:Delta:5.2
 ```
 
-Para cada estilo, o construtor cria `SAIDA/Gamma-<Nome>-v<versão>/` e o ZIP correspondente. Ele copia `pacote/`, remove os estilos não usados, reescreve `ESTILOS` e `ALIASES`, ajusta o autoteste e a prévia ao estilo, grava `versao.py`, `VERSION`, `ESTILO_PADRAO`, `LEIA-ME.md` e `CHANGELOG.md`, copia o instalador e preserva as permissões. O Delta leva também `reator_grupos.py`, `reator_delta2.py` e `graficos.py`. Contagem na v1.8.2: Alpha e Beta com 38 arquivos, Gamma com 39 e Delta com 41.
+Para cada estilo e tela, o construtor cria `SAIDA/Gamma-<Nome>-<tela>-v<versão>/` e o ZIP correspondente (sem a tela no pedido, vale 3.5). Cada pacote leva só a pasta do tema da sua tela, `TELA_PADRAO` e o `tela.py` já gravado. A versão é a mesma nas duas telas: criar o pacote da 5,2" não muda a versão do estilo, só o nome do pacote. Ele copia `pacote/`, remove os estilos não usados, reescreve `ESTILOS` e `ALIASES`, ajusta o autoteste e a prévia ao estilo, grava `versao.py`, `VERSION`, `ESTILO_PADRAO`, `LEIA-ME.md` e `CHANGELOG.md`, copia o instalador e preserva as permissões. O Delta leva também `reator_grupos.py`, `reator_delta2.py` e `graficos.py`. Contagem com as duas telas: na 3,5", Alpha e Beta com 40 arquivos, Gamma com 41 e Delta com 43; na 5,2", os mesmos números.
 
 Para uma nova versão, troque o número nas linhas de `V`, acrescente a entrada em `ENT` dentro de `construir_zips.py` e rode de novo. O construtor reescreve a lista de estilos do autoteste procurando o trecho que termina em `"pcb"`: estilos novos entram antes dele.
 

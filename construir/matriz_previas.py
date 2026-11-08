@@ -1,4 +1,5 @@
-# GAMMA | construir/matriz_previas.py | versão 1.5.0 | 07/11/2026 22:20 (-03) | criação original (Claude, para Lucas Tavares)
+# GAMMA | construir/matriz_previas.py | versão 1.6.0 | 08/11/2026 13:22 (-03) | criação original (Claude, para Lucas Tavares)
+# histórico: 1.6.0 08/11/2026 13:22 opção --tela 3.5 ou 5.2 (a 5,2" aparece reduzida à metade)
 # histórico: 1.5.0 07/11/2026 22:20 o DELTA entra nas colunas padrão (4 x 3); sai o --extra delta
 # histórico: 1.4.0 07/11/2026 20:35 opção --delta5: o DELTA 5 e as variantes 5A, 5B e 5C
 # histórico: 1.3.0 07/11/2026 20:25 opção --deltas: as 6 variantes do GAMMA DELTA
@@ -7,7 +8,8 @@
 # Matriz de prévias: as 4 versões (ALPHA, BETA, GAMMA, DELTA) nos 3 estados (normal, atenção, crítico), num único PNG.
 # Desenha com o código ATUAL de pacote/ (não com o que está instalado) e os dados de demonstração do painel.
 # Uso, na raiz do repositório:
-#   python3 -I construir/matriz_previas.py SAIDA.png [pasta_do_turing] [--extra coluna]
+#   python3 -I construir/matriz_previas.py SAIDA.png [pasta_do_turing] [--extra coluna] [--tela 3.5|5.2]
+# --tela: qual tela desenhar (padrão 3.5). A 5,2" (720x1280) entra na matriz reduzida à metade (360x640).
 # --extra NOME (repetível): acrescenta uma variante de estudo como coluna a mais (veja EXTRAS).
 # pasta_do_turing: cópia do turing-smart-screen, só para as fontes em res/fonts (padrão: ~/turing-smart-screen-linux).
 # Requer Pillow e psutil. Também confere limites, sobreposições, glifos e cobertura de métricas de cada quadro.
@@ -63,10 +65,10 @@ def montar_arvore(turing, versao):
 
 
 def conferir(c, v, nome, required):
-    from library.sensors.matrixgreenpro.estilos.base import W, H
+    from library.sensors.matrixgreenpro.estilos.base import W, HL
     erros = []
     for n, (x0, y0, x1, y1) in c.texts:
-        if x0 < 0 or y0 < 0 or x1 > W or y1 > H:
+        if x0 < 0 or y0 < 0 or x1 > W or y1 > HL + 0.5:
             erros.append(f"{n} fora da tela")
     textos = [(n, b) for n, b in c.texts if not n.endswith(("bar", "band")) and not n.startswith("sep")]
     for (na, a), (nb, b) in itertools.combinations(textos, 2):
@@ -96,6 +98,11 @@ def main():
         elif a == "--v2":
             COLUNAS[:] = []
             extras.extend(V2)
+        elif a == "--tela":
+            tela = next(it, "")
+            if tela not in ("3.5", "5.2"):
+                sys.exit(f"[{ts()}] ERRO --tela aceita: 3.5 ou 5.2")
+            os.environ["MGP_TELA"] = tela
         elif a == "--extra":
             nome = next(it, "")
             if nome not in EXTRAS:
@@ -124,16 +131,19 @@ def main():
         from library.sensors.matrixgreenpro.viewmodel import ViewModel
         from library.sensors.matrixgreenpro.settings import DEFAULTS
         from library.sensors.matrixgreenpro.estilos.base import REQUIRED
+        from library.sensors.matrixgreenpro.tela import TELA, LARGURA, ALTURA
+        red = 2 if TELA == "5.2" else 1                       # a 5,2" entra reduzida à metade
+        FW, FH = LARGURA // red, ALTURA // red
 
         quadros, erros = {}, 0
         for chave, mod, rotulo, _ in COLUNAS:
-            draw = importlib.import_module(f"library.sensors.matrixgreenpro.estilos.{mod}").draw_frame
+            m_est = importlib.import_module(f"library.sensors.matrixgreenpro.estilos.{mod}")
             for cen, _, _ in LINHAS:
                 vm = ViewModel(copy.deepcopy(DEFAULTS), (80, 90), (80, 87)).build(panel.demo_snapshot(cen))
                 vm["blink"] = True
-                c, v = draw(vm)
-                assert c.img.size == (320, 480)
-                quadros[(chave, cen)] = c.img
+                c, v = m_est.draw_frame(vm)                   # o mesmo desenho nas duas telas
+                assert c.img.size == (LARGURA, ALTURA)
+                quadros[(chave, cen)] = c.img if red == 1 else c.img.resize((FW, FH), Image.LANCZOS)
                 n = conferir(c, v, f"{rotulo}-{cen}", REQUIRED)
                 erros += n
                 log(f"{rotulo:<5} {cen:<8} {len(c.texts)} elementos, {n} problema(s)")
@@ -142,26 +152,27 @@ def main():
         f = lambda t, w: ImageFont.truetype(str(fr / f"JetBrainsMonoNL-{w}.ttf"), t)
         esq, topo, gx, gy, cab = 132, 96, 24, 24, 26
         nc = len(COLUNAS)
-        L = esq + nc * 322 + (nc - 1) * gx + 22
-        A = topo + 3 * (cab + 482) + 2 * gy + 60
+        L = esq + nc * (FW + 2) + (nc - 1) * gx + 22
+        A = topo + 3 * (cab + FH + 2) + 2 * gy + 60
         m = Image.new("RGB", (L, A), (10, 16, 12))
         d = ImageDraw.Draw(m)
-        d.text((24, 14), f"GAMMA TUS-35 | v{versao} | todas as versões nos 3 estados" + (" + estudo" if extras else ""), font=f(26, "Bold"), fill=(110, 255, 110))
+        d.text((24, 14), f"GAMMA | tela de {TELA.replace('.', ',')}\" ({LARGURA}x{ALTURA}) | v{versao} | todas as versões nos 3 estados"
+               + (" + estudo" if extras else ""), font=f(26, "Bold"), fill=(110, 255, 110))
         d.text((24, 50), f"{ts()} | código {ref} | dados de demonstração do painel", font=f(14, "Regular"), fill=(150, 170, 150))
         for k, (chave, _, rotulo, desc) in enumerate(COLUNAS):
-            x = esq + k * (322 + gx)
+            x = esq + k * (FW + 2 + gx)
             d.text((x, topo - 26), rotulo, font=f(18, "Bold"), fill=(235, 245, 235))
             d.text((x, topo - 4), desc, font=f(12, "Regular"), fill=(130, 150, 130))
             for r, (cen, lab, cor) in enumerate(LINHAS):
-                y = topo + cab + r * (cab + 482 + gy)
-                d.rectangle((x, y, x + 321, y + 481), outline=(40, 70, 45))
+                y = topo + cab + r * (cab + FH + 2 + gy)
+                d.rectangle((x, y, x + FW + 1, y + FH + 1), outline=(40, 70, 45))
                 m.paste(quadros[(chave, cen)], (x + 1, y + 1))
                 if k == 0:
-                    d.text((24, y + 230), lab, font=f(18, "Bold"), fill=cor)
+                    d.text((24, y + FH // 2 - 10), lab, font=f(18, "Bold"), fill=cor)
         d.text((24, A - 44), f"Problemas de layout (limites, sobreposição, glifos, métricas): {erros}.", font=f(13, "Bold"),
                fill=(110, 255, 110) if not erros else (255, 80, 70))
-        d.text((24, A - 24), "Criação original (Claude, para Lucas Tavares). Quadros 320x480 desenhados pelos próprios estilos; "
-               "não são fotos da tela física.", font=f(12, "Regular"), fill=(130, 150, 130))
+        d.text((24, A - 24), f"Criação original (Claude, para Lucas Tavares). Quadros {LARGURA}x{ALTURA} desenhados pelos próprios estilos"
+               + (", reduzidos à metade" if red > 1 else "") + "; não são fotos da tela física.", font=f(12, "Regular"), fill=(130, 150, 130))
         saida.parent.mkdir(parents=True, exist_ok=True)
         m.save(saida)
         log(f"matriz gravada: {saida} ({L}x{A}), {erros} problema(s) de layout")

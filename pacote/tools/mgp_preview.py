@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-# MATRIX GREEN PRO | versão 3.10.0 | 07/11/2026 20:25 (-03) | variantes gamma-delta-1 a 6
+# MATRIX GREEN PRO | versão 3.11.0 | 08/11/2026 13:27 (-03) | prévias na tela de 3,5" ou 5,2"
+# histórico: 3.10.0 07/11/2026 20:25 variantes gamma-delta-1 a 6
 # histórico: 3.9.0 07/11/2026 20:00 12 propostas da v2.0.0
 # histórico: 3.8.0 07/11/2026 19:40 estilos gamma-delta e gamma-gamma-coluna
 # histórico: 3.3.0 02/11/2026 18:10 prévias com fase de piscar (aceso e apagado) nos estilos de alerta
@@ -67,10 +68,10 @@ def all_nd():
     return s
 
 
-def check(elements, name):
+def check(elements, name, alto=None):
     errs = []
     for n, (x0, y0, x1, y1) in elements:
-        if x0 < 0 or y0 < 0 or x1 > render.W or y1 > render.H:
+        if x0 < 0 or y0 < 0 or x1 > render.W or y1 > (alto or render.H) + 0.5:
             errs.append(f"{n} fora da tela {x0,y0,x1,y1}")
     texts = [(n, b) for n, b in elements if not n.endswith(("bar", "band")) and not n.startswith("sep")]
     for (na, a), (nb, b) in itertools.combinations(texts, 2):
@@ -114,12 +115,15 @@ def estilos(out):
     for key, (label, mod) in ESTILOS.items():
         if mod is None:
             continue
-        draw = importlib.import_module(f"library.sensors.matrixgreenpro.estilos.{mod}").draw_frame
+        from library.sensors.matrixgreenpro.estilos.base import HL
+        from library.sensors.matrixgreenpro.tela import LARGURA, ALTURA
+        m_est = importlib.import_module(f"library.sensors.matrixgreenpro.estilos.{mod}")
+        draw = m_est.draw_frame
         for tag, snap in cen:
             vm = ViewModel(copy.deepcopy(DEFAULTS), (80, 90), (80, 87)).build(copy.deepcopy(snap))
             vm["blink"] = tag != "CriticoApagado"        # fase do piscar (estilos de alerta)
             c, v = draw(vm)
-            assert c.img.size == (320, 480)
+            assert c.img.size == (LARGURA, ALTURA)
             camel = {"pcb": "PCB", "gamma": "Gamma", "gamma-sonar": "GammaSonar", "gamma-raiox": "GammaRaioX",
                      "gamma-uv": "GammaUV", "gamma-escala": "GammaEscala", "gamma-barra": "GammaBarra",
                      "gamma-banner": "GammaBanner", "gamma-faixa": "GammaFaixa", "gamma-n3": "GammaN3", "gamma-alpha": "GammaAlpha",
@@ -128,7 +132,7 @@ def estilos(out):
                      "gamma-gamma-mini": "GammaGammaMini", "gamma-gamma-painel": "GammaGammaPainel", "gamma-gamma-coluna": "GammaGammaColuna", "gamma-delta": "GammaDelta", "gamma-epsilon": "GammaEpsilon", "gamma-delta-1": "GammaDelta1", "gamma-delta-2": "GammaDelta2", "gamma-delta-3": "GammaDelta3", "gamma-delta-4": "GammaDelta4", "gamma-delta-5": "GammaDelta5", "gamma-delta-6": "GammaDelta6", "gamma-delta-5a": "GammaDelta5A", "gamma-delta-5c": "GammaDelta5C", "v2-concreto": "V2Concreto", "v2-silencio": "V2Silencio", "v2-hud": "V2Hud", "v2-root": "V2Root", "v2-dossie": "V2Dossie", "v2-vital": "V2Vital", "v2-cockpit": "V2Cockpit", "v2-metro": "V2Metro", "v2-anunciador": "V2Anunciador", "v2-8bits": "V28Bits", "v2-osciloscopio": "V2Osciloscopio", "v2-grade": "V2Grade", "gamma-gamma": "GammaGamma"}[key]
             nome = f"MatrixGreenPro-{camel}-{tag}" if not tag.startswith("teste") else f"{key}-{tag}"
             c.img.save(out / f"{nome}.png")
-            e = check(c.texts, nome)
+            e = check(c.texts, nome, HL)
             for n, m, fn in c.glyph_issues:
                 print(f"{ts()} [{nome}] ERRO glifo ausente em {n}: {m!r} ({fn})"); e.append(n)
             miss = REQUIRED - v.used

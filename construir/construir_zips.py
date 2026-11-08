@@ -1,12 +1,14 @@
-# GAMMA | construir/construir_zips.py | versão 1.2.0 | 07/11/2026 21:14 (-03) |
+# GAMMA | construir/construir_zips.py | versão 1.3.0 | 08/11/2026 13:24 (-03) | criação original (Claude, para Lucas Tavares)
+# histórico: 1.3.0 08/11/2026 13:24 um pacote por tela (3,5" e 5,2"), Gamma-<Nome>-<tela>-v<versão>; a versão dos estilos não muda
 # histórico: 1.2.3 08/11/2026 07:36 versão 1.8.3
 # histórico: 1.2.2 07/11/2026 21:58 versão 1.8.2
 # histórico: 1.2.1 07/11/2026 21:46 versão 1.8.1
 # histórico: 1.2.0 07/11/2026 21:14 versão 1.8.0; pacote Delta leva reator_delta2.py e o apelido gamma-delta-5b criação original (Claude, para Lucas Tavares)
 # histórico: 1.1.0 07/11/2026 19:42 versão 1.7.0 e o quarto pacote, GAMMA DELTA
 # Monta os ZIPs enxutos (um por estilo) a partir de pacote/. Uso, na raiz do repositório:
-#   python3 -I construir/construir_zips.py SAIDA 1.8.3:Alpha 1.8.3:Beta 1.8.3:Gamma 1.8.3:Delta
-# Gera SAIDA/Gamma-<Nome>-v<versão>/ e o ZIP correspondente (permissões preservadas, instalador executável).
+#   python3 -I construir/construir_zips.py SAIDA 1.8.3:Delta:3.5 1.8.3:Delta:5.2 ...   (sem a tela: 3.5)
+# Gera SAIDA/Gamma-<Nome>-<tela>-v<versão>/ e o ZIP correspondente (permissões preservadas, instalador executável).
+# Cada pacote leva só a pasta do tema da sua tela (telas/3.5 ou telas/5.2), TELA_PADRAO e tela.py já gravado.
 # Para uma nova versão, adicione uma linha em V (e uma entrada em ENT, o histórico de versões).
 import os, re, shutil, stat, sys, time, zipfile
 from pathlib import Path
@@ -18,12 +20,22 @@ V={"1.8.3:Alpha":("gamma-alpha","GAMMA ALPHA","Alpha",["gamma-n3-esq","gamma-sen
 KEEP={"__init__.py","base.py","reator.py","alerta.py","reator_gamma.py","reator_grupos.py"}
 def sub(p,a,b):
     s=open(p,encoding="utf-8").read(); assert a in s,(p,a[:40]); open(p,"w",encoding="utf-8").write(s.replace(a,b,1))
-for chave,(est,tit,nome,antigo,desc) in V.items():
-    if chave not in sys.argv[2:]: continue
-    ver=chave.split(":")[0]; raiz_nome=f"Gamma-{nome}-v{ver}" if ":" in chave else f"Gamma-v{ver}"
+PEDIDOS=[]
+for a in sys.argv[2:]:
+    partes=a.split(":"); chave=":".join(partes[:2]); tela=partes[2] if len(partes)>2 else "3.5"
+    assert chave in V and tela in ("3.5","5.2"), f"pedido inválido: {a}"
+    PEDIDOS.append((chave,tela))
+for chave,tela in PEDIDOS:
+    est,tit,nome,antigo,desc=V[chave]
+    ver=chave.split(":")[0]; raiz_nome=f"Gamma-{nome}-{tela}-v{ver}"
+    tela_txt={"3.5":'TURZX / Turing TUS-35 de 3,5" (320x480)',"5.2":'TURZX / Turing de 5,2" (720x1280)'}[tela]
     R=f"{OUT}/{raiz_nome}"; shutil.rmtree(R,ignore_errors=True)
     shutil.copytree(f"{SRC}/pacote",R,ignore=shutil.ignore_patterns("__pycache__","*.pyc"))
     os.rename(f"{R}/README.md",f"{R}/README-pacote.md")
+    for outra in ("3.5","5.2"):                                  # só o tema da tela deste pacote
+        if outra!=tela: shutil.rmtree(f"{R}/telas/{outra}")
+    sub(f"{R}/sensors/matrixgreenpro/tela.py",'TELA = "3.5"\n',f'TELA = "{tela}"\n')
+    open(f"{R}/TELA_PADRAO","w").write(tela+"\n")
     open(f"{R}/sensors/matrixgreenpro/versao.py","w",encoding="utf-8").write(f'# MATRIX GREEN PRO | versao.py | versão {ver} | {time.strftime("%d/%m/%Y %H:%M")} (-03) | gerado pelo construtor dos ZIPs\nVERSAO = "{ver}"\n')
     E=f"{R}/sensors/matrixgreenpro/estilos"; mod=est.replace("-","_")
     for f in os.listdir(E):
@@ -60,7 +72,7 @@ ALIASES = {{"uranio": "gamma", "urânio": "gamma"{"".join(f", {chr(34)}{a}{chr(3
     open(f"{R}/LEIA-ME.md","w",encoding="utf-8").write(f"""<!-- LEIA-ME | GAMMA v{ver} | {time.strftime('%d/%m/%Y %H:%M')} (-03) | criação original (Claude, para Lucas Tavares) -->
 # GAMMA v{ver}
 
-Tema para a tela TURZX/Turing TUS-35 de 3,5" no Debian 13 ({tit}): {desc}.
+Tema para a tela {tela_txt} no Debian 13 ({tit}): {desc}.
 
 ## Instalar (um comando)
 
@@ -68,7 +80,7 @@ Tema para a tela TURZX/Turing TUS-35 de 3,5" no Debian 13 ({tit}): {desc}.
 unzip {raiz_nome}.zip && cd {raiz_nome} && ./instalar-gamma.sh
 ```
 
-O script instala as dependências, configura o grupo dialout, baixa o turing-smart-screen, cria o serviço systemd e instala o tema.
+O script instala as dependências, configura o acesso à tela, baixa o turing-smart-screen, cria o serviço systemd e instala o tema para a tela de {tela.replace(".", ",")}". Este pacote é só para essa tela; para a outra, baixe o ZIP com o outro tamanho no nome.
 Se a imagem estiver de ponta-cabeça: `./instalar-gamma.sh --invertido`. Para voltar ao tema anterior: `./instalar-gamma.sh --restaurar`.
 
 Detalhes técnicos: `README-pacote.md`.

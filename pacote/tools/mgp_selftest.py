@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# MATRIX GREEN PRO | versão 3.4.0 | 07/11/2026 20:15 (-03) | testes dos estilos selecionáveis (Claude, para Lucas Tavares)
+# MATRIX GREEN PRO | versão 3.5.0 | 08/11/2026 13:26 (-03) | tamanho do quadro conforme a tela (3,5" ou 5,2") (Claude, para Lucas Tavares)
 # histórico: 3.4.0 07/11/2026 20:15 mudanças bruscas, total de TB, ping 20/100 ms e variantes do GAMMA DELTA
 # histórico: 3.3.0 07/11/2026 19:00 uso das baias e estilos gamma-delta e gamma-gamma-coluna; 3.2.0 07/11/2026 18:40 estilo de estudo na lista de estilos
 # histórico: 3.1.1 07/11/2026 18:15 teste de baias invertidas isolado das montagens reais do PC; 2.1.0 31/10/2026 23:55 testes de rede x internet e do estado da coleta
@@ -398,8 +398,10 @@ def main():
     snap = eng.snapshot()
     check("motor real: snapshot com estado da coleta", isinstance(snap.get("coleta", {}).get("falhas"), list),
           str(snap.get("coleta")))
+    from library.sensors.matrixgreenpro.tela import TELA, LARGURA, ALTURA
+    TAM = (LARGURA, ALTURA)
     img = eng.frame()
-    check("motor real: quadro 320x480", img.size == (320, 480))
+    check(f"motor real: quadro {LARGURA}x{ALTURA} (tela de {TELA})", img.size == TAM)
 
     # ---- estilos selecionáveis (matrix, gamma, gamma-sonar, gamma-raiox, gamma-uv, pcb)
     from library.sensors.matrixgreenpro.estilos import renderer
@@ -409,7 +411,8 @@ def main():
         for sc in ("normal", "atencao", "critico"):
             key, draw = renderer(nome)
             img = draw(ViewModel(copy.deepcopy(DEFAULTS), (80, 90), (80, 87)).build(panel.demo_snapshot(sc)))
-            check(f"estilo {nome}/{sc}: quadro 320x480", key == nome and img.size == (320, 480))
+            esperado = (320, 480) if nome == "matrix" else TAM      # matrix (render.py) é ampliado pelo motor
+            check(f"estilo {nome}/{sc}: quadro {esperado[0]}x{esperado[1]}", key == nome and img.size == esperado)
     key, _ = renderer("uranio")
     check("apelido antigo 'uranio' abre o estilo gamma", key == "gamma")
     check("apelidos antigos abrem os novos estilos", renderer("gamma-n3-esq")[0] == "gamma-alpha"
@@ -420,7 +423,7 @@ def main():
     check("estilo desconhecido volta para matrix", key == "matrix")
     os.environ["MGP_ESTILO"] = "pcb"
     eng2 = panel.Engine()
-    check("motor real com estilo pcb", eng2.estilo == "pcb" and eng2.frame().size == (320, 480))
+    check("motor real com estilo pcb", eng2.estilo == "pcb" and eng2.frame().size == TAM)
     os.environ.pop("MGP_ESTILO", None)
 
     ok = sum(RESULTS)

@@ -1,4 +1,5 @@
-# MATRIX GREEN PRO | indicadores de aviso e alerta do cabeçalho | versão 3.5.0 | 02/11/2026 19:05 (-03) | criação original
+# MATRIX GREEN PRO | indicadores de aviso e alerta do cabeçalho | versão 3.6.0 | 08/11/2026 13:31 (-03) | criação original
+# histórico: 3.6.0 08/11/2026 13:31 brilho do nome na resolução real da tela (escala da 5,2")
 # histórico: 3.5.0 n3_esq sem tarja, com brilho no nome e sem LIVE | 3.4.0 02/11/2026 18:40 escalas N0/N1/N2 | 3.3.0 02/11/2026 18:05 escala, barra, banner e faixa
 # Três desenhos modernos para o "status" do canto superior direito, mais uma proposta com a
 # escala em outro lugar (faixa de largura total sob o cabeçalho). Em CRÍTICO o vermelho pisca:
@@ -147,11 +148,14 @@ HEALTH_CELL = {"cpu_temp": "cput", "gpu_temp": "gput", "vram": "vram", "ram": "r
 def glow(c, x, y, s, f, color, radius=2, gain=1.0, anchor="ls"):
     """Halo suave atrás do texto (nome 'brilhando'), somado à imagem antes de desenhar o texto nítido."""
     from PIL import Image, ImageChops, ImageDraw, ImageFilter
-    bx = c.d.textbbox((x, y), s, font=f, anchor=anchor)
-    x0, y0, x1, y1 = max(0, int(bx[0]) - 8), max(0, int(bx[1]) - 8), min(c.img.width, int(bx[2]) + 8), min(c.img.height, int(bx[3]) + 8)
+    k = getattr(c, "k", 1)                                     # tudo na resolução real da tela
+    x, y = x * k, y * k
+    bx = c.d.raw.textbbox((x, y), s, font=f, anchor=anchor) if hasattr(c.d, "raw") else c.d.textbbox((x, y), s, font=f, anchor=anchor)
+    m = round(8 * k)
+    x0, y0, x1, y1 = max(0, int(bx[0]) - m), max(0, int(bx[1]) - m), min(c.img.width, int(bx[2]) + m), min(c.img.height, int(bx[3]) + m)
     layer = Image.new("RGB", (x1 - x0, y1 - y0), (0, 0, 0))
     ImageDraw.Draw(layer).text((x - x0, y - y0), s, font=f, fill=color, anchor=anchor)
-    layer = layer.filter(ImageFilter.GaussianBlur(radius)).point(lambda p: min(255, int(p * gain)))
+    layer = layer.filter(ImageFilter.GaussianBlur(radius * k)).point(lambda p: min(255, int(p * gain)))
     c.img.paste(ImageChops.add(c.img.crop((x0, y0, x1, y1)), layer), (x0, y0))
 
 

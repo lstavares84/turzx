@@ -1,12 +1,21 @@
-# MATRIX GREEN PRO | estilos alternativos | versão 3.0.0-alfa | 31/10/2026 23:40 (-03) | criação
+# MATRIX GREEN PRO | estilos alternativos | versão 4.0.0 | 08/11/2026 13:18 (-03) | criação original (Claude, para Lucas Tavares)
+# histórico: 4.0.0 08/11/2026 13:18 escala por tela (tela.py): 3,5" em 1x, 5,2" em 2,25x com fontes e traços na resolução real
+# histórico: 3.0.0-alfa 31/10/2026 23:40 criação
 # Base comum dos cinco estilos alternativos. Todos recebem o MESMO modelo de visão
 # (viewmodel.py da versão 2.1.0 congelada): mesmas métricas, mesma saúde, mesmo
-# estado da coleta. Só muda o desenho. Quadro sempre 320x480, retrato.
+# estado da coleta. Só muda o desenho. Os estilos desenham em coordenadas lógicas de 320x480 (retrato);
+# o Canvas multiplica tudo pela ESCALA da tela (tela.py). Na 5,2" (720x1280, escala 2,25) o quadro é exatamente
+# o mesmo da 3,5": ocupa os primeiros 1080 px de altura e embaixo fica só o fundo (malha de hexágonos).
+import math
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
 
-W, H = 320, 480
+from ..tela import TELA, LARGURA, ALTURA, ESCALA
+
+W, H = 320, 480                       # área lógica que todos os estilos desenham
+K = ESCALA
+HL = ALTURA / K                       # altura lógica total (480 na 3,5"; 568,9 na 5,2", sobra só com o fundo)
 OK, WARN, CRIT, NA, LOST, NEUTRAL = 0, 1, 2, 3, 4, 9
 
 # estilos/ -> matrixgreenpro/ -> sensors/ -> library/ -> raiz do programa
@@ -26,7 +35,7 @@ def font(path, size, weight=None):
     rel = path.format(weight) if weight else path
     key = (rel, size)
     if key not in _FONTS:
-        _FONTS[key] = ImageFont.truetype(str(FONT_ROOT / rel), size)
+        _FONTS[key] = ImageFont.truetype(str(FONT_ROOT / rel), max(1, round(size * K)))   # corpo na resolução real
     return _FONTS[key]
 
 
@@ -86,10 +95,77 @@ REQUIRED = {
 }
 
 
+def _esc(xy, k):
+    """Multiplica coordenadas (número, par, lista de pares ou caixa) pela escala."""
+    if isinstance(xy, (int, float)):
+        return xy * k
+    return type(xy)(_esc(v, k) for v in xy) if isinstance(xy, (list, tuple)) else xy
+
+
+def _caixa(box, k):
+    """Caixa inclusiva (x0, y0, x1, y1) lógica -> real, cobrindo os pixels inteiros (sem frestas entre blocos)."""
+    if k == 1:
+        return box
+    if len(box) == 2:                                     # [(x0, y0), (x1, y1)]
+        (x0, y0), (x1, y1) = box
+    else:
+        x0, y0, x1, y1 = box
+    return (round(x0 * k), round(y0 * k), max(round(x0 * k), round((x1 + 1) * k) - 1),
+            max(round(y0 * k), round((y1 + 1) * k) - 1))
+
+
+class Desenho:
+    """ImageDraw em coordenadas lógicas: os estilos chamam c.d.* como antes e tudo sai na resolução real."""
+
+    def __init__(self, img, k):
+        self.raw, self.k = ImageDraw.Draw(img), k
+
+    def _w(self, width):
+        return max(1, round(width * self.k)) if width else 0
+
+    def text(self, xy, s, font=None, fill=None, anchor=None, stroke_width=0, stroke_fill=None, **kw):
+        self.raw.text(_esc(xy, self.k), s, font=font, fill=fill, anchor=anchor,
+                      stroke_width=self._w(stroke_width), stroke_fill=stroke_fill, **kw)
+
+    def textbbox(self, xy, s, font=None, anchor=None, stroke_width=0, **kw):
+        b = self.raw.textbbox(_esc(xy, self.k), s, font=font, anchor=anchor, stroke_width=self._w(stroke_width), **kw)
+        return tuple(v / self.k for v in b)
+
+    def textlength(self, s, font=None, **kw):
+        return self.raw.textlength(s, font=font, **kw) / self.k
+
+    def line(self, xy, fill=None, width=1, joint=None):
+        self.raw.line(_esc(xy, self.k), fill=fill, width=self._w(width), joint=joint)
+
+    def rectangle(self, xy, fill=None, outline=None, width=1):
+        self.raw.rectangle(_caixa(xy, self.k), fill=fill, outline=outline, width=self._w(width))
+
+    def rounded_rectangle(self, xy, radius=0, fill=None, outline=None, width=1, **kw):
+        self.raw.rounded_rectangle(_caixa(xy, self.k), radius * self.k, fill=fill, outline=outline,
+                                   width=self._w(width), **kw)
+
+    def polygon(self, xy, fill=None, outline=None, width=1):
+        self.raw.polygon(_esc(xy, self.k), fill=fill, outline=outline, width=self._w(width))
+
+    def ellipse(self, xy, fill=None, outline=None, width=1):
+        self.raw.ellipse(_caixa(xy, self.k), fill=fill, outline=outline, width=self._w(width))
+
+    def arc(self, xy, start, end, fill=None, width=1):
+        self.raw.arc(_caixa(xy, self.k), start, end, fill=fill, width=self._w(width))
+
+    def pieslice(self, xy, start, end, fill=None, outline=None, width=1):
+        self.raw.pieslice(_caixa(xy, self.k), start, end, fill=fill, outline=outline, width=self._w(width))
+
+    def point(self, xy, fill=None):
+        pts = [xy] if isinstance(xy[0], (int, float)) else xy
+        for x, y in pts:                                  # um pixel lógico vira um quadradinho de K x K
+            self.raw.rectangle(_caixa((x, y, x, y), self.k), fill=fill)
+
+
 class Canvas:
     def __init__(self, bg):
-        self.img = Image.new("RGB", (W, H), bg)
-        self.d = ImageDraw.Draw(self.img)
+        self.k = K
+        self.img = Image.new("RGB", (LARGURA, ALTURA), bg)
         self.texts = []     # (nome, caixa) dos textos: base do teste de sobreposição
         self.shapes = []
         self.glyph_issues = []   # caracteres sem glifo na fonte (evita "quadradinhos")
@@ -110,8 +186,21 @@ class Canvas:
         self.texts.append((name, tuple(int(round(v)) for v in box)))
         return box
 
+    @property
+    def img(self):
+        return self._img
+
+    @img.setter
+    def img(self, im):                                   # trocar a imagem (ex.: depois do brilho) refaz o desenho
+        self._img = im
+        self.d = Desenho(im, self.k)
+
     def width(self, s, fnt):
-        return fnt.getlength(s) if s else 0
+        return fnt.getlength(s) / self.k if s else 0
+
+    def paste(self, im, xy, mask=None):
+        """Cola uma imagem já na resolução real numa posição lógica."""
+        self.img.paste(im, (int(round(xy[0] * self.k)), int(round(xy[1] * self.k))), mask)
 
     def fit(self, s, fnt, maxw):
         """Encurta com reticências para caber em maxw (nunca sobrepõe)."""
@@ -180,6 +269,7 @@ def strip_status(s):
 def bloom(img, radius=3, strength=0.9, threshold=110):
     """Brilho suave nas partes claras (neon/holograma/VFD) sem borrar o texto original."""
     from PIL import ImageChops, ImageFilter
+    radius = radius * K
     lum = img.convert("L").point(lambda p: 255 if p > threshold else 0)
     glow = Image.composite(img, Image.new("RGB", img.size, (0, 0, 0)), lum)
     glow = glow.filter(ImageFilter.GaussianBlur(radius))
@@ -197,7 +287,7 @@ def vgradient(c, box, top, bottom):
         c.d.line((x0, y0 + i, x1, y0 + i), fill=colr)
 
 
-def grid(c, step, colr, box=(0, 0, W - 1, H - 1)):
+def grid(c, step, colr, box=(0, 0, W - 1, int(HL) - 1)):
     x0, y0, x1, y1 = box
     for x in range(x0, x1 + 1, step):
         c.d.line((x, y0, x, y1), fill=colr)

@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# MATRIX GREEN PRO | versão 3.7.1 | 07/11/2026 21:14 (-03) | estilo conferido em ESTILOS ou ALIASES (aceita apelidos e v2-*)
+# MATRIX GREEN PRO | versão 3.8.0 | 08/11/2026 13:23 (-03) | opção --tela 3.5 ou 5.2 (tema, tela.py e REVISION do config.yaml)
+# histórico: 3.7.1 07/11/2026 21:14 estilo conferido em ESTILOS ou ALIASES (aceita apelidos e v2-*)
 # histórico: 3.7.0 07/11/2026 20:40 estilo conferido pelo registro ESTILOS
 # histórico: 3.6.1 02/11/2026 19:25 ESTILO_PADRAO do pacote
 # histórico: 3.2.0 02/11/2026 17:45 edição GAMMA: estilo padrão gamma e 3 variantes
@@ -8,7 +9,7 @@
 # histórico: 2.1.0 01/11/2026 00:10 instalador do pacote TUS35-Debian13
 # histórico: 2.0.0 31/10/2026 23:55 instalador idempotente | 1.0.0 31/10/2026 criação
 #
-# Instala o tema vertical MatrixGreenPro (320x480, retrato) no turing-smart-screen-linux
+# Instala o tema vertical MatrixGreenPro (3,5" 320x480 ou 5,2" 720x1280, retrato) no turing-smart-screen-linux
 # JÁ instalado. Faz backup, preserva os temas existentes, não roda como root e pode ser
 # executado quantas vezes for preciso (idempotente).
 #
@@ -22,13 +23,14 @@
 #   ./scripts/instalar.sh --corrigir-servico  reescreve a unit systemd de usuário para apontar para --dir
 #   ./scripts/instalar.sh --sem-reiniciar     instala sem reiniciar o serviço
 #   ./scripts/instalar.sh --forcar            continua mesmo fora do Debian 13
+#   ./scripts/instalar.sh --tela 3.5|5.2      qual tela (padrão: TELA_PADRAO do pacote, senão 3.5)
 #   ./scripts/instalar.sh --estilo NOME       gamma (padrão) | gamma-sonar | gamma-raiox | gamma-uv | matrix | pcb (13-C PLACA DE CIRCUITO). 'uranio' = gamma
 set -uo pipefail
 
 VERSION="$(cat "$(dirname "$0")/../VERSION" 2>/dev/null || echo 2.1.0)"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 DIR="${HOME}/turing-smart-screen-linux"
-REVERSE=""; TEST_ORIENT=0; MANGO=0; FIX_UNIT=0; RESTART=1; FORCE=0; ESTILO=""
+REVERSE=""; TEST_ORIENT=0; MANGO=0; FIX_UNIT=0; RESTART=1; FORCE=0; ESTILO=""; TELA=""
 STATE="${HOME}/.local/state/matrixgreenpro"
 DATA="${HOME}/.local/share/matrixgreenpro"
 CONF="${HOME}/.config/matrixgreenpro"
@@ -54,13 +56,22 @@ while [[ $# -gt 0 ]]; do
     --sem-reiniciar) RESTART=0 ;;
     --forcar) FORCE=1 ;;
     --estilo) ESTILO="${2,,}"; shift ;;
-    -h|--help) sed -n '2,22p' "$0"; exit 0 ;;
+    --tela) TELA="${2:-}"; shift ;;
+    -h|--help) sed -n '2,24p' "$0"; exit 0 ;;
     *) die "opção desconhecida: $1 (use --help)" ;;
   esac
   shift
 done
 
-log "GAMMA TUS-35 $VERSION (MatrixGreenPro) | instalador | log: $LOG"
+[[ -z "$TELA" && -s "$ROOT/TELA_PADRAO" ]] && TELA="$(head -1 "$ROOT/TELA_PADRAO" | tr -d '[:space:]')"
+TELA="${TELA:-3.5}"; TELA="${TELA/,/.}"
+case "$TELA" in
+  3.5) USBID="1a86:5722"; HWREV_TELA="A";       TAM="320x480";  TEMA_SRC="$ROOT/telas/3.5/MatrixGreenPro" ;;
+  5.2) USBID="1cbe:0050"; HWREV_TELA="TUR_USB"; TAM="720x1280"; TEMA_SRC="$ROOT/telas/5.2/MatrixGreenPro" ;;
+  *) die "--tela aceita 3.5 ou 5.2" ;;
+esac
+[[ -d "$TEMA_SRC" ]] || TEMA_SRC="$ROOT/MatrixGreenPro"      # pacotes antigos (antes das pastas por tela)
+log "GAMMA $VERSION (MatrixGreenPro) | tela de ${TELA/./,}\" ($TAM) | instalador | log: $LOG"
 [[ "$ESTILO" == "uranio" || "$ESTILO" == "urânio" ]] && ESTILO="gamma"   # nome antigo
 if [[ -z "$ESTILO" && -s "$ROOT/ESTILO_PADRAO" ]]; then   # pacote com versão própria (ZIP N3 Esquerda ou N3 Compacto)
   ESTILO="$(head -1 "$ROOT/ESTILO_PADRAO" | tr -d '[:space:]')"
@@ -74,8 +85,8 @@ case "$ESTILO" in matrix|pcb|gamma|gamma-*|v2-*) ;; *) die "estilo inválido: $E
 # o estilo precisa estar registrado em ESTILOS ou ALIASES (o nome do arquivo nem sempre segue o nome do estilo)
 [[ "$ESTILO" != matrix ]] && ! grep -q "\"$ESTILO\": " "$ROOT/sensors/matrixgreenpro/estilos/__init__.py" && die "estilo desconhecido: $ESTILO (veja a lista no README)"
 [[ $EUID -eq 0 ]] && die "não execute como root. Use seu usuário: o programa roda como serviço systemd --user"
-for f in MatrixGreenPro/theme.yaml MatrixGreenPro/background.png sensors/matrixgreenpro/panel.py \
-         sensors/sensors_custom_hook.txt tools/mgp_selftest.py; do
+for f in "${TEMA_SRC#$ROOT/}/theme.yaml" "${TEMA_SRC#$ROOT/}/background.png" sensors/matrixgreenpro/panel.py \
+         sensors/matrixgreenpro/tela.py sensors/sensors_custom_hook.txt tools/mgp_selftest.py; do
   [[ -f "$ROOT/$f" ]] || die "pacote incompleto: falta $f"
 done
 
@@ -101,12 +112,18 @@ log "programa: $DIR | $(cat "$DIR/VERSION" 2>/dev/null || echo 'versão ?') | $(
   || warn "tema Cyberdeck não encontrado em res/themes"
 
 # ------------------------------------------------------------------ 3. dispositivo
-step "3/15 tela TURZX TUS-35"
-if lsusb 2>/dev/null | grep -qi '1a86:5722'; then
-  log "USB: $(lsusb | grep -i '1a86:5722' | head -1)"
+step "3/15 tela TURZX ${TELA/./,}\""
+if lsusb 2>/dev/null | grep -qi "$USBID"; then
+  log "USB: $(lsusb | grep -i "$USBID" | head -1)"
 else
-  warn "1a86:5722 não aparece no lsusb agora (cabo, porta ou tela desligada). A instalação continua"
+  warn "$USBID não aparece no lsusb agora (cabo, porta ou tela desligada). A instalação continua"
 fi
+if [[ "$TELA" == "5.2" ]]; then
+  # a 5,2" (revisão TUR_USB) fala USB direto pela biblioteca pyusb, sem porta serial
+  "$DIR/.venv/bin/python3" -c "import usb.core" 2>/dev/null && log "python ok: pyusb (tela de 5,2\")" \
+    || warn "módulo pyusb ausente no venv do Turing (a tela de 5,2\" precisa dele: $DIR/.venv/bin/pip install pyusb)"
+  log "tela de 5,2\": se o serviço não conseguir abrir o USB, pode faltar permissão para o dispositivo $USBID (regra udev)"
+else
 BYID="$(ls /dev/serial/by-id/ 2>/dev/null | grep -i 'USB35INCHIPSV2\|UsbMonitor' | head -1 || true)"
 [[ -n "$BYID" ]] && log "porta persistente: /dev/serial/by-id/$BYID -> $(readlink -f "/dev/serial/by-id/$BYID")" \
   || warn "nenhuma porta /dev/serial/by-id com USB35INCHIPSV2"
@@ -123,6 +140,7 @@ else
     acao "sudo usermod -aG dialout $USER  (depois encerre a sessão e entre novamente)"
   fi
 fi
+fi   # tela de 3,5"
 
 # ------------------------------------------------------------------ 4. serviços
 step "4/15 serviços systemd de usuário"
@@ -198,15 +216,19 @@ log "backup: $BK | tema ativo antes: ${CUR_THEME:-?} | tema a restaurar: $(cat "
 
 # ------------------------------------------------------------------ 7. tema
 step "7/15 pasta do tema MatrixGreenPro"
+rm -rf "$DIR/res/themes/MatrixGreenPro"                     # sem sobras do tema da outra tela
 mkdir -p "$DIR/res/themes/MatrixGreenPro"
-cp -a "$ROOT/MatrixGreenPro/." "$DIR/res/themes/MatrixGreenPro/" || die "falha ao copiar o tema"
+cp -a "$TEMA_SRC/." "$DIR/res/themes/MatrixGreenPro/" || die "falha ao copiar o tema"
 log "instalado em res/themes/MatrixGreenPro: $(ls "$DIR/res/themes/MatrixGreenPro" | tr '\n' ' ')"
 
 # ------------------------------------------------------------------ 8. extensão de sensores
 step "8/15 extensão de sensores personalizados"
 rm -rf "$DIR/library/sensors/matrixgreenpro.novo"
 cp -a "$ROOT/sensors/matrixgreenpro" "$DIR/library/sensors/matrixgreenpro.novo" || die "falha ao copiar a extensão"
+sed -i "s/^TELA = \"[0-9.]*\"$/TELA = \"$TELA\"/" "$DIR/library/sensors/matrixgreenpro.novo/tela.py"   # a tela escolhida
+grep -q "^TELA = \"$TELA\"$" "$DIR/library/sensors/matrixgreenpro.novo/tela.py" || die "falha ao gravar a tela em tela.py"
 rm -rf "$DIR/library/sensors/matrixgreenpro" && mv "$DIR/library/sensors/matrixgreenpro.novo" "$DIR/library/sensors/matrixgreenpro"
+log "tela gravada em library/sensors/matrixgreenpro/tela.py: ${TELA/./,}\" ($TAM)"
 mkdir -p "$DIR/tools" && cp -a "$ROOT/tools/"mgp_*.py "$DIR/tools/" || die "falha ao copiar ferramentas"
 "$PY" - "$DIR/library/sensors/sensors_custom.py" "$ROOT/sensors/sensors_custom_hook.txt" <<'PYEOF' || die "falha ao registrar o sensor"
 import re, sys
@@ -241,8 +263,9 @@ log "estilo ativo: $(grep -E '^  estilo:' "$CONF/config.yaml" 2>/dev/null | awk 
 
 # ------------------------------------------------------------------ 9. validação
 step "9/15 validação do YAML, recursos e importação"
-(cd "$DIR" && "$PY" - <<'PYEOF') 2>&1 | tee -a "$LOG"
+(cd "$DIR" && "$PY" - "$TELA" "$TAM" <<'PYEOF') 2>&1 | tee -a "$LOG"
 import sys, yaml
+tela, tam = sys.argv[1], tuple(int(x) for x in sys.argv[2].split("x"))
 from pathlib import Path
 from PIL import Image
 ok = True
@@ -251,13 +274,13 @@ def need(cond, msg):
     global ok
     print(("  ok    " if cond else "  ERRO  ") + msg)
     ok &= bool(cond)
-need(t["display"]["DISPLAY_SIZE"] == '3.5"', 'display.DISPLAY_SIZE = 3.5" (320x480)')
+need(t["display"]["DISPLAY_SIZE"] == f'{tela}"', f'display.DISPLAY_SIZE = {tela}" ({tam[0]}x{tam[1]})')
 need(t["display"]["DISPLAY_ORIENTATION"] == "portrait", "display.DISPLAY_ORIENTATION = portrait")
 for k, v in t.get("static_images", {}).items():
     p = Path("res/themes/MatrixGreenPro") / v["PATH"]
     need(p.is_file(), f"static_images.{k}: {v['PATH']} existe")
     if p.is_file():
-        need(Image.open(p).size == (320, 480), f"{v['PATH']} tem 320x480")
+        need(Image.open(p).size == tam, f"{v['PATH']} tem {tam[0]}x{tam[1]}")
 need(set(t["STATS"].keys()) == {"CUSTOM"}, "STATS contém só CUSTOM (sensores nativos ficam desligados)")
 from library.sensors import sensors_custom as sc
 need(hasattr(sc, "MatrixGreenProPanel"), "sensors_custom.MatrixGreenProPanel importável")
@@ -280,9 +303,9 @@ log "temas instalados: $(ls -d "$DIR"/res/themes/*/ 2>/dev/null | wc -l) pastas;
 
 # ------------------------------------------------------------------ 11 e 12. orientação e seleção do tema
 step "11/15 orientação retrato | 12/15 seleção do tema"
-"$PY" - "$DIR/config.yaml" "$REVERSE" <<'PYEOF' 2>&1 | tee -a "$LOG" || die "falha ao ajustar config.yaml"
+"$PY" - "$DIR/config.yaml" "$REVERSE" "$HWREV_TELA" <<'PYEOF' 2>&1 | tee -a "$LOG" || die "falha ao ajustar config.yaml"
 import re, sys, yaml
-p, rev = sys.argv[1], sys.argv[2]
+p, rev, hwrev = sys.argv[1], sys.argv[2], sys.argv[3]
 t0 = open(p, encoding="utf-8").read()
 t = t0
 t, n = re.subn(r"(?m)^  THEME:.*$", "  THEME: MatrixGreenPro", t)
@@ -292,17 +315,20 @@ if rev in ("true", "false"):
     t, n = re.subn(r"(?m)^  DISPLAY_REVERSE:.*$", f"  DISPLAY_REVERSE: {rev}", t)
     if n == 0:
         t = t.replace("display:\n", f"display:\n  DISPLAY_REVERSE: {rev}\n", 1)
+t, n = re.subn(r"(?m)^  REVISION:.*$", f"  REVISION: {hwrev}", t)     # A na 3,5"; TUR_USB na 5,2"
+if n == 0:
+    t = t.replace("display:\n", f"display:\n  REVISION: {hwrev}\n", 1)
 yaml.safe_load(t)  # nunca grava um config.yaml inválido
 if t != t0:
     open(p, "w", encoding="utf-8").write(t)
-    print("  config.yaml atualizado (somente THEME e, se pedido, DISPLAY_REVERSE)")
+    print("  config.yaml atualizado (somente THEME, REVISION da tela e, se pedido, DISPLAY_REVERSE)")
 else:
     print("  config.yaml já estava correto; nada alterado")
 PYEOF
 HWREV="$(grep -E '^  REVISION:' "$DIR/config.yaml" | awk '{print $2}')"
 REV_NOW="$(grep -E '^  DISPLAY_REVERSE:' "$DIR/config.yaml" | awk '{print $2}')"
 log "THEME=MatrixGreenPro | DISPLAY_ORIENTATION=portrait (no tema) | DISPLAY_REVERSE=${REV_NOW:-false} | REVISION=${HWREV:-?}"
-[[ "$HWREV" == "A" ]] || warn "REVISION=$HWREV; o TUS-35 (USB35INCHIPSV2) usa a revisão A"
+[[ "$HWREV" == "$HWREV_TELA" ]] || warn "REVISION=$HWREV; a tela de ${TELA/./,}\" usa a revisão $HWREV_TELA"
 
 if [[ $MANGO -eq 1 ]]; then
   MH="${HOME}/.config/MangoHud/MangoHud.conf"

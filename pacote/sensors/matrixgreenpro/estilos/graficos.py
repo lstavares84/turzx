@@ -1,4 +1,5 @@
-# GAMMA | estilos/graficos.py | versão 2.3.0 | 07/11/2026 20:40 (-03) | criação original (Claude, para Lucas Tavares)
+# GAMMA | estilos/graficos.py | versão 2.4.0 | 08/11/2026 13:31 (-03) | criação original (Claude, para Lucas Tavares)
+# histórico: 2.4.0 08/11/2026 13:31 rótulos girados na resolução real da tela (escala da 5,2")
 # histórico: 2.3.0 07/11/2026 20:40 rótulos girados recortados, centrados e com fonte que cabe na altura
 # histórico: 2.2.0 07/11/2026 20:30 rótulos girados 90° (P['rotulos_rot']) e gráficos mais largos
 # histórico: 2.1.0 07/11/2026 19:40 pico da VRAM e da RAM em GB
@@ -130,18 +131,19 @@ def _vertical(c, x_dir, y0, y1, partes):
     alt = y1 - y0 - 2
     for tam in (9, 8, 7, 6):
         f = font(JB, tam, "Bold")
-        if sum(f.getlength(t) for t, _ in partes) <= alt:
+        if sum(c.width(t, f) for t, _ in partes) <= alt:
             break
-    w = int(sum(f.getlength(t) for t, _ in partes)) + 4
-    im = Image.new("RGBA", (w, tam + 8), (0, 0, 0, 0))
+    w = int(sum(f.getlength(t) for t, _ in partes)) + 4        # imagem na resolução real (f.size já escalado)
+    im = Image.new("RGBA", (w, f.size + 8), (0, 0, 0, 0))
     d = ImageDraw.Draw(im)
     xx = 2
     for t, cor in partes:
-        d.text((xx, tam + 3), t, font=f, fill=cor + (255,), anchor="ls")
+        d.text((xx, f.size + 3), t, font=f, fill=cor + (255,), anchor="ls")
         xx += f.getlength(t)
     im = im.crop(im.getbbox()).rotate(90, expand=True)
-    c.img.paste(im, (int(x_dir - 2 - im.width), int(round((y0 + y1) / 2 - im.height / 2))), im)
-    return x_dir - 2 - im.width
+    lw, lh = im.width / c.k, im.height / c.k                    # tamanho lógico
+    c.paste(im, (x_dir - 2 - lw, (y0 + y1) / 2 - lh / 2), im)
+    return x_dir - 2 - lw
 
 
 def _pk(h, k):

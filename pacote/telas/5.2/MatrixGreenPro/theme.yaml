@@ -1,0 +1,28 @@
+---
+# MATRIX GREEN PRO | tela de 5,2" | versão 1.0.0 | 08/11/2026 13:22 (-03) | criação original (Claude, para Lucas Tavares)
+#
+# Tema VERTICAL para a TURZX / Turing de 5,2", revisão TUR_USB (USB 1cbe:0050), 720 x 1280 pixels.
+# Mesma estrutura do tema da 3,5" (telas/3.5/MatrixGreenPro/theme.yaml): um único sensor personalizado
+# (MatrixGreenProPanel) desenha o quadro inteiro. O tamanho vem de sensors/matrixgreenpro/tela.py, que o
+# instalador grava com TELA = "5.2" (o mesmo desenho da 3,5" em escala 2,25, sem
+# nenhuma mudança; os 200 px de baixo ficam só com o fundo).
+# Suporte à 5,2" no programa: turing-smart-screen-python, PR 892 (incorporado em 12/04/2026).
+author: "MATRIX GREEN PRO (Lucas Tavares)"
+
+display:
+  DISPLAY_SIZE: 5.2"
+  DISPLAY_ORIENTATION: portrait
+  DISPLAY_RGB_LED: 0, 255, 0
+
+static_images:
+  BACKGROUND:
+    PATH: background.png
+    X: 0
+    Y: 0
+    WIDTH: 720
+    HEIGHT: 1280
+
+STATS:
+  CUSTOM:
+    INTERVAL: 1
+    MatrixGreenProPanel: {}

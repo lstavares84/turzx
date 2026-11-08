@@ -1,11 +1,12 @@
-<!-- docs/estilos.md | versão 2.1.0 | 08/11/2026 12:35 (-03) | criação original (Claude, para Lucas Tavares). Fonte: código da v1.8.2 (estilos/, reator_gamma.py, alerts.py) e histórico do projeto. -->
+<!-- docs/estilos.md | versão 2.2.0 | 08/11/2026 13:30 (-03) | criação original (Claude, para Lucas Tavares). Fonte: código da v1.8.2 (estilos/, reator_gamma.py, alerts.py) e histórico do projeto. -->
+<!-- histórico: 2.2.0 08/11/2026 13:30 seção da tela de 5,2" (mesmo desenho em escala 2,25) -->
 <!-- histórico: 2.1.0 08/11/2026 12:35 protótipo GAMMA EPSILON nos estudos -->
 <!-- histórico: 2.0.0 07/11/2026 22:24 revisão para a v1.8.2: paleta com códigos, GAMMA DELTA reescrito, estudos atuais -->
 <!-- histórico: 1.3.0 07/11/2026 19:40 gráficos de 24 h; 1.2.0 07/11/2026 19:00 GAMMA DELTA; 1.1.0 07/11/2026 18:45 variante COLUNA -->
 
 # Estilos
 
-O GAMMA tem quatro estilos de entrega: ALPHA, BETA, GAMMA e DELTA. Todos usam os mesmos dados, as mesmas regras de saúde e a mesma coleta: muda só o desenho. Todos mostram, no canto superior direito, o selo do estilo e da versão (por exemplo `DELTA v1.8.3`; instalado direto do repositório aparece `dev`).
+O GAMMA tem quatro estilos de entrega: ALPHA, BETA, GAMMA e DELTA, para a tela de 3,5" e a de 5,2" (veja a seção [Na tela de 5,2"](#na-tela-de-52)). Todos usam os mesmos dados, as mesmas regras de saúde e a mesma coleta: muda só o desenho. Todos mostram, no canto superior direito, o selo do estilo e da versão (por exemplo `DELTA v1.8.3`; instalado direto do repositório aparece `dev`).
 
 [Voltar ao README](../README.md)
 
@@ -98,7 +99,7 @@ Apelido aceito: `gamma-gamma-fronteira`.
 
 ## GAMMA DELTA (`gamma-delta`), o recomendado
 
-O GAMMA GAMMA reorganizado, com gráficos de 24 h, alertas em destaque e um LOG. Pacote `Gamma-Delta-v1.8.3.zip`, instalado com `--versao delta`. Na 1.8.0 ele passou a ser o desenho estudado como DELTA 5B (o nome `gamma-delta-5b` continua aceito). Motor em `estilos/reator_delta2.py`.
+O GAMMA GAMMA reorganizado, com gráficos de 24 h, alertas em destaque e um LOG. Pacotes `Gamma-Delta-3.5-v1.8.3.zip` e `Gamma-Delta-5.2-v1.8.3.zip`, instalado com `--versao delta`. Na 1.8.0 ele passou a ser o desenho estudado como DELTA 5B (o nome `gamma-delta-5b` continua aceito). Motor em `estilos/reator_delta2.py`.
 
 ![GAMMA DELTA nos três estados](img/gamma-delta-v1.8.2.png)
 
@@ -117,6 +118,14 @@ O GAMMA GAMMA reorganizado, com gráficos de 24 h, alertas em destaque e um LOG.
 - **REDE** com PING de uma casa decimal e `INTERNET ON` ou `OFF` no título.
 - **LOG** no rodapé: os últimos alertas âmbar e vermelhos, com hora, item e leitura (a volta ao verde não entra); relógio, data, tempo ligado e clima à direita.
 - Selo `DELTA` com a versão.
+
+## Na tela de 5,2"
+
+Os quatro estilos são exatamente os mesmos das versões finais, sem nenhuma mudança de desenho, de conteúdo ou de versão. O quadro é desenhado em escala 2,25 (720 / 320) com fontes e traços na resolução real, sem esticar, e ocupa os primeiros 1080 pixels de altura; os 200 pixels de baixo ficam só com o fundo (a malha de hexágonos). A diferença está só no pacote: `Gamma-<Estilo>-5.2-v<versão>.zip` em vez de `-3.5-`.
+
+![GAMMA DELTA na tela de 5,2" nos três estados](img/gamma-delta-5.2-v1.8.3.png)
+
+Os estilos de estudo também funcionam na 5,2", sem conferência: um deles (`gamma-barra`) tem um texto do cabeçalho que encosta 1 pixel acima da borda nessa escala.
 
 ## Estilos de estudo (não entregues nos ZIPs)
 

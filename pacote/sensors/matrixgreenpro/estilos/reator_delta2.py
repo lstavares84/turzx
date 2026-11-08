@@ -1,4 +1,5 @@
-# GAMMA DELTA | motor do GAMMA DELTA e das variantes | versão 0.4.1 | 08/11/2026 07:35 (-03) | criação original (Claude, para Lucas Tavares)
+# GAMMA DELTA | motor do GAMMA DELTA e das variantes | versão 0.5.0 | 08/11/2026 13:31 (-03) | criação original (Claude, para Lucas Tavares)
+# histórico: 0.5.0 08/11/2026 13:31 hexágono do total na resolução real da tela (escala da 5,2")
 # histórico: 0.4.1 08/11/2026 07:35 disco desmontado mostra só a palavra, sem tarjas vazias
 # histórico: 0.4.0 07/11/2026 22:03 traço do hexágono do total 30 % mais fino (3,5 px, desenhado em 4x)
 # histórico: 0.3.0 07/11/2026 21:46 SQUAMA mostra INF ou LAT, a que tiver leitura
@@ -211,7 +212,7 @@ def render(vm, P):
         c.poly(pts, fill=mix(P["accent"], P["bg"], 0.93))
         # traço de 3,5 px (30 % mais fino que os 5 px de antes): desenhado em 4x e reduzido, com bordas suaves
         from PIL import Image, ImageDraw
-        K, larg = 4, 3.5
+        K, larg = max(4, round(4 * c.k)), 3.5
         x0, y0 = int(cxh - r - 6), int(cyh - r - 6)
         lado = 2 * r + 12
         cam = Image.new("RGBA", (lado * K, lado * K), (0, 0, 0, 0))
@@ -228,8 +229,9 @@ def render(vm, P):
             if t == 1.0 and resto > 1:                         # junta o canto com o próximo lado
                 dc.ellipse((b[0] - larg * K / 2, b[1] - larg * K / 2, b[0] + larg * K / 2, b[1] + larg * K / 2), fill=P["accent"] + (255,))
             resto -= 1
-        cam = cam.resize((lado, lado), Image.LANCZOS)
-        c.img.paste(cam, (x0, y0), cam)
+        real = max(1, round(lado * c.k))                        # reduz direto para a resolução da tela
+        cam = cam.resize((real, real), Image.LANCZOS)
+        c.paste(cam, (x0, y0), cam)
         c.text("tot.pct", cxh, cyh + 5, tot["pct_txt"], font(JB, 13, "Bold"), P["white"], anchor="ms")
         c.text("tot.uso", cxh, cyh + 15, tot["uso"], font(JB, 8, "Regular"), P["sub"], anchor="ms")
     elif rosca:                                                 # rosca do total à direita das linhas dos discos

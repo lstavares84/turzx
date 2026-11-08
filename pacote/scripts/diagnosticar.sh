@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# MATRIX GREEN PRO | versão 3.1.0 | 01/11/2026 11:15 (-03) | mostra o estilo ativo
+# MATRIX GREEN PRO | versão 3.2.0 | 08/11/2026 13:23 (-03) | confere a tela instalada (3,5" serial ou 5,2" USB)
+# histórico: 3.1.0 01/11/2026 11:15 mostra o estilo ativo
 # histórico: 2.1.0 01/11/2026 00:15 diagnóstico (somente leitura)
 # histórico: 2.0.0 01/11/2026 00:00 mgp-diagnostico.sh
 #
@@ -30,7 +31,14 @@ bad() { log "  [FALHA] $*"; BADC=$((BADC + 1)); }
 
 sec "MATRIX GREEN PRO | diagnóstico | $DIR"
 
-sec "Tela USB e porta serial"
+TELA="$(sed -n 's/^TELA = "\([0-9.]*\)"$/\1/p' "$DIR/library/sensors/matrixgreenpro/tela.py" 2>/dev/null | head -1)"; TELA="${TELA:-3.5}"
+if [[ "$TELA" == "5.2" ]]; then
+sec "Tela de 5,2\" (USB, revisão TUR_USB)"
+lsusb 2>/dev/null | grep -qi '1cbe:0050' && ok "USB 1cbe:0050 conectado" || bad "USB 1cbe:0050 não encontrado"
+"$PY" -c "import usb.core" 2>/dev/null && ok "pyusb no venv do programa" || bad "pyusb ausente no venv do programa"
+REAL=""
+else
+sec "Tela de 3,5\" USB e porta serial"
 lsusb 2>/dev/null | grep -qi '1a86:5722' && ok "USB 1a86:5722 conectado" || bad "USB 1a86:5722 não encontrado"
 BYID="$(ls /dev/serial/by-id/ 2>/dev/null | grep -i 'USB35INCHIPSV2\|UsbMonitor' | head -1 || true)"
 REAL=""; [[ -n "$BYID" ]] && REAL="$(readlink -f "/dev/serial/by-id/$BYID")"
@@ -42,6 +50,7 @@ log "  COM_PORT no config.yaml: ${CFGPORT:-?} (o start-at-boot.sh do projeto atu
 sec "Permissões"
 id -nG "$USER" | grep -qw dialout && ok "usuário $USER no grupo dialout" || bad "usuário $USER fora do grupo dialout"
 [[ -n "$REAL" ]] && { [[ -r "$REAL" && -w "$REAL" ]] && ok "leitura/escrita em $REAL" || bad "sem acesso a $REAL"; }
+fi   # tela de 3,5"
 
 sec "Serviços"
 for s in turing-smart-screen.service turing-fps.service; do

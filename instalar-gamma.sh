@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# GAMMA TUS-35 | instalador automático | versão 1.0.0 | 02/11/2026 19:15 (-03) | criação original (Claude, para Lucas Tavares)
+# GAMMA | instalador automático | versão 1.8.0 | 08/11/2026 13:23 (-03) | criação original (Claude, para Lucas Tavares)
+# histórico: 1.8.0 08/11/2026 13:23 opção --tela 3.5 ou 5.2 (TURZX 5,2" 720x1280, revisão TUR_USB)
 # histórico: 1.7.0 07/11/2026 19:42 versão delta (GAMMA DELTA)
 # histórico: 1.5.0 07/11/2026 14:25 dica para conferir a numeração das baias do TerraMaster
 # histórico: 1.4.0 02/11/2026 22:46 versões alpha, beta e gamma (nomes antigos continuam valendo)
@@ -9,7 +10,7 @@
 #
 # Faz tudo em sequência, sem perguntas (exceto a senha do sudo, se faltar algo):
 #   1. confere o sistema e instala as dependências com apt (git, python3-venv, python3-tk, usbutils...)
-#   2. adiciona o usuário ao grupo dialout (acesso à porta serial da tela)
+#   2. adiciona o usuário ao grupo dialout (acesso à porta serial da tela de 3,5"; a de 5,2" usa USB direto)
 #   3. instala o turing-smart-screen-linux (clone, venv e requirements) se ainda não existir
 #   4. cria e habilita o serviço systemd de usuário se ele ainda não existir
 #   5. instala o tema GAMMA na versão escolhida e reinicia o serviço
@@ -20,6 +21,7 @@
 #   ./instalar-gamma.sh --versao beta           GAMMA BETA (ex DOSÍMETRO: percentuais entre parênteses, infos à esquerda)
 #   ./instalar-gamma.sh --versao gamma          GAMMA GAMMA (7 colmeias de resumo e painel numérico por grupo)
 #   ./instalar-gamma.sh --versao delta          GAMMA DELTA (GAMMA GAMMA com gráficos de 24 h)
+#   ./instalar-gamma.sh --tela 3.5 | --tela 5.2  qual tela (padrão: a do pacote ZIP; no repositório, 3.5)
 #   ./instalar-gamma.sh --mangohud              também configura o FPS real (MangoHud)
 #   ./instalar-gamma.sh --invertido | --normal  gira a imagem 180 graus (ou não)
 #   ./instalar-gamma.sh --dir CAMINHO           pasta do Turing (padrão ~/turing-smart-screen-linux)
@@ -37,7 +39,7 @@ elif [[ -f "$AQUI/pacote/scripts/instalar.sh" ]]; then PKG="$AQUI/pacote"    # l
 else echo "[$(date '+%d/%m/%Y %H:%M:%S')] ERRO: pacote do GAMMA não encontrado ao lado deste script"; exit 1; fi
 
 DIR="${HOME}/turing-smart-screen-linux"
-ESTILO=""; SEM_APT=0; SEM_SERVICO=0; RESTAURAR=0; RELOGIN=0
+ESTILO=""; TELA=""; SEM_APT=0; SEM_SERVICO=0; RESTAURAR=0; RELOGIN=0
 REPASSE=()
 STATE="${HOME}/.local/state/matrixgreenpro"; mkdir -p "$STATE"
 LOG="$STATE/instalar-gamma-$(date +%Y%m%d-%H%M%S).log"
@@ -57,18 +59,21 @@ while [[ $# -gt 0 ]]; do
                 *) die "--versao aceita: alpha, beta, gamma ou delta (sentinela, dosimetro, esquerda e compacto ainda funcionam)" ;;
               esac; shift ;;
     --estilo) ESTILO="${2:-}"; shift ;;
+    --tela) TELA="${2/,/.}"; [[ "$TELA" == "3.5" || "$TELA" == "5.2" ]] || die "--tela aceita 3.5 ou 5.2"; shift ;;
     --dir) DIR="${2%/}"; shift ;;
     --mangohud|--invertido|--normal|--teste-orientacao|--corrigir-servico|--sem-reiniciar|--forcar) REPASSE+=("$1") ;;
     --sem-apt) SEM_APT=1 ;;
     --sem-servico) SEM_SERVICO=1 ;;
     --restaurar) RESTAURAR=1 ;;
-    -h|--ajuda|--help) sed -n '2,24p' "$0"; exit 0 ;;
+    -h|--ajuda|--help) sed -n '2,27p' "$0"; exit 0 ;;
     *) die "opção desconhecida: $1 (use --ajuda)" ;;
   esac
   shift
 done
 
-log "GAMMA TUS-35 v$VERSAO | instalador automático | pacote: $PKG | log: $LOG"
+[[ -z "$TELA" && -s "$PKG/TELA_PADRAO" ]] && TELA="$(head -1 "$PKG/TELA_PADRAO" | tr -d '[:space:]')"
+TELA="${TELA:-3.5}"
+log "GAMMA v$VERSAO | tela de ${TELA/./,}\" | instalador automático | pacote: $PKG | log: $LOG"
 [[ $EUID -eq 0 ]] && die "não execute como root nem com sudo. Use o seu usuário; o script pede a senha só quando precisar"
 
 if [[ $RESTAURAR -eq 1 ]]; then
@@ -124,8 +129,10 @@ else
 fi
 
 # ---------------------------------------------------------------- 2. grupo dialout
-etapa "2/5 acesso à porta serial (grupo dialout)"
-if id -nG "$USER" | grep -qw dialout; then
+etapa "2/5 acesso à tela"
+if [[ "$TELA" == "5.2" ]]; then
+  log "tela de 5,2\": comunicação USB direta (revisão TUR_USB), sem porta serial nem grupo dialout"
+elif id -nG "$USER" | grep -qw dialout; then
   log "usuário $USER já está no grupo dialout"
 else
   if sudo usermod -aG dialout "$USER"; then
@@ -213,15 +220,15 @@ fi
 
 # ---------------------------------------------------------------- 5. tema GAMMA
 etapa "5/5 instalação do tema GAMMA ($ESTILO)"
-bash "$PKG/scripts/instalar.sh" --dir "$DIR" --estilo "$ESTILO" "${REPASSE[@]}" 2>&1 | tee -a "$LOG"
+bash "$PKG/scripts/instalar.sh" --dir "$DIR" --estilo "$ESTILO" --tela "$TELA" "${REPASSE[@]}" 2>&1 | tee -a "$LOG"
 RC="${PIPESTATUS[0]}"
 [[ $RC -eq 0 ]] || die "o instalador do tema terminou com código $RC (veja o log acima)"
 
-log "concluído: GAMMA v$VERSAO ($ESTILO) instalado. Log completo: $LOG"
+log "concluído: GAMMA v$VERSAO ($ESTILO, tela de ${TELA/./,}\") instalado. Log completo: $LOG"
 [[ $RELOGIN -eq 1 ]] && acao "saia da sessão e entre de novo (ou reinicie) para valer o grupo dialout; depois rode: systemctl --user restart turing-smart-screen"
 [[ -f "$PKG/tools/mgp_mapear_fans.py" ]] && acao "para identificar a bomba e as ventoinhas: $DIR/.venv/bin/python3 $DIR/tools/mgp_mapear_fans.py (leva 2 minutos)"
 if [[ -f "$PKG/tools/mgp_baias.py" ]] && grep -qs "174c" /sys/bus/usb/devices/*/idVendor 2>/dev/null; then
   acao "se usa o gabinete TerraMaster, confira se a numeração das baias bate com a do gabinete: $DIR/.venv/bin/python3 $DIR/tools/mgp_baias.py"
 fi
-acao "olhe a tela de 3,5\". Se estiver de ponta-cabeça: ./instalar-gamma.sh --invertido"
+acao "olhe a tela de ${TELA/./,}\". Se estiver de ponta-cabeça: ./instalar-gamma.sh --invertido"
 log "para voltar ao tema anterior: ./instalar-gamma.sh --restaurar"

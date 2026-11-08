@@ -1,4 +1,5 @@
-# MATRIX GREEN PRO | versão 3.6.0 | 07/11/2026 21:00 (-03) | demonstração do LOG de alertas
+# MATRIX GREEN PRO | versão 3.7.0 | 08/11/2026 13:21 (-03) | tela de 3,5" ou 5,2" (tela.py)
+# histórico: 3.6.0 07/11/2026 21:00 demonstração do LOG de alertas
 # histórico: 3.5.0 07/11/2026 20:20 demonstração de mudanças bruscas e do registro
 # histórico: 3.4.0 07/11/2026 19:10 histórico de 24 h para os gráficos (historico.py)
 # histórico: 3.3.0 07/11/2026 19:00 demonstração com uso da baia montada
@@ -7,7 +8,7 @@
 # histórico: 2.1.0 31/10/2026 23:50 estado da coleta por coletor, isolamento de falhas
 # histórico: 2.0.0 31/10/2026 23:30 cenários demo normal/atencao/critico
 # histórico: 1.0.0 31/10/2026 22:40 criação inicial
-# Motor do painel: coleta -> modelo de visão -> quadro 320x480 -> envia à tela
+# Motor do painel: coleta -> modelo de visão -> quadro (320x480 ou 720x1280) -> envia à tela
 # somente os retângulos que mudaram (economiza a banda USB da revisão A).
 # Exposto ao programa como sensor personalizado "MatrixGreenProPanel".
 import math
@@ -15,15 +16,20 @@ import os
 import threading
 import time
 
-from PIL import ImageChops
+from PIL import Image, ImageChops
 
 from . import collectors as col
 from . import settings
-from .render import draw_frame, W, H
+from .render import draw_frame
+from .tela import LARGURA as W, ALTURA as H, ESCALA
 from .viewmodel import ViewModel
 
-# Faixas horizontais usadas na comparação de quadros (limites das seções, ver render.Y).
+# Faixas horizontais usadas na comparação de quadros (limites das seções, em coordenadas lógicas de 480),
+# multiplicadas pela escala da tela; na 5,2" a sobra de baixo (só fundo) entra como mais uma.
 BANDS = [(0, 21), (21, 78), (78, 167), (167, 204), (204, 283), (283, 361), (361, 410), (410, 454), (454, 480)]
+BANDS = [(round(a * ESCALA), round(b * ESCALA)) for a, b in BANDS]
+if H > BANDS[-1][1]:
+    BANDS.append((BANDS[-1][1], H))
 
 
 def demo_snapshot(scenario="normal"):
@@ -189,7 +195,13 @@ class Engine:
         return s
 
     def frame(self):
-        return self.draw(self.vm.build(self.snapshot()))
+        img = self.draw(self.vm.build(self.snapshot()))
+        if img.size != (W, H):                               # estilo antigo de 320x480 numa tela maior: amplia
+            k = W / img.width
+            novo = Image.new("RGB", (W, H), (0, 0, 0))
+            novo.paste(img.resize((W, round(img.height * k)), Image.LANCZOS), (0, 0))
+            img = novo
+        return img
 
     def push(self, lcd):
         """Desenha e envia somente as regiões alteradas."""

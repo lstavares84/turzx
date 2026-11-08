@@ -1,4 +1,5 @@
-<!-- docs/arquitetura.md | versão 2.0.0 | 07/11/2026 22:24 (-03) | criação original (Claude, para Lucas Tavares). Fonte: código da v1.8.2 em pacote/. -->
+<!-- docs/arquitetura.md | versão 2.1.0 | 08/11/2026 13:30 (-03) | criação original (Claude, para Lucas Tavares). Fonte: código da v1.8.3 em pacote/. -->
+<!-- histórico: 2.1.0 08/11/2026 13:30 telas de 3,5" e 5,2": tela.py, escala no Canvas e pastas por tela -->
 <!-- histórico: 2.0.0 07/11/2026 22:24 revisão para a v1.8.2: histórico, alertas confirmados, LOG, GAMMA DELTA, estudos -->
 
 # Arquitetura
@@ -7,7 +8,7 @@
 
 ## Visão geral
 
-O Turing Smart Screen tem um sistema de temas em YAML com widgets prontos (texto, barra, gráfico). Ele não atende o GAMMA: as cores são fixas, só lê um disco, não tem ventoinhas por papel, rede por interface nem estado da coleta. Por isso o tema `MatrixGreenPro` declara um único sensor personalizado, `MatrixGreenProPanel`, no mecanismo oficial `STATS.CUSTOM` (`library/sensors/sensors_custom.py`). Esse sensor desenha o quadro inteiro de 320x480 com Pillow a cada segundo e envia à tela só as regiões que mudaram, pela mesma fila e trava USB do programa. A cada `refresh_full_s` (padrão 300 s) há um redesenho completo.
+O Turing Smart Screen tem um sistema de temas em YAML com widgets prontos (texto, barra, gráfico). Ele não atende o GAMMA: as cores são fixas, só lê um disco, não tem ventoinhas por papel, rede por interface nem estado da coleta. Por isso o tema `MatrixGreenPro` declara um único sensor personalizado, `MatrixGreenProPanel`, no mecanismo oficial `STATS.CUSTOM` (`library/sensors/sensors_custom.py`). Esse sensor desenha o quadro inteiro (320x480 na tela de 3,5", 720x1280 na de 5,2") com Pillow a cada segundo e envia à tela só as regiões que mudaram, pela mesma fila e trava USB do programa. A cada `refresh_full_s` (padrão 300 s) há um redesenho completo.
 
 ```mermaid
 flowchart TB
@@ -51,7 +52,9 @@ flowchart TB
 
 | Caminho | Papel |
 |---|---|
-| `pacote/MatrixGreenPro/` | pasta do tema: `theme.yaml`, `background.png`, `preview.png` |
+| `pacote/telas/3.5/MatrixGreenPro/` | tema da tela de 3,5": `theme.yaml` (`DISPLAY_SIZE: 3.5"`), `background.png` e `preview.png` de 320x480 |
+| `pacote/telas/5.2/MatrixGreenPro/` | tema da tela de 5,2": `theme.yaml` (`DISPLAY_SIZE: 5.2"`), `background.png` de 720x1280 e `preview.png` |
+| `pacote/sensors/matrixgreenpro/tela.py` | qual tela o pacote desenha (`TELA = "3.5"` ou `"5.2"`, gravado pelo instalador; `MGP_TELA` tem prioridade nas prévias), com largura, altura e escala |
 | `pacote/sensors/sensors_custom_hook.txt` | bloco acrescentado ao `sensors_custom.py` do Turing |
 | `pacote/sensors/matrixgreenpro/collectors.py` | `Cpu`, `Gpu` (inclui os motivos de redução de clock da NVML), `Fps`, `Disks`, `Baias`, `Net`, `Ping`, `Weather`, `Power`; helpers `_hwmon_fans`, `_hwmon_temps`, `_fisicos`, `_bloco_base`, `_temp_bloco`, `_disco_rotativo` |
 | `pacote/sensors/matrixgreenpro/settings.py` | valores padrão (limites, histerese, `alertas`) e leitura do `config.yaml` e do `fans.yaml` |
@@ -77,6 +80,12 @@ flowchart TB
 | `construir/construir_zips.py` | gera os quatro ZIPs enxutos |
 | `construir/matriz_previas.py` | matriz de prévias (4 estilos x 3 estados) |
 | `construir/aplicar-na-tela.sh` | aplica um estilo na tela do PC a partir do ZIP |
+
+## Duas telas com o mesmo desenho
+
+Os estilos desenham em coordenadas lógicas de 320x480, como sempre. O `Canvas` de `estilos/base.py` multiplica tudo pela escala de `tela.py`: 1 na 3,5" e 2,25 na 5,2" (720 / 320). As fontes são abertas no corpo real (`font()` multiplica o tamanho), os traços ganham a espessura proporcional e as caixas de texto voltam em coordenadas lógicas, por isso os testes de sobreposição e de limites continuam iguais. O `c.d` dos estilos é a classe `Desenho`, um `ImageDraw` em coordenadas lógicas; imagens prontas entram com `c.paste`, que converte a posição.
+
+Na 5,2" o desenho é exatamente o da 3,5": ocupa a altura lógica de 0 a 480 (1080 pixels reais) e a sobra de baixo, até `HL` (1280 / 2,25, cerca de 569), fica só com o fundo. O motor (`panel.py`) multiplica as faixas de comparação pela escala e acrescenta essa sobra como mais uma faixa; um quadro antigo de 320x480 (estilo `matrix`, a reserva) é ampliado para o tamanho da tela.
 
 ## Como um estilo novo entra
 

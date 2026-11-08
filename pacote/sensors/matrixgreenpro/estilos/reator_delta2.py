@@ -1,4 +1,5 @@
-# GAMMA DELTA 2 | motor das 6 variantes | versão 0.1.0 | 07/11/2026 20:25 (-03) | criação original (Claude, para Lucas Tavares)
+# GAMMA DELTA | motor do GAMMA DELTA e das variantes | versão 0.2.0 | 07/11/2026 21:14 (-03) | criação original (Claude, para Lucas Tavares)
+# histórico: 0.2.0 07/11/2026 21:14 valor em alerta com fundo na cor do nível (alerta_inverso); passa a desenhar o GAMMA DELTA oficial
 # Base: GAMMA DELTA (colmeia à direita, gráficos de 24 h, baias com uso). Acrescenta:
 #   total de TB de todos os HDs (discos + baias montadas, sem contar o mesmo dispositivo duas vezes);
 #   marca das mudanças bruscas (brusco.py), visível por até 10 min depois que a leitura normaliza;
@@ -18,7 +19,8 @@ from . import graficos
 
 
 class Texto:
-    """Desenho do painel com a marca de mudança brusca aplicada nas leituras marcadas."""
+    """Desenho do painel: valor em alerta com fundo na cor do nível (P['alerta_inverso']) e, nas variantes de
+    estudo, a marca de mudança brusca nas leituras marcadas."""
 
     def __init__(self, c, v, P, col, F, marcadas):
         self.c, self.v, self.P, self.col, self.F = c, v, P, col, F
@@ -30,6 +32,10 @@ class Texto:
     def valor(self, nome, x, y, s, fnt, chave, lv, anchor="ls"):
         """Escreve um valor; se a leitura está marcada, aplica a marca escolhida."""
         c, P = self.c, self.P
+        if P.get("alerta_inverso") and lv in (WARN, CRIT, LOST):    # valor em alerta: fundo na cor do nível
+            b = c.d.textbbox((x, y), s, font=fnt, anchor=anchor)
+            c.rect((b[0] - 2, b[1] - 1, b[2] + 1, b[3] + 1), fill=P["red"] if lv == CRIT else P["amber"])  # não invade as linhas vizinhas
+            return c.text(nome, x, y, s, fnt, P["bg"], anchor=anchor)
         if not self.marcada(chave, lv):
             return c.text(nome, x, y, s, fnt, self.col(lv), anchor=anchor)
         amb = P["amber"]
@@ -173,15 +179,15 @@ def render(vm, P):
         if modo_t == "barra_disco":                             # barrinha de ocupação em cada disco
             cor = {WARN: P["amber"], CRIT: P["red"]}.get(d["lvl"], P["accent"])
             c.hbar(int(ub[2]) + 6, y - 8, 36, 7, d.get("pct"), cor, mix(cor, P["bg"], 0.85), seg=3, gap=1)
-            pbx = c.text(f"dsk{i}.pct", int(ub[2]) + 46, y, d["pct_txt"], F["sb"], col(d["lvl"]))
+            pbx = T.valor(f"dsk{i}.pct", int(ub[2]) + 46, y, d["pct_txt"], F["sb"], None, d["lvl"])
         else:
-            pbx = c.text(f"dsk{i}.pct", ub[2] + 6, y, _paren(d["pct_txt"]), F["sb"], col(d["lvl"]))
-        fb = c.text(f"dsk{i}.free", pbx[2] + 10, y, d["free"], F["sb"], col(d["lvl"]))
+            pbx = T.valor(f"dsk{i}.pct", ub[2] + 6, y, _paren(d["pct_txt"]), F["sb"], None, d["lvl"])
+        fb = T.valor(f"dsk{i}.free", pbx[2] + 10, y, d["free"], F["sb"], None, d["lvl"])
         if rosca:
             v.raw("disks")
         elif not coluna:
             c.text(f"dsk{i}.freelab", fb[2] + 4, y, "LIVRE", F["xs"], P["sub"])
-            c.text(f"dsk{i}.temp", 314, y, d.get("temp_txt", "N/D"), F["sb"], col(d.get("temp_lvl", NA)), anchor="rs")
+            T.valor(f"dsk{i}.temp", 314, y, d.get("temp_txt", "N/D"), F["sb"], None, d.get("temp_lvl", NA), anchor="rs")
         else:
             v.raw("disks")
     if rosca and P.get("rosca_hex"):                            # hexágono do total: o contorno se enche com o uso
@@ -245,7 +251,7 @@ def render(vm, P):
             bx = c.text(f"bay{i}.n", x, y, f"{b['n']}", F["sb"], P["accent"])
             if b.get("use"):
                 ub = c.text(f"bay{i}.use", bx[2] + 5, y, b["use"], F["s"], P["white"])
-                c.text(f"bay{i}.pct", ub[2] + 5, y, _paren(b["pct_txt"]), F["sb"], col(b.get("pct_lvl", OK)))
+                T.valor(f"bay{i}.pct", ub[2] + 5, y, _paren(b["pct_txt"]), F["sb"], None, b.get("pct_lvl", OK))
                 continue
             if b["cap"]:
                 bx = c.text(f"bay{i}.cap", bx[2] + 5, y, b["cap"], F["sb"], col(b["lvl"]))
@@ -260,7 +266,7 @@ def render(vm, P):
         t, lv = v("inet")
         if P.get("inet_onoff"):                                 # INTERNET ON / OFF (instável continua por extenso)
             t = "INTERNET ON" if lv == OK else "INTERNET OFF" if lv == CRIT else t
-        return c.text("inet", x, yy, t, F["xs"], col(lv), anchor="rs")[0]
+        return T.valor("inet", x, yy, t, F["xs"], None, lv, anchor="rs")[0]
     y = _titulo_dados(T, "REDE", y + gap + 3, [inet_txt, par("png", "PING", "ping")]) + step - 1
     t, lv = v("net_down"); b = T.valor("net.down", 6, y, "↓" + t, F["sb"], "net_down", NEUTRAL)
     t, lv = v("net_up"); T.valor("net.up", b[2] + 8, y, "↑" + t, F["sb"], "net_up", NEUTRAL)

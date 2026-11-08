@@ -2,7 +2,7 @@
 # Base: GAMMA DELTA 5 (registro com barras, marca invertida). Com LOG no lugar de REGISTRO, INTERNET ON/OFF e os
 # rótulos dos gráficos girados 90° (gráficos mais largos). Espaço dos discos: barra de ocupação no título e barrinha em cada disco.
 from .reator_delta2 import render
-from .reator_gamma_delta import P as P_DELTA
+from .reator_gamma_delta import P_BASE as P_DELTA
 
 P = dict(P_DELTA, selo="DELTA 5A", total="barra_disco", registro="barras", marca="inverso", nome_log="LOG",
          inet_onoff=True, rotulos_rot=True)

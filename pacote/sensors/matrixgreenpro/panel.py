@@ -83,7 +83,7 @@ def demo_snapshot(scenario="normal"):
     m = lambda minutos: now - 60 * minutos         # LOG de alertas fictício (o painel real registra as mudanças de cor)
     W_, C_, O_ = 1, 2, 0
     s["demo_alertas"] = {
-        "normal": [(m(52), "GPU 81°C ÂMBAR", W_), (m(49), "GPU 76°C VERDE", O_)],
+        "normal": [(m(49), "GPU 76°C VERDE", O_), (m(52), "GPU 81°C ÂMBAR", W_)],
         "atencao": [(m(1), "CPU 84°C ÂMBAR", W_), (m(2), "PING 95ms ÂMBAR", W_), (m(3), "VRAM 91% ÂMBAR", W_),
                     (m(5), "2T 88% ÂMBAR", W_), (m(6), "2T TEMP 52°C ÂMBAR", W_)],
         "critico": [(m(0), "CPU 96°C VERMELHO", C_), (m(1), "4T 99% VERMELHO", C_), (m(2), "4T TEMP 57°C ÂMBAR", W_),

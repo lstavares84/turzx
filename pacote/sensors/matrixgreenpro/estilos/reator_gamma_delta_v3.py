@@ -1,7 +1,7 @@
 # GAMMA DELTA variante 3 | versão 0.1.0 | 07/11/2026 20:25 (-03) | criação original (Claude, para Lucas Tavares)
 # total com barra, registro em caixa, marca com moldura. Motor em reator_delta2.py.
 from .reator_delta2 import render
-from .reator_gamma_delta import P as P_DELTA
+from .reator_gamma_delta import P_BASE as P_DELTA
 
 P = dict(P_DELTA, selo="DELTA 3", total="barra", registro="caixa", marca="caixa", total_grande=False)
 

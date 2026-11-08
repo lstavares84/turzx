@@ -1,4 +1,5 @@
-# GAMMA | estilos selecionáveis | versão 1.14.0 | 07/11/2026 20:35 (-03) | variantes 5A, 5B e 5C do GAMMA DELTA
+# GAMMA | estilos selecionáveis | versão 1.15.0 | 07/11/2026 21:14 (-03) | o DELTA 5B vira o gamma-delta (apelido gamma-delta-5b)
+# histórico: 1.14.0 07/11/2026 20:35 variantes 5A, 5B e 5C do GAMMA DELTA
 # histórico: 1.13.0 07/11/2026 20:25 6 variantes do GAMMA DELTA (gamma-delta-1 a 6)
 # histórico: 1.12.0 07/11/2026 20:00 12 propostas da v2.0.0 (v2-*)
 # histórico: 1.11.0 07/11/2026 19:40 GAMMA DELTA com 3 gráficos de 24 h e pico marcado
@@ -35,7 +36,7 @@ ESTILOS = {
     "gamma-gamma-mini": ("GAMMA GAMMA MINI", "reator_gamma_gamma_mini"),
     "gamma-gamma-painel": ("GAMMA GAMMA PAINEL", "reator_gamma_gamma_painel"),
     "gamma-gamma-coluna": ("GAMMA GAMMA COLUNA", "reator_gamma_gamma_coluna"),   # estudo: hexágonos em coluna
-    "gamma-delta": ("GAMMA DELTA", "reator_gamma_delta"),                  # GAMMA GAMMA com uso das baias, colmeia à direita e 3 gráficos de 24 h
+    "gamma-delta": ("GAMMA DELTA", "reator_gamma_delta"),                  # o antigo estudo DELTA 5B (apelido gamma-delta-5b)
     # variantes do DELTA: total de TB, mudanças bruscas, refrigeração numa linha e registro (reator_delta2.py)
     "gamma-delta-1": ("GAMMA DELTA 1", "reator_gamma_delta_v1"),
     "gamma-delta-2": ("GAMMA DELTA 2", "reator_gamma_delta_v2"),
@@ -44,7 +45,6 @@ ESTILOS = {
     "gamma-delta-5": ("GAMMA DELTA 5", "reator_gamma_delta_v5"),
     "gamma-delta-6": ("GAMMA DELTA 6", "reator_gamma_delta_v6"),
     "gamma-delta-5a": ("GAMMA DELTA 5A", "reator_gamma_delta_v5a"),
-    "gamma-delta-5b": ("GAMMA DELTA 5B", "reator_gamma_delta_v5b"),
     "gamma-delta-5c": ("GAMMA DELTA 5C", "reator_gamma_delta_v5c"),
     "gamma-gamma": ("GAMMA GAMMA", "reator_gamma_gamma"),                  # 7 colmeias de resumo, CORE no centro
     "gamma-n3-eventos": ("GAMMA N3 EVENTOS", "reator_gamma_n3_eventos"),
@@ -66,7 +66,8 @@ ESTILOS = {
 ALIASES = {"uranio": "gamma", "urânio": "gamma",                  # nomes antigos continuam valendo
            "gamma-n3-esq": "gamma-alpha", "gamma-n3-compacto": "gamma-beta",
            "gamma-sentinela": "gamma-alpha", "gamma-dosimetro": "gamma-beta",
-           "gamma-gamma-fronteira": "gamma-gamma"}
+           "gamma-gamma-fronteira": "gamma-gamma",
+           "gamma-delta-5b": "gamma-delta"}
 
 
 def renderer(nome):

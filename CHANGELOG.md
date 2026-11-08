@@ -7,6 +7,9 @@ Segue [SemVer](https://semver.org/lang/pt-BR/) (MAJOR.MINOR.PATCH). Os estilos (
 
 ## [Não lançado]
 
+## [1.8.0] - 07/11/2026 21:14 (-03)
+
+- GAMMA DELTA passa a ser o desenho estudado como DELTA 5B (o nome `gamma-delta-5b` continua aceito): valor em alerta com fundo âmbar ou vermelho e texto escuro, como na 1.7.0 de estudo; selo `DELTA` com a versão.
 - Alertas por limites absolutos de manuais, do hardware e do Zabbix (tabela com fontes em `docs/configuracao.md`): RAM 90/95 %, discos 80/90 %, NVMe 80/90 °C, RAM DDR5 55/85 °C, HDD 50/60 °C, placa-mãe 70/80 °C (antes só informativa), CPU uso 90 % e carga 1,5 por núcleo sustentados por 5 min, bomba e ventoinhas abaixo de 600 RPM, redução de clock da GPU (NVML) e Ethernet abaixo da velocidade de sempre.
 - Contra ruído de leitura: as leituras contínuas só sobem de cor depois de 2 s (`Confirma` em `alerts.py`); ping, discos e baias valem pela última leitura.
 - LOG de alertas (`alertas.py`): registra cada mudança de cor com hora, leitura e nova cor. No DELTA 5B, o LOG mostra esses alertas e a marca de variação brusca saiu; o hexágono do total fica centrado entre a linha do título RAM e a do título seguinte.

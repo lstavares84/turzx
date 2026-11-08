@@ -1,4 +1,5 @@
-# GAMMA GAMMA | motor por grupos | versão 1.7.0 | 07/11/2026 19:00 (-03) | criação original (Claude, para Lucas Tavares)
+# GAMMA GAMMA | motor por grupos | versão 1.7.2 | 08/11/2026 07:35 (-03) | criação original (Claude, para Lucas Tavares)
+# histórico: 1.7.2 08/11/2026 07:35 disco desmontado mostra só a palavra (sem percentual e livre)
 # histórico: 1.7.1 07/11/2026 19:10 gancho P['extra'] (gráficos do GAMMA DELTA)
 # histórico: 1.7.0 07/11/2026 19:00 opções do GAMMA DELTA na paleta (colmeia_x, texto_y, baias_uso, rodape_enxuto)
 # histórico: 1.6.0 07/11/2026 14:15 selo de estilo e versão
@@ -136,6 +137,8 @@ def _texto(c, v, P, col, F, vals, y, enxuto=False, step=13):
         y += step
         c.text(f"dsk{i}.name", 6, y, d["name"], F["sb"], P["white"])
         ub = c.text(f"dsk{i}.use", 44, y, d["use"], F["s"], col(d.get("use_lvl", NEUTRAL)))
+        if d.get("pct") is None:                                # desmontado ou sem leitura: só a palavra
+            continue
         x = ub[2] + 6
         if not enxuto:
             pbx = c.text(f"dsk{i}.pct", x, y, _paren(d["pct_txt"]), F["sb"], col(d["lvl"]))
@@ -262,6 +265,9 @@ def _texto_resumo(c, v, P, col, F, vals, y, step=13, gap=4):
         y += step
         c.text(f"dsk{i}.name", 6, y, d["name"], F["sb"], P["white"])
         ub = c.text(f"dsk{i}.use", 44, y, d["use"], F["s"], col(d.get("use_lvl", NEUTRAL)))
+        if d.get("pct") is None:                                # desmontado ou sem leitura: só a palavra e a temperatura
+            c.text(f"dsk{i}.temp", 314, y, d.get("temp_txt", "N/D"), F["sb"], col(d.get("temp_lvl", NA)), anchor="rs")
+            continue
         pbx = c.text(f"dsk{i}.pct", ub[2] + 6, y, _paren(d["pct_txt"]), F["sb"], col(d["lvl"]))
         fb = c.text(f"dsk{i}.free", pbx[2] + 10, y, d["free"], F["sb"], col(d["lvl"]))
         c.text(f"dsk{i}.freelab", fb[2] + 4, y, "LIVRE", F["xs"], P["sub"])

@@ -84,7 +84,7 @@ Numa sessão que roda no próprio PC, `construir/aplicar-na-tela.sh delta` (ou `
 ## Gerar os ZIPs
 
 ```bash
-python3 -I construir/construir_zips.py SAIDA 1.8.2:Alpha 1.8.2:Beta 1.8.2:Gamma 1.8.2:Delta
+python3 -I construir/construir_zips.py SAIDA 1.8.3:Alpha 1.8.3:Beta 1.8.3:Gamma 1.8.3:Delta
 ```
 
 Para cada estilo, o construtor cria `SAIDA/Gamma-<Nome>-v<versão>/` e o ZIP correspondente. Ele copia `pacote/`, remove os estilos não usados, reescreve `ESTILOS` e `ALIASES`, ajusta o autoteste e a prévia ao estilo, grava `versao.py`, `VERSION`, `ESTILO_PADRAO`, `LEIA-ME.md` e `CHANGELOG.md`, copia o instalador e preserva as permissões. O Delta leva também `reator_grupos.py`, `reator_delta2.py` e `graficos.py`. Contagem na v1.8.2: Alpha e Beta com 38 arquivos, Gamma com 39 e Delta com 41.

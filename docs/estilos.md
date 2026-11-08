@@ -4,7 +4,7 @@
 
 # Estilos
 
-O GAMMA tem quatro estilos de entrega: ALPHA, BETA, GAMMA e DELTA. Todos usam os mesmos dados, as mesmas regras de saúde e a mesma coleta: muda só o desenho. Todos mostram, no canto superior direito, o selo do estilo e da versão (por exemplo `DELTA v1.8.2`; instalado direto do repositório aparece `dev`).
+O GAMMA tem quatro estilos de entrega: ALPHA, BETA, GAMMA e DELTA. Todos usam os mesmos dados, as mesmas regras de saúde e a mesma coleta: muda só o desenho. Todos mostram, no canto superior direito, o selo do estilo e da versão (por exemplo `DELTA v1.8.3`; instalado direto do repositório aparece `dev`).
 
 [Voltar ao README](../README.md)
 
@@ -97,7 +97,7 @@ Apelido aceito: `gamma-gamma-fronteira`.
 
 ## GAMMA DELTA (`gamma-delta`), o recomendado
 
-O GAMMA GAMMA reorganizado, com gráficos de 24 h, alertas em destaque e um LOG. Pacote `Gamma-Delta-v1.8.2.zip`, instalado com `--versao delta`. Na 1.8.0 ele passou a ser o desenho estudado como DELTA 5B (o nome `gamma-delta-5b` continua aceito). Motor em `estilos/reator_delta2.py`.
+O GAMMA GAMMA reorganizado, com gráficos de 24 h, alertas em destaque e um LOG. Pacote `Gamma-Delta-v1.8.3.zip`, instalado com `--versao delta`. Na 1.8.0 ele passou a ser o desenho estudado como DELTA 5B (o nome `gamma-delta-5b` continua aceito). Motor em `estilos/reator_delta2.py`.
 
 ![GAMMA DELTA nos três estados](img/gamma-delta-v1.8.2.png)
 

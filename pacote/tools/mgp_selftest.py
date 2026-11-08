@@ -116,8 +116,9 @@ def main():
     check("disco com < 50 GB livres = ATENÇÃO", vm_of(s)["disks"][0]["lvl"] == WARN)
     s = base(); s["disks"][1] = {"nome": "2T", "state": "OFF"}
     v = vm_of(s)
-    check("disco desmontado = OFF amarelo, sem valores antigos",
-          v["disks"][1]["use"] == "DESMONTADO" and v["disks"][1]["pct"] is None and v["disks"][1]["lvl"] == WARN)
+    check("disco desmontado = só informação (branco, sem alerta), sem valores antigos",
+          v["disks"][1]["use"] == "DESMONTADO" and v["disks"][1]["pct"] is None and v["disks"][1]["lvl"] == NEUTRAL
+          and v["disks"][1]["free"] == "" and v["hdr_status"][1] == OK, str(v["disks"][1]))
 
     # ---- temperatura por disco (HDD tem limites próprios; sem leitura não alerta)
     s = base(); s["disks"][2].update(temp=61.0, hdd=True)

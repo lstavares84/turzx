@@ -1,4 +1,5 @@
-# GAMMA DELTA | motor do GAMMA DELTA e das variantes | versão 0.4.0 | 07/11/2026 22:03 (-03) | criação original (Claude, para Lucas Tavares)
+# GAMMA DELTA | motor do GAMMA DELTA e das variantes | versão 0.4.1 | 08/11/2026 07:35 (-03) | criação original (Claude, para Lucas Tavares)
+# histórico: 0.4.1 08/11/2026 07:35 disco desmontado mostra só a palavra, sem tarjas vazias
 # histórico: 0.4.0 07/11/2026 22:03 traço do hexágono do total 30 % mais fino (3,5 px, desenhado em 4x)
 # histórico: 0.3.0 07/11/2026 21:46 SQUAMA mostra INF ou LAT, a que tiver leitura
 # histórico: 0.2.0 07/11/2026 21:14 valor em alerta com fundo na cor do nível (alerta_inverso); passa a desenhar o GAMMA DELTA oficial
@@ -178,6 +179,10 @@ def render(vm, P):
         y += step
         c.text(f"dsk{i}.name", 6, y, d["name"], F["sb"], P["white"])
         ub = c.text(f"dsk{i}.use", 44, y, d["use"], F["s"], col(d.get("use_lvl", NEUTRAL)))
+        if d.get("pct") is None:                                # desmontado ou sem leitura: só a palavra, sem tarjas vazias
+            if not (rosca or coluna):
+                T.valor(f"dsk{i}.temp", 314, y, d.get("temp_txt", "N/D"), F["sb"], None, d.get("temp_lvl", NA), anchor="rs")
+            continue
         if modo_t == "barra_disco":                             # barrinha de ocupação em cada disco
             cor = {WARN: P["amber"], CRIT: P["red"]}.get(d["lvl"], P["accent"])
             c.hbar(int(ub[2]) + 6, y - 8, 36, 7, d.get("pct"), cor, mix(cor, P["bg"], 0.85), seg=3, gap=1)

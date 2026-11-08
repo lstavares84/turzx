@@ -1,19 +1,20 @@
 # GAMMA | construir/construir_zips.py | versão 1.2.0 | 07/11/2026 21:14 (-03) |
+# histórico: 1.2.3 08/11/2026 07:36 versão 1.8.3
 # histórico: 1.2.2 07/11/2026 21:58 versão 1.8.2
 # histórico: 1.2.1 07/11/2026 21:46 versão 1.8.1
 # histórico: 1.2.0 07/11/2026 21:14 versão 1.8.0; pacote Delta leva reator_delta2.py e o apelido gamma-delta-5b criação original (Claude, para Lucas Tavares)
 # histórico: 1.1.0 07/11/2026 19:42 versão 1.7.0 e o quarto pacote, GAMMA DELTA
 # Monta os ZIPs enxutos (um por estilo) a partir de pacote/. Uso, na raiz do repositório:
-#   python3 -I construir/construir_zips.py SAIDA 1.8.2:Alpha 1.8.2:Beta 1.8.2:Gamma 1.8.2:Delta
+#   python3 -I construir/construir_zips.py SAIDA 1.8.3:Alpha 1.8.3:Beta 1.8.3:Gamma 1.8.3:Delta
 # Gera SAIDA/Gamma-<Nome>-v<versão>/ e o ZIP correspondente (permissões preservadas, instalador executável).
 # Para uma nova versão, adicione uma linha em V (e uma entrada em ENT, o histórico de versões).
 import os, re, shutil, stat, sys, time, zipfile
 from pathlib import Path
 SRC=str(Path(__file__).resolve().parent.parent); OUT=sys.argv[1]
-V={"1.8.2:Alpha":("gamma-alpha","GAMMA ALPHA","Alpha",["gamma-n3-esq","gamma-sentinela"],"escala N0/N1/N2 sem tarja, percentuais, bomba, ventoinhas, temperaturas e selo de versão na tela (ex GAMMA SENTINELA)"),
-   "1.8.2:Beta":("gamma-beta","GAMMA BETA","Beta",["gamma-n3-compacto","gamma-dosimetro"],"percentuais entre parênteses, bomba, ventoinhas, temperaturas, 4 baias do TerraMaster e selo de versão na tela (ex GAMMA DOSÍMETRO)"),
-   "1.8.2:Gamma":("gamma-gamma","GAMMA GAMMA","Gamma",["gamma-gamma-fronteira"],"7 colmeias de resumo e painel numérico por grupo, com temperatura dos discos, 4 baias do TerraMaster e selo de versão na tela"),
-   "1.8.2:Delta":("gamma-delta","GAMMA DELTA","Delta",["gamma-delta-5b"],"GAMMA GAMMA com gráficos de 24 h e o pico de cada um, valores em alerta com fundo âmbar ou vermelho, total dos HDs num hexágono, barra de uso da RAM e LOG dos alertas")}
+V={"1.8.3:Alpha":("gamma-alpha","GAMMA ALPHA","Alpha",["gamma-n3-esq","gamma-sentinela"],"escala N0/N1/N2 sem tarja, percentuais, bomba, ventoinhas, temperaturas e selo de versão na tela (ex GAMMA SENTINELA)"),
+   "1.8.3:Beta":("gamma-beta","GAMMA BETA","Beta",["gamma-n3-compacto","gamma-dosimetro"],"percentuais entre parênteses, bomba, ventoinhas, temperaturas, 4 baias do TerraMaster e selo de versão na tela (ex GAMMA DOSÍMETRO)"),
+   "1.8.3:Gamma":("gamma-gamma","GAMMA GAMMA","Gamma",["gamma-gamma-fronteira"],"7 colmeias de resumo e painel numérico por grupo, com temperatura dos discos, 4 baias do TerraMaster e selo de versão na tela"),
+   "1.8.3:Delta":("gamma-delta","GAMMA DELTA","Delta",["gamma-delta-5b"],"GAMMA GAMMA com gráficos de 24 h e o pico de cada um, valores em alerta com fundo âmbar ou vermelho, total dos HDs num hexágono, barra de uso da RAM e LOG dos alertas")}
 KEEP={"__init__.py","base.py","reator.py","alerta.py","reator_gamma.py","reator_grupos.py"}
 def sub(p,a,b):
     s=open(p,encoding="utf-8").read(); assert a in s,(p,a[:40]); open(p,"w",encoding="utf-8").write(s.replace(a,b,1))
@@ -74,7 +75,8 @@ Detalhes técnicos: `README-pacote.md`.
 
 Autoria: criação original de Claude para Lucas Tavares. Fontes JetBrains Mono e Roboto (OFL). Base: turing-smart-screen-python (GPL-3.0).
 """)
-    ENT=[("1.8.2","07/11/2026 21:58","O LOG só registra alertas âmbar e vermelho (a volta ao verde não entra). Ping com uma casa decimal (por exemplo 18.3ms); o verde vai até 20.0ms. Discos e baias montados por VeraCrypt, LUKS ou LVM passam a contar como montados, e o total do hexágono acompanha cada HD montado. Traço do hexágono do total 30 % mais fino."),
+    ENT=[("1.8.3","08/11/2026 07:36","Disco desmontado deixa de ser alerta: aparece em branco com a palavra DESMONTADO, como as baias do TerraMaster, sem as tarjas vazias de percentual e espaço livre, sem N1 e sem LOG."),
+         ("1.8.2","07/11/2026 21:58","O LOG só registra alertas âmbar e vermelho (a volta ao verde não entra). Ping com uma casa decimal (por exemplo 18.3ms); o verde vai até 20.0ms. Discos e baias montados por VeraCrypt, LUKS ou LVM passam a contar como montados, e o total do hexágono acompanha cada HD montado. Traço do hexágono do total 30 % mais fino."),
          ("1.8.1","07/11/2026 21:46","Correção: o ping de 20 ms (como aparece na tela) volta a ser verde, e o alerta sai quando a leitura normaliza (a histerese do ping de 5 ms prendia o âmbar). Âmbar e vermelho ficam no mínimo 5 minutos na tela para dar tempo de ver; depois acompanham a leitura. O LOG continua acumulando. GAMMA DELTA: SQUAMA mostra a entrada que tem leitura (INF ou LAT, que estão em série)."),
          ("1.8.0","07/11/2026 21:14","Alertas por limites de manuais, do hardware e do Zabbix (RAM 90/95 %, discos 80/90 %, NVMe 80/90 °C, DDR5 55/85 °C, HDD 50/60 °C, placa 70/80 °C, CPU e carga sustentadas por 5 min, ventoinha abaixo de 600 RPM, redução de clock da GPU, Ethernet abaixo da velocidade de sempre); leituras contínuas só mudam de cor depois de 2 s; ping verde até 20 ms e âmbar até 100 ms. GAMMA DELTA novo: valores em alerta com fundo âmbar ou vermelho, nomes dos gráficos girados, total dos HDs num hexágono, barra de uso da RAM, refrigeração numa linha, INTERNET ON/OFF e LOG dos alertas. Instalador confere o estilo pelo registro de estilos e apelidos."),
          ("1.7.0","07/11/2026 19:42","Novo estilo GAMMA DELTA (pacote Gamma-Delta, --versao delta): o GAMMA GAMMA com gráficos de 24 h no alto (temperatura de CPU e GPU, VRAM com RAM, rede com download e upload), o pico de 24 h de cada série marcado por um ponto, baias do TerraMaster com ocupado, total e percentual, colmeia à direita e rodapé sem a linha do sistema e sem a idade do clima. Histórico de 24 h gravado em ~/.local/state/matrixgreenpro/historico.json. Removido o travessão residual do texto interno do campo gpu_fan_rpm."),

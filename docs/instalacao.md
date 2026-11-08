@@ -19,7 +19,7 @@ Baixe o ZIP do estilo na [página de Releases](https://github.com/lstavares84/tu
 ⚠️ Use `unzip`, que preserva a permissão de execução do instalador:
 
 ```bash
-unzip Gamma-Delta-v1.8.2.zip && cd Gamma-Delta-v1.8.2 && ./instalar-gamma.sh
+unzip Gamma-Delta-v1.8.3.zip && cd Gamma-Delta-v1.8.3 && ./instalar-gamma.sh
 ```
 
 Cada ZIP já sabe qual é o seu estilo (arquivo `ESTILO_PADRAO`) e grava a versão no selo da tela.

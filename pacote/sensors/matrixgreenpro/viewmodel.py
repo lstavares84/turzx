@@ -1,4 +1,5 @@
-# MATRIX GREEN PRO | versão 2.6.1 | 07/11/2026 21:58 (-03) | ping com uma casa decimal
+# MATRIX GREEN PRO | versão 2.6.2 | 08/11/2026 07:35 (-03) | disco desmontado é só informação (branco)
+# histórico: 2.6.1 07/11/2026 21:58 ping com uma casa decimal
 # histórico: 2.6.0 07/11/2026 21:46 alerta mantido 5 min; ping classificado pelo número exibido
 # histórico: 2.5.0 07/11/2026 21:00 alertas confirmados em 2 s, limites sustentados, clock da GPU, link e LOG de alertas
 # histórico: 2.4.0 07/11/2026 20:15 total de TB dos discos, mudanças bruscas e registro
@@ -296,9 +297,10 @@ class ViewModel:
             else:
                 st = d.get("state")
                 txt = {"OFF": "DESMONTADO", "CFG": "NÃO CONFIGURADO", "ND": "SEM LEITURA"}.get(st, "N/D")
-                lv = WARN if st == "OFF" else NA   # configurado e ausente = atenção
+                # desmontado é só informação (branco, sem alerta), como as baias do TerraMaster
+                lv = NEUTRAL if st == "OFF" else NA
                 disks.append({"name": name, "use": txt, "pct_txt": "OFF" if st == "OFF" else "N/D",
-                              "free": "--", "pct": None, "lvl": lv, "use_lvl": lv})
+                              "free": "", "pct": None, "lvl": lv, "use_lvl": lv})
             disks[-1]["lvl"] = self._cf(f"disk{i}", disks[-1]["lvl"], 0)
             health[f"disk{i}"] = disks[-1]["lvl"]
             # temperatura do disco (HDD tem limites próprios; sem leitura = N/D, não alerta)

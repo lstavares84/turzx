@@ -1,4 +1,5 @@
-# MATRIX GREEN PRO | estilo NÚCLEO DO REATOR (família 06) | versão 3.6.0 | 02/11/2026 19:40 (-03) | percentuais entre parênteses (P['pct']='paren') e informações à esquerda (P['flow'])
+# MATRIX GREEN PRO | estilo NÚCLEO DO REATOR (família 06) | versão 3.6.1 | 08/11/2026 07:35 (-03) | disco desmontado mostra só a palavra
+# histórico: 3.6.0 02/11/2026 19:40 percentuais entre parênteses (P['pct']='paren') e informações à esquerda (P['flow'])
 # histórico: 3.5.0 02/11/2026 19:05 percentuais no registro (P['pct'])
 # histórico: 3.4.0 02/11/2026 18:40 indicador de alerta selecionável (P['alert']), escala N0/N1/N2
 # histórico: 3.3.0 02/11/2026 18:05 indicador de alerta selecionável
@@ -209,6 +210,8 @@ def render(vm_dict, P, layout="favo13", flat=False):
         y += step + (1 if (P.get("flow") and i == 0) else 0)       # 1 px extra: parênteses do RAM x texto longo do disco
         c.text(f"dsk{i}.name", 6, y, d["name"], f_sb, P["white"])
         ub = c.text(f"dsk{i}.use", 44, y, d["use"], f_s, col(d.get("use_lvl", NEUTRAL)))
+        if d.get("pct") is None:                                 # desmontado ou sem leitura: só a palavra
+            continue
         if P.get("flow"):                                        # percentual e espaço livre logo após o uso
             x = ub[2] + 6
             if P.get("pct"):

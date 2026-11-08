@@ -33,7 +33,7 @@ Este documento explica por que o GAMMA é como é. Antes de propor uma mudança,
 - **CORE redundante com a escala.** O hexágono CORE mostra a mesma informação da escala N0/N1/N2. A redundância foi assumida e aceita.
 - **Layout do rodapé.** Clima separado no canto inferior direito, data acima da hora. TOTAL W e COLETA saíram do GAMMA GAMMA; no BETA só somem quando as baias aparecem.
 - **Selo de estilo e versão** no canto superior direito de todas as telas.
-- **Baias informativas.** O estado das baias não entra na saúde: retirar um disco de propósito não deve gerar alarme.
+- **Desmontado não é alerta.** Nem as baias nem os discos configurados: desmontar ou retirar um disco de propósito não deve gerar alarme (desde a 1.8.3, os discos seguem a regra das baias).
 - **Tela física só com autorização.** Nenhuma versão vai para a tela sem um sim explícito do Lucas, a cada envio, e a mudança é vista na tela antes do commit.
 - **GAMMA DELTA.** Escolhido entre seis variantes e três subvariantes: valores em alerta com fundo âmbar ou vermelho (preferido à marca só de cor), gráficos com os nomes girados para ganhar largura, VRAM e RAM no mesmo gráfico, pico de 24 h como ponto, total dos HDs num hexágono e barra de uso da RAM junto da palavra RAM.
 - **Alertas por limites absolutos, não por variação.** A marca de "mudança brusca" foi testada e abandonada: o ruído natural dos sensores (o Tctl da CPU salta 2 °C em 1 s parado; a GPU troca de clock em até 1500 MHz por segundo) gerava alarme falso, e nenhum manual define limite de variação. Os limites vêm dos manuais, do próprio hardware e do Zabbix, com as fontes em [configuração](configuracao.md).

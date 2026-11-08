@@ -10,7 +10,7 @@
 
 Verde fluorescente, hexágonos e brilho: CPU, GPU, RAM, discos, ventoinhas, bomba do water cooler, rede, clima e o gabinete de discos externo, tudo numa tela vertical de 320x480 pixels.
 
-![versão](https://img.shields.io/badge/vers%C3%A3o-1.8.2-78ff5a?style=flat-square&labelColor=030a04)
+![versão](https://img.shields.io/badge/vers%C3%A3o-1.8.3-78ff5a?style=flat-square&labelColor=030a04)
 ![Debian 13](https://img.shields.io/badge/Debian-13-78ff5a?style=flat-square&labelColor=030a04)
 ![Python](https://img.shields.io/badge/Python-3-78ff5a?style=flat-square&labelColor=030a04)
 ![licença](https://img.shields.io/badge/licen%C3%A7a-GPL--3.0-78ff5a?style=flat-square&labelColor=030a04)
@@ -35,7 +35,7 @@ A ideia central é que **a tela diga em um segundo se está tudo bem**. Cada nú
 |---|---|---|---|---|
 | Ideia | Favo de 19 hexágonos com os números e linhas de texto abaixo | O ALPHA mais compacto, com o gabinete de discos | 7 hexágonos de resumo e painel numérico por grupo | O GAMMA com gráficos de 24 h, alertas em destaque e LOG |
 | Destaque | Escala N0/N1/N2, percentuais, bomba e ventoinhas | Percentuais entre parênteses, 4 baias do TerraMaster | CORE no centro, OK, ATEN ou CRIT por grupo, temperatura de cada disco | Pico de 24 h nos gráficos, total dos HDs num hexágono, barra de uso da RAM, LOG dos alertas |
-| Pacote | `Gamma-Alpha-v1.8.2.zip` | `Gamma-Beta-v1.8.2.zip` | `Gamma-Gamma-v1.8.2.zip` | `Gamma-Delta-v1.8.2.zip` |
+| Pacote | `Gamma-Alpha-v1.8.3.zip` | `Gamma-Beta-v1.8.3.zip` | `Gamma-Gamma-v1.8.3.zip` | `Gamma-Delta-v1.8.3.zip` |
 
 O **GAMMA DELTA** é o mais novo e o recomendado; é o que roda na tela do PC de referência.
 
@@ -72,7 +72,7 @@ Baixe o ZIP do estilo na [página de Releases](https://github.com/lstavares84/tu
 ⚠️ Num Debian 13 (ou derivado) com a tela conectada, como usuário comum (nunca com `sudo`):
 
 ```bash
-unzip Gamma-Delta-v1.8.2.zip && cd Gamma-Delta-v1.8.2 && ./instalar-gamma.sh
+unzip Gamma-Delta-v1.8.3.zip && cd Gamma-Delta-v1.8.3 && ./instalar-gamma.sh
 ```
 
 O instalador faz tudo em sequência: dependências, permissão da porta serial (grupo `dialout`), download do Turing Smart Screen, drivers de sensores (`nct6775` e `drivetemp`), serviço systemd de usuário e o tema. Para instalar direto deste repositório, sem ZIP (o selo da tela mostra `dev` em vez da versão):
@@ -117,7 +117,7 @@ Cada coletor (CPU, GPU, discos, baias, rede, clima...) roda isolado: se um falha
 
 ## Estado do projeto
 
-Versão **1.8.2** (07/11/2026), em uso na tela física do PC de referência com o GAMMA DELTA. Autoteste com 229 de 229 verificações no repositório e 110 de 110 em cada pacote (109 de 109 no Delta), e prévias sem nenhum problema de layout. Já validado no hardware real: tela, sensores de CPU, GPU, RAM, NVMe e placa, baias do TerraMaster (inclusive um disco com VeraCrypt) e ping. Ainda pendente: confirmar o mapeamento das ventoinhas com o mapeador e a temperatura dos HDs SATA (hoje N/D). Veja o [roteiro](docs/roteiro.md).
+Versão **1.8.3** (08/11/2026), em uso na tela física do PC de referência com o GAMMA DELTA. Autoteste com 229 de 229 verificações no repositório e 110 de 110 em cada pacote (109 de 109 no Delta), e prévias sem nenhum problema de layout. Já validado no hardware real: tela, sensores de CPU, GPU, RAM, NVMe e placa, baias do TerraMaster (inclusive um disco com VeraCrypt) e ping. Ainda pendente: confirmar o mapeamento das ventoinhas com o mapeador e a temperatura dos HDs SATA (hoje N/D). Veja o [roteiro](docs/roteiro.md).
 
 ## Créditos e licença
 

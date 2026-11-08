@@ -85,7 +85,7 @@ discos:
   - {nome: "4T",  uuid: "", montagem: ""}
 ```
 
-Os discos são identificados por UUID (persistente), nunca por `/dev/sdX`. Disco desmontado aparece como OFF. Discos montados através de VeraCrypt, LUKS ou LVM são reconhecidos: o coletor segue o dispositivo `dm-N` até a partição física. O GAMMA DELTA soma todos os discos e baias montados (cada dispositivo uma vez) no hexágono do total. ⚠️ Preencha os UUIDs com a saída de `lsblk -f`. A ferramenta `tools/mgp_detect.py` cria uma configuração inicial com o que encontrar.
+Os discos são identificados por UUID (persistente), nunca por `/dev/sdX`. Disco desmontado aparece como DESMONTADO, em branco e sem alerta (como as baias). Discos montados através de VeraCrypt, LUKS ou LVM são reconhecidos: o coletor segue o dispositivo `dm-N` até a partição física. O GAMMA DELTA soma todos os discos e baias montados (cada dispositivo uma vez) no hexágono do total. ⚠️ Preencha os UUIDs com a saída de `lsblk -f`. A ferramenta `tools/mgp_detect.py` cria uma configuração inicial com o que encontrar.
 
 ## Gabinete TerraMaster (baias)
 

@@ -1,4 +1,5 @@
-# MATRIX GREEN PRO | versão 2.6.0 | 07/11/2026 21:00 (-03) | motivos de redução de clock da GPU (NVML)
+# MATRIX GREEN PRO | versão 2.7.0 | 07/11/2026 22:03 (-03) | discos e baias montados via VeraCrypt, LUKS ou LVM
+# histórico: 2.6.0 07/11/2026 21:00 motivos de redução de clock da GPU (NVML)
 # histórico: 2.5.0 07/11/2026 20:15 dispositivo de cada disco (para o total sem duplicar)
 # histórico: 2.4.0 07/11/2026 19:00 uso das baias montadas (ocupado, total, percentual)
 # histórico: 2.3.0 02/11/2026 21:50 temperaturas de placa, RAM e SSD (Cpu.temps)
@@ -132,10 +133,28 @@ def _hwmon_temps():
     return out
 
 
+def _fisicos(nome, sysroot="/sys", prof=0):
+    """Dispositivo e tudo o que está embaixo dele: 'dm-1' (VeraCrypt, LUKS ou LVM) -> {'dm-1', 'sde1'}.
+    Segue /sys/block/<nome>/slaves até chegar às partições físicas."""
+    out = {nome}
+    if prof > 6:
+        return out
+    try:
+        for s in os.listdir(f"{sysroot}/block/{nome}/slaves"):
+            out |= _fisicos(s, sysroot, prof + 1)
+    except OSError:
+        pass
+    return out
+
+
 def _bloco_base(dev, sysroot="/sys"):
-    """/dev/sdb1 -> 'sdb'; /dev/nvme0n1p2 -> 'nvme0n1'. None se não for um disco simples (LVM, RAID, etc.)."""
+    """/dev/sdb1 -> 'sdb'; /dev/nvme0n1p2 -> 'nvme0n1'; /dev/mapper/veracrypt1 (dm-1 sobre sde1) -> 'sde'.
+    None se não for um disco simples (RAID, vários discos, etc.)."""
     try:
         n = os.path.basename(os.path.realpath(dev))
+        fis = sorted(x for x in _fisicos(n, sysroot) if not x.startswith("dm-"))
+        if n.startswith("dm-") and len(fis) == 1:              # criptografia ou LVM sobre uma partição só
+            n = fis[0]
         sp = os.path.realpath(f"{sysroot}/class/block/{n}")
         if os.path.exists(sp + "/partition"):
             n = os.path.basename(os.path.dirname(sp))
@@ -496,10 +515,10 @@ class Disks:
             link = f"/dev/disk/by-uuid/{uuid}"
             if not os.path.exists(link):
                 return None, "OFF"  # disco ausente ou desconectado
-            dev = os.path.realpath(link)
+            dev = os.path.basename(os.path.realpath(link))
             for p in parts:
                 try:
-                    if os.path.realpath(p.device) == dev:
+                    if dev in _fisicos(os.path.basename(os.path.realpath(p.device))):   # também via VeraCrypt/LUKS/LVM
                         return p.mountpoint, "OK"
                 except Exception:
                     continue
@@ -597,8 +616,9 @@ class Baias:
             por_baia[b] = nome
         montados = {}                                           # dispositivo -> pontos de montagem
         try:
-            for p in psutil.disk_partitions(all=False):
-                montados.setdefault(os.path.basename(os.path.realpath(p.device)), []).append(p.mountpoint)
+            for p in psutil.disk_partitions(all=False):          # VeraCrypt, LUKS e LVM contam para o disco físico
+                for nome in _fisicos(os.path.basename(os.path.realpath(p.device)), self.sys):
+                    montados.setdefault(nome, []).append(p.mountpoint)
         except Exception:
             pass
         out = []

@@ -49,13 +49,13 @@ Informativos, sem cor de alerta: uso da GPU (100 % em jogo é o esperado), potê
 
 **Tempo mínimo na tela:** âmbar e vermelho ficam pelo menos 5 minutos, para dar tempo de ver; depois a cor acompanha a leitura e volta ao verde quando ela normaliza. Chave: `alertas: {confirmar_s: 2, manter_s: 300}`.
 
-**Ping:** o limite é "acima de": 20 ms (o número exibido) ainda é verde.
+**Ping:** aparece com uma casa decimal e o limite é "acima de" sobre o número exibido: `20.0ms` ainda é verde, `20.1ms` já é âmbar.
 
 Abaixo de `fan_stop_ok_below_c` (60 °C), ventoinha parada é modo semipassivo e não alerta. Uma entrada que nunca girou (conector vazio) aparece como `0` neutro.
 
 A **histerese** evita que a cor pisque entre dois níveis: `histerese: {temperatura: 3, percentual: 2, ping_ms: 0}` (no ping, a permanência de 5 minutos já evita piscar).
 
-**LOG de alertas (GAMMA DELTA 5B):** cada mudança de cor de um indicador entra no LOG com a hora, a leitura e a nova cor (âmbar, vermelho ou a volta ao verde). Alertas com mais de 1 hora aparecem esmaecidos.
+**LOG de alertas (GAMMA DELTA):** cada vez que um indicador entra em âmbar ou vermelho, o LOG registra a hora, a leitura e a cor (a volta ao verde não entra). Alertas com mais de 1 hora aparecem esmaecidos.
 
 ## Ventoinhas e temperaturas da placa
 

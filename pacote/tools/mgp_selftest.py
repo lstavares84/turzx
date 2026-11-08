@@ -173,6 +173,22 @@ def main():
         check("baias: uso da baia montada (6 de 12 TB)", bs[0].get("usado") == 6e12 and bs[0].get("total") == 12e12
               and "usado" not in bs[1], str(bs[0]))
         check("baias: sem gabinete devolve None", col.Baias({}, td + "/nada").leitura() is None)
+        # baia 3 montada pelo VeraCrypt: /dev/dm-1 em cima de sde1 (o mesmo vale para LUKS e LVM)
+        w("block/dm-1/slaves/sde1", "")
+        col.psutil.disk_partitions = lambda all=False: [types.SimpleNamespace(device="/dev/sdc1", mountpoint="/mnt/12TB"),
+                                                        types.SimpleNamespace(device="/dev/dm-1", mountpoint="/mnt/vc")]
+        col.shutil.disk_usage = lambda p: types.SimpleNamespace(total=8e12, used=7.9e12, free=0.1e12) if p == "/mnt/vc" else \
+            types.SimpleNamespace(total=12e12, used=6e12, free=6e12)
+        try:
+            bv = col.Baias({"terramaster": {"ativo": "auto"}}, td).leitura()
+        finally:
+            col.psutil.disk_partitions = ant
+            col.shutil.disk_usage = ant_u
+        check("baias: disco montado via VeraCrypt (dm sobre a partição) conta como montado, com uso",
+              bv[2]["estado"] == "MONT" and bv[2].get("usado") == 7.9e12, str(bv[2]))
+        w("class/block/sde/sde1/partition", "1\n")             # como no sysfs real: a partição fica dentro do disco
+        os.symlink(f"{td}/class/block/sde/sde1", f"{td}/class/block/sde1")
+        check("discos: VeraCrypt resolve até o disco físico", col._bloco_base("/dev/dm-1", td) == "sde")
     vb = vm_of(base())["baias"]
     check("baias: viewmodel com 4 baias, sem alerta",
           len(vb) == 4 and vb[0]["cap"] == "12TB" and vb[3]["palavra"] == "LIVRE" and vm_of(base())["hdr_status"][1] == OK, str(vb[:1]))
@@ -228,15 +244,16 @@ def main():
     c1 = vmx.build(copy.deepcopy(s), now=110)
     check("alerta fica no mínimo 5 min mesmo com a leitura normal", c1["cpu_temp"][1] == CRIT, str(c1["cpu_temp"]))
     c2 = vmx.build(copy.deepcopy(s), now=103.5 + 301)
-    check("depois de 5 min volta ao verde e o LOG registra", c2["cpu_temp"][1] == OK and c2["registro"][0][1].startswith("CPU 50°C VERDE")
-          and len(c2["registro"]) == 2, str(c2["registro"][:2]))
+    check("depois de 5 min volta ao verde; o LOG não registra o verde", c2["cpu_temp"][1] == OK and len(c2["registro"]) == 1
+          and "VERDE" not in c2["registro"][0][1], str(c2["registro"][:2]))
     vmp = ViewModel(copy.deepcopy(DEFAULTS), (80, 90), (80, 87))
     s = base(); s.pop("demo_alertas", None)
     lv_ping = []
-    for t_, ms in ((0, 20.4), (10, 21.0), (20, 18.0), (330, 18.0)):
+    for t_, ms in ((0, 20.04), (10, 20.3), (20, 18.0), (330, 18.0)):
         s["ping"] = {"ok": True, "ms": ms}
         lv_ping.append(vmp.build(copy.deepcopy(s), now=t_)["ping"][1])
-    check("ping: 20 ms (exibido) é verde; 21 ms acende; volta ao verde 5 min depois", lv_ping == [OK, WARN, WARN, OK], str(lv_ping))
+    check("ping: 20.0ms (exibido) é verde; 20.3ms acende; volta ao verde 5 min depois", lv_ping == [OK, WARN, WARN, OK], str(lv_ping))
+    check("ping com uma casa decimal", vmp.build(copy.deepcopy(s), now=340)["ping"][0] == "18.0ms")
     s = base(); s["cpu"]["cool"]["sq_tras"] = {"rpm": 450, "visto": True}
     check("ventoinha girando a 450 RPM = AVISO (abaixo de 600)", vm_of(s)["fan_sqt"][1] == WARN)
     s = base(); s["gpu"] = dict(s["gpu"], throttle=0x40)
@@ -252,6 +269,10 @@ def main():
     check("total de TB: 3 discos + baia montada", vt and vt["total"] == "19.0TB" and vt["n"] == 4, str(vt))
     s3 = base(); s3["disks"] = [dict(d) for d in s3["disks"]]; s3["disks"][2]["dev"] = "sdc"
     check("total de TB: dispositivo repetido conta uma vez", vm_of(s3)["total_hd"]["n"] == 3)
+    s5 = base(); s5["baias"] = [dict(b) for b in s5["baias"]]
+    s5["baias"][2].update(estado="MONT", usado=7.9e12, total=8e12)
+    t5 = vm_of(s5)["total_hd"]
+    check("total de TB: montar um HD na baia aumenta a capacidade do hexágono", t5["total"] == "27.0TB" and t5["n"] == 5, str(t5["total"]))
     # ---- ping: verde até 20 ms, âmbar até 100 ms, vermelho acima
     def _ping(ms):
         s4 = base(); s4["ping"] = {"ok": True, "ms": ms}

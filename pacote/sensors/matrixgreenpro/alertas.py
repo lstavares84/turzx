@@ -1,6 +1,7 @@
-# MATRIX GREEN PRO | alertas.py | versão 1.0.0 | 07/11/2026 21:00 (-03) | criação original (Claude, para Lucas Tavares)
-# LOG de alertas: registra cada vez que um indicador de saúde muda de cor (entra em âmbar ou vermelho, ou volta
-# ao verde), com a hora, o nome, a leitura daquele momento e a nova cor. Os níveis já chegam confirmados
+# MATRIX GREEN PRO | alertas.py | versão 1.1.0 | 07/11/2026 21:58 (-03) | criação original (Claude, para Lucas Tavares)
+# histórico: 1.1.0 07/11/2026 21:58 o LOG só registra âmbar e vermelho (a volta ao verde não entra)
+# LOG de alertas: registra cada vez que um indicador de saúde entra em âmbar ou vermelho (a volta ao verde não
+# entra), com a hora, o nome, a leitura daquele momento e a nova cor. Os níveis já chegam confirmados
 # (subida só depois de 2 s, em viewmodel.py), então ruído de leitura não entra aqui.
 from .alerts import OK, WARN, CRIT, LOST
 
@@ -51,7 +52,7 @@ class Alertas:
                 if lv == OK:
                     continue                                   # início do painel: só registra o que já começa em alerta
                 a = OK
-            if lv != a:
+            if lv != a and lv in (WARN, CRIT):
                 nome, val = _nome_valor(k, vm)
                 self.registro.insert(0, (now, f"{nome} {val} {COR[lv]}".replace("  ", " "), lv))
                 del self.registro[MAX_REG:]

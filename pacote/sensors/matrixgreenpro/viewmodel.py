@@ -1,4 +1,5 @@
-# MATRIX GREEN PRO | versão 2.6.0 | 07/11/2026 21:46 (-03) | alerta mantido 5 min; ping classificado pelo número exibido
+# MATRIX GREEN PRO | versão 2.6.1 | 07/11/2026 21:58 (-03) | ping com uma casa decimal
+# histórico: 2.6.0 07/11/2026 21:46 alerta mantido 5 min; ping classificado pelo número exibido
 # histórico: 2.5.0 07/11/2026 21:00 alertas confirmados em 2 s, limites sustentados, clock da GPU, link e LOG de alertas
 # histórico: 2.4.0 07/11/2026 20:15 total de TB dos discos, mudanças bruscas e registro
 # histórico: 2.3.0 07/11/2026 19:10 séries de 24 h repassadas aos estilos (vm['hist'])
@@ -429,9 +430,8 @@ class ViewModel:
         elif pg.get("ok"):
             self.s_ping.update(False)
             ms = pg["ms"]
-            # classifica o número exibido (20,4 ms aparece como 20ms e é verde)
-            vm["ping"] = (f"{ms:.1f}ms" if ms < 10 else f"{ms:.0f}ms",
-                          self._cf("ping", self.h_ping.update(round(ms, 1) if ms < 10 else round(ms)), 0))
+            # uma casa decimal; classifica o número exibido (20.0ms é verde, 20.1ms já é âmbar)
+            vm["ping"] = (f"{ms:.1f}ms", self._cf("ping", self.h_ping.update(round(ms, 1)), 0))
             vm["inet"] = ("INTERNET OK", OK)
         else:
             lv = self._cf("ping", max(WARN, self.s_ping.update(True)), 0)

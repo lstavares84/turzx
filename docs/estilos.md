@@ -77,7 +77,7 @@ Cores das baias: montado em verde, desmontado em branco, livre em cinza.
 
 ## GAMMA DELTA (`gamma-delta`), o mais novo
 
-O GAMMA GAMMA com a colmeia à direita, três gráficos de 24 h e um LOG de alertas. Pacote `Gamma-Delta-v1.8.1.zip`, instalado com `--versao delta`. Na 1.8.0 ele passou a ser o desenho estudado como DELTA 5B (o nome `gamma-delta-5b` continua aceito).
+O GAMMA GAMMA com a colmeia à direita, três gráficos de 24 h e um LOG de alertas. Pacote `Gamma-Delta-v1.8.2.zip`, instalado com `--versao delta`. Na 1.8.0 ele passou a ser o desenho estudado como DELTA 5B (o nome `gamma-delta-5b` continua aceito).
 
 - **Valor em alerta em destaque.** Qualquer leitura em atenção ou crítico aparece com fundo âmbar ou vermelho e texto escuro (por exemplo `FPS 96`, `TEMP 84°C`). Os limites estão em [configuração](configuracao.md).
 - **Nomes dos gráficos girados 90°**, centrados na altura de cada gráfico; os gráficos ficam mais largos.
@@ -85,7 +85,7 @@ O GAMMA GAMMA com a colmeia à direita, três gráficos de 24 h e um LOG de aler
 - **Total dos HDs** (discos e baias montadas, cada dispositivo uma vez) num hexágono que se enche com o uso, centrado entre os títulos RAM e TERRAMASTER.
 - **Refrigeração numa linha**: BOMBA, RAD, SQUAMA (INF e LAT estão em série, uma leitura só) e TRA, com a PLACA no título.
 - **INTERNET ON / OFF** no título REDE.
-- **LOG** no rodapé: cada mudança de cor de um indicador, com hora, leitura e a nova cor; relógio, data, tempo ligado e clima à direita.
+- **LOG** no rodapé: cada alerta âmbar ou vermelho, com hora, leitura e cor (a volta ao verde não entra); relógio, data, tempo ligado e clima à direita.
 
 - **TERRAMASTER com uso.** Baia montada mostra ocupado/total e percentual, como na seção DISCOS: `1 6.24/11.99TB (52%)`. A cor do percentual segue os limites dos discos (85% e 95%, 50 GB e 10 GB livres), mas só como informação: não entra na saúde. Por falta de largura, a palavra MONTADO sai da baia que mostra o uso. Baia desmontada ou livre continua como antes.
 - **Rodapé mais curto.** Sem a linha do sistema operacional (`DEBIAN 13 TRIXIE`) e sem a idade do clima (`OPEN-METEO HH:MM`).

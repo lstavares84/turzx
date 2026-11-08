@@ -1,4 +1,5 @@
-# GAMMA DELTA | motor do GAMMA DELTA e das variantes | versão 0.3.0 | 07/11/2026 21:46 (-03) | criação original (Claude, para Lucas Tavares)
+# GAMMA DELTA | motor do GAMMA DELTA e das variantes | versão 0.4.0 | 07/11/2026 22:03 (-03) | criação original (Claude, para Lucas Tavares)
+# histórico: 0.4.0 07/11/2026 22:03 traço do hexágono do total 30 % mais fino (3,5 px, desenhado em 4x)
 # histórico: 0.3.0 07/11/2026 21:46 SQUAMA mostra INF ou LAT, a que tiver leitura
 # histórico: 0.2.0 07/11/2026 21:14 valor em alerta com fundo na cor do nível (alerta_inverso); passa a desenhar o GAMMA DELTA oficial
 # Base: GAMMA DELTA (colmeia à direita, gráficos de 24 h, baias com uso). Acrescenta:
@@ -203,16 +204,27 @@ def render(vm, P):
         topo = min(range(6), key=lambda k: pts[k][1])          # começa no vértice de cima, sentido horário
         pts = pts[topo:] + pts[:topo]
         c.poly(pts, fill=mix(P["accent"], P["bg"], 0.93))
-        lados = [(pts[k], pts[(k + 1) % 6]) for k in range(6)]
-        c.line(pts + [pts[0]], mix(P["accent"], P["bg"], 0.78), 5)
+        # traço de 3,5 px (30 % mais fino que os 5 px de antes): desenhado em 4x e reduzido, com bordas suaves
+        from PIL import Image, ImageDraw
+        K, larg = 4, 3.5
+        x0, y0 = int(cxh - r - 6), int(cyh - r - 6)
+        lado = 2 * r + 12
+        cam = Image.new("RGBA", (lado * K, lado * K), (0, 0, 0, 0))
+        dc = ImageDraw.Draw(cam)
+        sp = [((px - x0) * K, (py - y0) * K) for px, py in pts]
+        dc.line(sp + [sp[0], sp[1]], fill=mix(P["accent"], P["bg"], 0.78) + (255,), width=round(larg * K), joint="curve")
         resto = 6 * tot["pct"] / 100
-        cor = P["accent"]
-        for a, b in lados:
+        for k in range(6):
             if resto <= 0:
                 break
+            a, b = sp[k], sp[(k + 1) % 6]
             t = min(1.0, resto)
-            c.line((a, (a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t)), cor, 5)
+            dc.line((a, (a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t)), fill=P["accent"] + (255,), width=round(larg * K))
+            if t == 1.0 and resto > 1:                         # junta o canto com o próximo lado
+                dc.ellipse((b[0] - larg * K / 2, b[1] - larg * K / 2, b[0] + larg * K / 2, b[1] + larg * K / 2), fill=P["accent"] + (255,))
             resto -= 1
+        cam = cam.resize((lado, lado), Image.LANCZOS)
+        c.img.paste(cam, (x0, y0), cam)
         c.text("tot.pct", cxh, cyh + 5, tot["pct_txt"], font(JB, 13, "Bold"), P["white"], anchor="ms")
         c.text("tot.uso", cxh, cyh + 15, tot["uso"], font(JB, 8, "Regular"), P["sub"], anchor="ms")
     elif rosca:                                                 # rosca do total à direita das linhas dos discos

@@ -7,6 +7,12 @@ Segue [SemVer](https://semver.org/lang/pt-BR/) (MAJOR.MINOR.PATCH). Os estilos (
 
 ## [Não lançado]
 
+## [1.8.2] - 07/11/2026 21:58 (-03)
+
+- O LOG só registra alertas âmbar e vermelho; a volta ao verde não entra.
+- Ping com uma casa decimal em todos os estilos (por exemplo `18.3ms`); a cor segue o número exibido: verde até `20.0ms`.
+- Discos e baias montados por VeraCrypt, LUKS ou LVM (um dispositivo `dm-N` em cima da partição) passam a contar como montados, com uso e percentual; antes a baia ficava DESMONT. para sempre. O total do hexágono acompanha cada HD montado ou desmontado.
+- GAMMA DELTA: traço do hexágono do total 30 % mais fino (3,5 px, com bordas suaves).
 ## [1.8.1] - 07/11/2026 21:46 (-03)
 
 - Correção do ping preso em âmbar: 20 ms (o número exibido) é verde (limite "acima de", em `Hyst(estrito=True)`), e a histerese do ping passou de 5 ms para 0. Antes, 20,4 ms acendia o âmbar e ele só apagava abaixo de 15 ms.

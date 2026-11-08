@@ -1,4 +1,4 @@
-<!-- docs/desenvolvimento.md | versão 1.1.0 | 07/11/2026 18:45 (-03) | criação original (Claude, para Lucas Tavares). Fonte: tools/, construir/construir_zips.py e regras do projeto na v1.6.0. -->
+<!-- docs/desenvolvimento.md | versão 1.2.0 | 07/11/2026 22:12 (-03) | criação original (Claude, para Lucas Tavares). Fonte: tools/, construir/construir_zips.py e regras do projeto na v1.6.0. -->
 
 # Desenvolvimento
 
@@ -93,7 +93,11 @@ Os quatro estilos saem juntos, na mesma versão.
 
 ## Publicação
 
-Os ZIPs são artefatos de lançamento: não vão para o Git (veja o `.gitignore`). A proposta é anexá-los a uma Release do GitHub com a tag `vX.Y.Z`. ⚠️ A publicação é feita pelo Lucas, com o login dele.
+Os ZIPs são artefatos de lançamento: não vão para o Git (veja o `.gitignore`). Cada versão tem uma [Release no GitHub](https://github.com/lstavares84/turzx/releases) com a tag `vX.Y.Z` no commit da versão, os ZIPs gerados a partir desse commit e as notas do CHANGELOG. Publicação só com autorização do Lucas:
+
+```bash
+gh release create vX.Y.Z saida/*.zip --target COMMIT --title "GAMMA TUS-35 vX.Y.Z" --notes-file NOTAS.md
+```
 
 ## Critérios de pronto
 

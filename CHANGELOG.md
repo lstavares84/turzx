@@ -7,6 +7,7 @@ Segue [SemVer](https://semver.org/lang/pt-BR/) (MAJOR.MINOR.PATCH). Os estilos (
 
 ## [Não lançado]
 
+- Releases publicadas no GitHub para as versões 1.6.0, 1.7.0, 1.8.0, 1.8.1 e 1.8.2, cada uma com a tag no commit da versão, os ZIPs gerados a partir dele e as notas deste histórico. README aponta para a página de Releases.
 ## [1.8.2] - 07/11/2026 21:58 (-03)
 
 - O LOG só registra alertas âmbar e vermelho; a volta ao verde não entra.

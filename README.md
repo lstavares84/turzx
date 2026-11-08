@@ -52,6 +52,8 @@ O **GAMMA DELTA** (`Gamma-Delta-v1.8.2.zip`, `--versao delta`) é o mais novo: o
 
 ## Instalação rápida
 
+Baixe o ZIP do estilo na [página de Releases](https://github.com/lstavares84/turzx/releases/latest) (versões anteriores ficam nas releases antigas).
+
 ⚠️ Num Debian 13 (ou derivado) com a tela conectada, como usuário comum (nunca com `sudo`):
 
 ```bash

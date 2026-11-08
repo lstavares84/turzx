@@ -1,4 +1,5 @@
-<!-- docs/configuracao.md | versão 1.1.0 | 07/11/2026 21:05 (-03) | criação original (Claude, para Lucas Tavares). Fonte: pacote/sensors/matrixgreenpro/settings.py e pacote/extras/config.exemplo.yaml da v1.6.0. -->
+<!-- docs/configuracao.md | versão 2.0.0 | 07/11/2026 22:33 (-03) | criação original (Claude, para Lucas Tavares). Fonte: pacote/sensors/matrixgreenpro/settings.py e pacote/extras/config.exemplo.yaml da v1.8.2. -->
+<!-- histórico: 2.0.0 07/11/2026 22:33 limites com fontes, alertas 2 s e 5 min, discos via VeraCrypt, INTERNET ON/OFF, histórico de 24 h -->
 
 # Configuração
 
@@ -67,7 +68,7 @@ cpu:
 
 As ventoinhas são lidas direto de `/sys/class/hwmon/*/fanN_input`. As temperaturas usam `chip/rótulo`, e `*` significa o maior valor do chip. Leituras 0 e 105 °C são entradas sem sensor e são descartadas.
 
-O mapa padrão é um palpite. Para descobrir qual entrada é cada ventoinha, use o mapeador guiado. Ele pede que você desconecte um cabo por vez e grava `~/.config/matrixgreenpro/fans.yaml`, que substitui `cpu.fans`. A bomba nunca é desconectada.
+O mapa padrão é um palpite (no PC de referência, `fan3` lê 0; como INF e LAT estão em série, o GAMMA DELTA mostra em SQUAMA a entrada que tem leitura). Para descobrir qual entrada é cada ventoinha, use o mapeador guiado. Ele pede que você desconecte um cabo por vez e grava `~/.config/matrixgreenpro/fans.yaml`, que substitui `cpu.fans`. A bomba nunca é desconectada.
 
 ⚠️ Rode o mapeador com o PC ligado e acompanhe as instruções na tela:
 
@@ -84,7 +85,7 @@ discos:
   - {nome: "4T",  uuid: "", montagem: ""}
 ```
 
-Os discos são identificados por UUID (persistente), nunca por `/dev/sdX`. Disco desmontado aparece como OFF. ⚠️ Preencha os UUIDs com a saída de `lsblk -f`. A ferramenta `tools/mgp_detect.py` cria uma configuração inicial com o que encontrar.
+Os discos são identificados por UUID (persistente), nunca por `/dev/sdX`. Disco desmontado aparece como OFF. Discos montados através de VeraCrypt, LUKS ou LVM são reconhecidos: o coletor segue o dispositivo `dm-N` até a partição física. O GAMMA DELTA soma todos os discos e baias montados (cada dispositivo uma vez) no hexágono do total. ⚠️ Preencha os UUIDs com a saída de `lsblk -f`. A ferramenta `tools/mgp_detect.py` cria uma configuração inicial com o que encontrar.
 
 ## Gabinete TerraMaster (baias)
 
@@ -92,7 +93,7 @@ Os discos são identificados por UUID (persistente), nunca por `/dev/sdX`. Disco
 terramaster: {ativo: auto, hub: "0bda:0423", ponte: "174c:235c", baias: 4, inverter: false, mapa: {}}
 ```
 
-O gabinete aparece como um hub USB (`hub`) com uma ponte USB-SATA (`ponte`) por baia. A porta do hub é o número da baia. Se a baia 1 da tela não for a baia 1 do gabinete, use `inverter: true` ou um `mapa` de porta para baia. O recurso é só informativo: não entra na saúde nem na contagem de alertas. Com `ativo: nao`, ele fica desligado.
+O gabinete aparece como um hub USB (`hub`) com uma ponte USB-SATA (`ponte`) por baia. A porta do hub é o número da baia. Se a baia 1 da tela não for a baia 1 do gabinete, use `inverter: true` ou um `mapa` de porta para baia. As baias montadas mostram uso e percentual (também via VeraCrypt ou LUKS), e o percentual usa a cor dos limites dos discos. O recurso é só informativo: não entra na saúde nem na contagem de alertas. Com `ativo: nao`, ele fica desligado.
 
 ⚠️ Para conferir a numeração, rode e compare com o gabinete:
 
@@ -110,9 +111,13 @@ cd ~/turing-smart-screen-linux && .venv/bin/python3 tools/mgp_baias.py
 | `clima.cidade`, `latitude`, `longitude` | Rio do Sul (-27.2139, -49.6428) | local do clima no Open-Meteo |
 | `clima.intervalo_min` / `desatualizado_min` | 15 / 45 | frequência e idade máxima do dado |
 
-Sem nenhum enlace (nem Ethernet nem Wi-Fi) é sempre crítico. A internet é avaliada à parte, pelo ping: `INTERNET OK`, `INSTÁVEL`, `SEM INTERNET` ou `SEM REDE`.
+Sem nenhum enlace (nem Ethernet nem Wi-Fi) é sempre crítico. A internet é avaliada à parte, pelo ping: `INTERNET OK`, `INSTÁVEL`, `SEM INTERNET` ou `SEM REDE` (no GAMMA DELTA, `INTERNET ON` ou `INTERNET OFF`). O ping aparece com uma casa decimal.
 
 ## Energia e FPS
 
 - `energia.fonte`: `auto`, `none`, `hwmon` (fonte digital com driver), `arquivo`, `tasmota` ou `shelly_gen2`. Sem medidor, TOTAL W aparece como N/D. `psu_watts` define a capacidade da fonte para os alertas (0 desliga).
 - `fps.mangohud_dir`: pasta dos registros do MangoHud (padrão `/tmp/mgp-mangohud`). O FPS só aparece com jogos rodando sob o MangoHud.
+
+## Histórico dos gráficos (GAMMA DELTA)
+
+O histórico de 24 h fica em `~/.local/state/matrixgreenpro/historico.json`, com média e máximo de cada intervalo de cerca de 10 minutos, e é gravado a cada intervalo fechado. Para recomeçar os gráficos do zero, pare o serviço e apague esse arquivo.

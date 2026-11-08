@@ -1,12 +1,13 @@
-# GAMMA | construir/matriz_previas.py | versão 1.1.0 | 07/11/2026 18:40 (-03) | criação original (Claude, para Lucas Tavares)
+# GAMMA | construir/matriz_previas.py | versão 1.5.0 | 07/11/2026 22:20 (-03) | criação original (Claude, para Lucas Tavares)
+# histórico: 1.5.0 07/11/2026 22:20 o DELTA entra nas colunas padrão (4 x 3); sai o --extra delta
 # histórico: 1.4.0 07/11/2026 20:35 opção --delta5: o DELTA 5 e as variantes 5A, 5B e 5C
 # histórico: 1.3.0 07/11/2026 20:25 opção --deltas: as 6 variantes do GAMMA DELTA
 # histórico: 1.2.0 07/11/2026 20:00 opção --v2: as 12 propostas da v2.0.0 no lugar das colunas normais
 # histórico: 1.1.0 07/11/2026 18:40 opção --extra para variantes de estudo em colunas a mais
-# Matriz de prévias: as 3 versões (ALPHA, BETA, GAMMA) nos 3 estados (normal, atenção, crítico), num único PNG.
+# Matriz de prévias: as 4 versões (ALPHA, BETA, GAMMA, DELTA) nos 3 estados (normal, atenção, crítico), num único PNG.
 # Desenha com o código ATUAL de pacote/ (não com o que está instalado) e os dados de demonstração do painel.
 # Uso, na raiz do repositório:
-#   python3 -I construir/matriz_previas.py SAIDA.png [pasta_do_turing] [--extra delta] [--extra coluna]
+#   python3 -I construir/matriz_previas.py SAIDA.png [pasta_do_turing] [--extra coluna]
 # --extra NOME (repetível): acrescenta uma variante de estudo como coluna a mais (veja EXTRAS).
 # pasta_do_turing: cópia do turing-smart-screen, só para as fontes em res/fonts (padrão: ~/turing-smart-screen-linux).
 # Requer Pillow e psutil. Também confere limites, sobreposições, glifos e cobertura de métricas de cada quadro.
@@ -18,9 +19,9 @@ os.environ.setdefault("TZ", "America/Sao_Paulo")     # horário de Brasília nos
 time.tzset()
 COLUNAS = [("gamma-alpha", "reator_gamma_alpha", "ALPHA", "escala N0/N1/N2, percentuais"),
            ("gamma-beta", "reator_gamma_beta", "BETA", "percentuais entre parênteses, baias"),
-           ("gamma-gamma", "reator_gamma_gamma", "GAMMA", "7 colmeias e painel por grupo")]
-EXTRAS = {"delta": ("gamma-delta", "reator_gamma_delta", "DELTA", "gráficos de 24 h, baias com uso"),
-          "coluna": ("gamma-gamma-coluna", "reator_gamma_gamma_coluna", "COLUNA", "estudo: hexágonos em coluna")}
+           ("gamma-gamma", "reator_gamma_gamma", "GAMMA", "7 colmeias e painel por grupo"),
+           ("gamma-delta", "reator_gamma_delta", "DELTA", "gráficos de 24 h, alertas e LOG")]
+EXTRAS = {          "coluna": ("gamma-gamma-coluna", "reator_gamma_gamma_coluna", "COLUNA", "estudo: hexágonos em coluna")}
 DELTAS = [("gamma-delta-1", "reator_gamma_delta_v1", "DELTA 1", "variante 1"), ("gamma-delta-2", "reator_gamma_delta_v2", "DELTA 2", "variante 2"), ("gamma-delta-3", "reator_gamma_delta_v3", "DELTA 3", "variante 3"), ("gamma-delta-4", "reator_gamma_delta_v4", "DELTA 4", "variante 4"), ("gamma-delta-5", "reator_gamma_delta_v5", "DELTA 5", "variante 5"), ("gamma-delta-6", "reator_gamma_delta_v6", "DELTA 6", "variante 6")]
 DELTA5 = [("gamma-delta-5", "reator_gamma_delta_v5", "DELTA 5", "base"), ("gamma-delta-5a", "reator_gamma_delta_v5a", "DELTA 5A", "barra por disco"), ("gamma-delta", "reator_gamma_delta", "DELTA", "o oficial (ex 5B)"), ("gamma-delta-5c", "reator_gamma_delta_v5c", "DELTA 5C", "mapa de capacidade")]
 V2 = [("v2-concreto", "v2_brutal", "BRUTALISTA", "concreto"),

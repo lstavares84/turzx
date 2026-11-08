@@ -1,4 +1,5 @@
-<!-- docs/roteiro.md | versão 1.0.0 | 07/11/2026 15:45 (-03) | criação original (Claude, para Lucas Tavares). Fonte: pendências registradas na transferência do projeto em 07/11/2026. -->
+<!-- docs/roteiro.md | versão 2.0.0 | 07/11/2026 22:30 (-03) | criação original (Claude, para Lucas Tavares). Fonte: pendências do projeto em 07/11/2026, depois da v1.8.2. -->
+<!-- histórico: 2.0.0 07/11/2026 22:30 validações feitas na tela física, drivetemp, LOG em disco, estudos e Releases -->
 
 # Roteiro
 
@@ -8,24 +9,27 @@ Pendências em ordem de prioridade. Os itens marcados com ⚠️ exigem ação d
 
 ## Validação em hardware
 
-1. ⚠️ **Tela física:** orientação, brilho, bloom e o piscar do crítico; reinício e início automático do serviço; leitura do relatório do instalador.
-2. ⚠️ **Bomba e ventoinhas:** rodar `tools/mgp_mapear_fans.py` para gerar o `fans.yaml`. Hoje o mapa padrão é um palpite e `fan3` lê 0, apesar de haver 5 conectores em uso.
+Já validados na tela física (07/11/2026): imagem, selo de versão, sensores de CPU, GPU, RAM, NVMe e placa, ping, gráficos de 24 h, LOG e as 4 baias do TerraMaster, inclusive um disco com VeraCrypt.
+
+1. ⚠️ **Bomba e ventoinhas:** rodar `tools/mgp_mapear_fans.py` para gerar o `fans.yaml`. O mapa padrão é um palpite: `fan3` (mapeado como SQUAMA INF) lê 0 e o DELTA mostra a LAT no lugar.
+2. ⚠️ **Temperatura dos HDs SATA:** o módulo `drivetemp` não está carregado no PC (não aparece no `lsmod` nem em `/etc/modules-load.d/`), por isso os HDs mostram N/D. Conferir por que o instalador não o carregou.
 3. ⚠️ **Baias:** rodar `tools/mgp_baias.py` e conferir se a baia 1 do tema é a baia 1 do gabinete; corrigir com `terramaster.inverter` ou `terramaster.mapa`.
-4. **Discos em repouso:** confirmar se a leitura do `drivetemp` acorda discos em standby. Se acordar, ler a temperatura só com o disco ativo ou aumentar o intervalo.
+4. **Discos em repouso:** depois do `drivetemp`, confirmar se a leitura acorda discos em standby. Se acordar, ler a temperatura só com o disco ativo ou aumentar o intervalo.
 
 ## Recursos opcionais
 
 5. Temperatura dos discos do TerraMaster pela ponte USB com `smartctl -d sat` (exige root ou regra de permissão; avaliar custo e utilidade antes).
 6. Alerta para baia que tinha disco e ficou livre (precisa de confirmação: retirar um disco de propósito também alertaria).
+7. Guardar o LOG em disco, para sobreviver a reinícios do serviço (hoje fica na memória).
 
 ## Organização do repositório
 
-7. Reescrever ou remover `construir-zips.sh` (substituído por `construir/construir_zips.py`) e `publicar-no-github.sh` (as Releases já são publicadas com `gh release create`, veja o desenvolvimento). Atualizar o `pacote/README.md`, que ainda descreve as versões 1.3.0 e anteriores.
-8. Decidir se os estilos experimentais (sonar, raio-x, uv, n3, faixa e outros), as variantes antigas do GAMMA GAMMA (colmeia, mini, painel), se o GAMMA DELTA substitui o GAMMA GAMMA nos ZIPs, o destino da variante coluna e o `pcb` (que tem erros de cobertura de métricas) serão arquivados ou removidos.
-9. Revisar redundâncias: taxas de ETH repetidas, SSD° no favo do BETA e na linha do disco, e o CORE duplicando a escala N0/N1/N2.
-10. Resolvido na 1.7.0: os ZIPs 1.6.0 tinham um travessão residual e invisível (texto interno do campo `gpu_fan_rpm`, que não aparece na tela) em `viewmodel.py` e `mgp_selftest.py`. Já está corrigido neste fonte; sai na próxima versão PATCH.
+8. Remover `construir-zips.sh` e `publicar-no-github.sh`, substituídos por `construir/construir_zips.py` e `gh release create` (veja o [desenvolvimento](desenvolvimento.md)).
+9. Decidir o destino dos estilos de estudo e legados (propostas v2, variantes do DELTA e do GAMMA GAMMA, sonar, raio-x, uv, n3, faixa, `pcb`): arquivar, remover ou levar adiante na v2.0.0.
+10. Revisar redundâncias: taxas de ETH repetidas, SSD° no favo do BETA e na linha do disco, e o CORE duplicando a escala N0/N1/N2.
 
 ## Qualidade
 
 11. Testes automáticos no CI do GitHub (autoteste e prévias), checagem de lint e um modo de simulação que dispense a árvore do Turing.
-12. Publicar capturas reais dos três estilos (geradas com `mgp_preview.py`) no lugar do esquema ilustrativo do README.
+12. Instalar o `fontTools` no ambiente de testes para a conferência de glifos voltar a valer.
+13. Automatizar a publicação das Releases (notas a partir do CHANGELOG e ZIPs do commit da versão).

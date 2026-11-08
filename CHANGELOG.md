@@ -7,6 +7,7 @@ Segue [SemVer](https://semver.org/lang/pt-BR/) (MAJOR.MINOR.PATCH). Os estilos (
 
 ## [Não lançado]
 
+- Documentação revisada para a v1.8.2: README com capturas reais dos quatro estilos (`docs/img/`), seção de alertas e estado do projeto; estilos com a paleta em hexadecimal; arquitetura, desenvolvimento, decisões, roteiro, hardware de referência, instalação e configuração atualizados; `pacote/README.md` reescrito (descrevia a 1.3.0). A matriz de prévias passa a ter o DELTA nas colunas padrão (4 x 3).
 - Releases publicadas no GitHub para as versões 1.6.0, 1.7.0, 1.8.0, 1.8.1 e 1.8.2, cada uma com a tag no commit da versão, os ZIPs gerados a partir dele e as notas deste histórico. README aponta para a página de Releases.
 ## [1.8.2] - 07/11/2026 21:58 (-03)
 

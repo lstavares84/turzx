@@ -1,4 +1,5 @@
-<!-- docs/instalacao.md | versão 1.0.0 | 07/11/2026 15:15 (-03) | criação original (Claude, para Lucas Tavares). Fonte: instalar-gamma.sh e pacote/scripts/ da v1.6.0. -->
+<!-- docs/instalacao.md | versão 2.0.0 | 07/11/2026 22:32 (-03) | criação original (Claude, para Lucas Tavares). Fonte: instalar-gamma.sh e pacote/scripts/ da v1.8.2. -->
+<!-- histórico: 2.0.0 07/11/2026 22:32 Releases, GAMMA DELTA, apelidos, selo dev e histórico de 24 h -->
 
 # Instalação
 
@@ -13,21 +14,23 @@
 
 ## Instalar por ZIP (recomendado)
 
+Baixe o ZIP do estilo na [página de Releases](https://github.com/lstavares84/turzx/releases/latest). Cada versão tem os quatro pacotes: `Gamma-Alpha`, `Gamma-Beta`, `Gamma-Gamma` e `Gamma-Delta` (o recomendado).
+
 ⚠️ Use `unzip`, que preserva a permissão de execução do instalador:
 
 ```bash
-unzip Gamma-Gamma-v1.8.2.zip && cd Gamma-Gamma-v1.8.2 && ./instalar-gamma.sh
+unzip Gamma-Delta-v1.8.2.zip && cd Gamma-Delta-v1.8.2 && ./instalar-gamma.sh
 ```
 
-Troque `Gamma` por `Alpha` ou `Beta` para os outros estilos. Cada ZIP já sabe qual é o seu estilo (arquivo `ESTILO_PADRAO`).
+Cada ZIP já sabe qual é o seu estilo (arquivo `ESTILO_PADRAO`) e grava a versão no selo da tela.
 
 ## Instalar pelo repositório
 
 ```bash
-./instalar-gamma.sh --versao gamma
+./instalar-gamma.sh --versao delta
 ```
 
-Sem `--versao`, o instalador pergunta qual estilo usar.
+Sem `--versao`, o instalador pergunta qual estilo usar. Instalado direto do repositório, o selo da tela mostra `dev` em vez da versão.
 
 ## O que o instalador faz
 
@@ -51,7 +54,7 @@ Tudo é registrado com data e hora em `~/.local/state/matrixgreenpro/instalar-ga
 | `--sem-servico` | não cria o serviço systemd |
 | `--restaurar` | volta ao tema anterior usando o backup do instalador |
 | `--dir CAMINHO` | pasta do Turing (padrão `~/turing-smart-screen-linux`) |
-| `--estilo NOME` | avançado: qualquer estilo do pacote, inclusive os experimentais |
+| `--estilo NOME` | avançado: qualquer estilo ou apelido registrado no pacote, inclusive os de estudo (só no repositório) |
 | `--ajuda` | mostra a ajuda |
 
 ## Depois de instalar
@@ -97,6 +100,6 @@ Cada execução do instalador gera um backup em `~/.local/share/matrixgreenpro/b
 | `~/turing-smart-screen-linux/` | programa da tela, com `.venv` |
 | `~/.config/matrixgreenpro/config.yaml` | configuração do painel (o instalador nunca sobrescreve) |
 | `~/.config/matrixgreenpro/fans.yaml` | mapa das ventoinhas, gerado pelo mapeador |
-| `~/.local/state/matrixgreenpro/` | logs com data e hora |
+| `~/.local/state/matrixgreenpro/` | logs com data e hora e o histórico de 24 h dos gráficos (`historico.json`) |
 | `~/.local/share/matrixgreenpro/backups/` | backups do instalador |
 | `~/.config/systemd/user/turing-smart-screen.service` | serviço de usuário |

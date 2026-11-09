@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-# MATRIX GREEN PRO | versão 3.5.0 | 08/11/2026 13:26 (-03) | tamanho do quadro conforme a tela (3,5" ou 5,2") (Claude, para Lucas Tavares)
+# MATRIX GREEN PRO | versão 3.6.0 | 08/11/2026 21:02 (-03) | disco pelo número de série e montagem de reserva (Claude, para Lucas Tavares)
+# histórico: 3.5.0 08/11/2026 13:26 (-03) | tamanho do quadro conforme a tela (3,5" ou 5,2") (Claude, para Lucas Tavares)
 # histórico: 3.4.0 07/11/2026 20:15 mudanças bruscas, total de TB, ping 20/100 ms e variantes do GAMMA DELTA
 # histórico: 3.3.0 07/11/2026 19:00 uso das baias e estilos gamma-delta e gamma-gamma-coluna; 3.2.0 07/11/2026 18:40 estilo de estudo na lista de estilos
 # histórico: 3.1.1 07/11/2026 18:15 teste de baias invertidas isolado das montagens reais do PC; 2.1.0 31/10/2026 23:55 testes de rede x internet e do estado da coleta
@@ -379,6 +380,18 @@ def main():
         check("UUID inexistente = OFF", r[0]["state"] == "OFF")
         check("montagem inexistente = OFF", r[1]["state"] == "OFF")
         check("raiz montada = leitura válida", r[2]["state"] == "OK" and r[2]["total"] > 0)
+        # disco formatado: o UUID muda; com a montagem configurada, o disco continua lido (era DESM por engano)
+        check("UUID antigo + montagem válida = montado", col.Disks._mount_for(
+            {"uuid": "UUID-ANTIGO-DE-ANTES-DA-FORMATACAO", "montagem": "/"}) == ("/", "OK"))
+        check("número de série desconectado = OFF", col.Disks._mount_for(
+            {"serie": "SERIE-QUE-NAO-EXISTE-0000", "uuid": "", "montagem": ""}) == (None, "OFF"))
+        bid = Path(d) / "by-id"; bid.mkdir()
+        for nome, alvo in (("ata-ST2000DM006-2DM164_Z4Z95AL7", "sda"), ("ata-ST2000DM006-2DM164_Z4Z95AL7-part1", "sda1"),
+                           ("wwn-0x5000c500a4912b85", "sda"), ("nvme-Modelo_2TB_26075T800686", "nvme0n1")):
+            os.symlink(f"../../{alvo}", bid / nome)
+        check("série completa (by-id) = disco", col._disco_por_serie("ata-ST2000DM006-2DM164_Z4Z95AL7", str(bid)) == "sda")
+        check("só o número de série = disco", col._disco_por_serie("26075T800686", str(bid)) == "nvme0n1")
+        check("série inexistente = None", col._disco_por_serie("ZZZ999", str(bid)) is None)
         pf = Path(d) / "watts"
         pf.write_text("245.5\n")
         cfg["energia"].update(fonte="arquivo", arquivo=str(pf), tipo_arquivo="tomada")

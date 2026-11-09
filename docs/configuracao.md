@@ -1,4 +1,5 @@
-<!-- docs/configuracao.md | versão 2.0.0 | 07/11/2026 22:24 (-03) | criação original (Claude, para Lucas Tavares). Fonte: pacote/sensors/matrixgreenpro/settings.py e pacote/extras/config.exemplo.yaml da v1.8.2. -->
+<!-- docs/configuracao.md | versão 2.1.0 | 08/11/2026 21:03 (-03) | criação original (Claude, para Lucas Tavares). Fonte: pacote/sensors/matrixgreenpro/settings.py e pacote/extras/config.exemplo.yaml da v1.8.2. -->
+<!-- histórico: 2.1.0 08/11/2026 21:03 discos pelo número de série -->
 <!-- histórico: 2.0.0 07/11/2026 22:24 limites com fontes, alertas 2 s e 5 min, discos via VeraCrypt, INTERNET ON/OFF, histórico de 24 h -->
 
 # Configuração
@@ -80,12 +81,12 @@ cd ~/turing-smart-screen-linux && .venv/bin/python3 tools/mgp_mapear_fans.py
 
 ```yaml
 discos:
-  - {nome: "M.2", uuid: "", montagem: "/"}
-  - {nome: "2T",  uuid: "", montagem: ""}
-  - {nome: "4T",  uuid: "", montagem: ""}
+  - {nome: "M.2", serie: "", uuid: "", montagem: "/"}
+  - {nome: "2T",  serie: "", uuid: "", montagem: ""}
+  - {nome: "4T",  serie: "", uuid: "", montagem: ""}
 ```
 
-Os discos são identificados por UUID (persistente), nunca por `/dev/sdX`. Disco desmontado aparece como DESMONTADO, em branco e sem alerta (como as baias). Discos montados através de VeraCrypt, LUKS ou LVM são reconhecidos: o coletor segue o dispositivo `dm-N` até a partição física. O GAMMA DELTA soma todos os discos e baias montados (cada dispositivo uma vez) no hexágono do total. ⚠️ Preencha os UUIDs com a saída de `lsblk -f`. A ferramenta `tools/mgp_detect.py` cria uma configuração inicial com o que encontrar.
+Os discos são identificados, nesta ordem, pelo número de série (`serie`), pelo UUID do sistema de arquivos e pelo ponto de montagem, nunca por `/dev/sdX`. A série é o nome do disco em `/dev/disk/by-id` (por exemplo `ata-ST2000DM006-2DM164_Z4Z95AL7`) ou só o número de série (`Z4Z95AL7`); ela não muda quando o disco é formatado, ao contrário do UUID. Se o UUID configurado sumir e houver montagem configurada, vale a montagem. Com a série, o painel mostra o ponto de montagem configurado, a raiz `/` ou a maior partição do disco. Disco desmontado aparece como DESMONTADO, em branco e sem alerta (como as baias). Discos montados através de VeraCrypt, LUKS ou LVM são reconhecidos: o coletor segue o dispositivo `dm-N` até a partição física. O GAMMA DELTA soma todos os discos e baias montados (cada dispositivo uma vez) no hexágono do total. ⚠️ Preencha a série com a saída de `ls -l /dev/disk/by-id` (ou o UUID com `lsblk -f`). A ferramenta `tools/mgp_detect.py` cria uma configuração inicial com o que encontrar.
 
 ## Gabinete TerraMaster (baias)
 

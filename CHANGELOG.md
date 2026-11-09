@@ -1,4 +1,4 @@
-<!-- CHANGELOG | GAMMA | versão 2.1.0 | 08/11/2026 13:30 (-03) | criação original (Claude, para Lucas Tavares) -->
+<!-- CHANGELOG | GAMMA | versão 2.2.0 | 08/11/2026 21:03 (-03) | criação original (Claude, para Lucas Tavares) -->
 <!-- histórico: 1.0.0 02/11/2026 19:15 primeira versão do histórico -->
 
 # Histórico de versões
@@ -7,6 +7,7 @@ Segue [SemVer](https://semver.org/lang/pt-BR/) (MAJOR.MINOR.PATCH). Os estilos (
 
 ## [Não lançado]
 
+- Correção: disco reformatado aparecia como DESMONTADO para sempre. O tema achava cada disco pelo UUID do sistema de arquivos, que muda ao formatar (aconteceu com o 2T e o 4T do PC em 08/11/2026). Agora cada disco pode ser identificado pelo número de série (`serie`, o nome em `/dev/disk/by-id`, por exemplo `ata-ST2000DM006-2DM164_Z4Z95AL7`), que não muda; o UUID e a montagem ficam de reserva, e um UUID que sumiu cede lugar à montagem configurada antes de o disco ser dado como desmontado. O `mgp_detect.py` grava a série.
 - Tela TURZX / Turing de 5,2" (720x1280, revisão `TUR_USB`, USB `1cbe:0050`), ainda não testada no aparelho. Os quatro estilos são exatamente os mesmos, sem mudança de desenho nem de versão: desenhados em escala 2,25 com fontes e traços na resolução real (`tela.py` e o `Canvas` de `estilos/base.py`), no alto da tela; os 200 px de baixo ficam só com o fundo.
 - Repositório organizado por tela: `pacote/telas/3.5/MatrixGreenPro` e `pacote/telas/5.2/MatrixGreenPro`. O nome do pacote diz a tela: `Gamma-<Estilo>-3.5-v<versão>.zip` e `Gamma-<Estilo>-5.2-v<versão>.zip`.
 - Instalador com `--tela 3.5` ou `--tela 5.2` (padrão: a do pacote, arquivo `TELA_PADRAO`): copia o tema certo, grava a tela em `tela.py` e ajusta `REVISION` no `config.yaml` do Turing. Na 5,2" não usa o grupo `dialout` e confere o `pyusb`. Diagnóstico conforme a tela.

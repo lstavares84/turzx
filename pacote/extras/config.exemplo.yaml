@@ -1,4 +1,5 @@
-# MATRIX GREEN PRO | versão 3.8.0 | 07/11/2026 21:00 (-03) | limites de manuais e do Zabbix (RAM 90/95, discos 80/90)
+# MATRIX GREEN PRO | versão 3.9.0 | 08/11/2026 21:03 (-03) | discos pelo número de série (serie)
+# histórico: 3.8.0 07/11/2026 21:00 limites de manuais e do Zabbix (RAM 90/95, discos 80/90)
 # Configuração do painel. Edite à vontade: o instalador nunca sobrescreve
 # este arquivo (use --forcar no mgp_detect.py para regenerar).
 painel:
@@ -26,16 +27,20 @@ fps:
 
 ram: {warn: 90, crit: 95}
 
-# Três volumes, identificados por UUID (persistente). Desmontado = OFF.
+# Três discos. serie = nome do disco em /dev/disk/by-id (ls -l /dev/disk/by-id), ou só o número de série:
+# não muda ao formatar. uuid (lsblk -f) e montagem ficam de reserva. Desmontado = DESMONTADO, sem alerta.
 discos:
   - nome: "M.2"
-    uuid: ""        # ⚠️ NÃO DETECTADO: preencha com o UUID (lsblk -f)
+    serie: ""       # ⚠️ NÃO DETECTADO: ex. nvme-Modelo_Do_SSD_NUMERODESERIE
+    uuid: ""
     montagem: "/"
   - nome: "2T"
-    uuid: ""        # ⚠️ NÃO DETECTADO: preencha com o UUID (lsblk -f)
+    serie: ""       # ⚠️ NÃO DETECTADO: ex. ata-ST2000DM006-2DM164_NUMERODESERIE
+    uuid: ""
     montagem: ""
   - nome: "4T"
-    uuid: ""        # ⚠️ NÃO DETECTADO: preencha com o UUID (lsblk -f)
+    serie: ""       # ⚠️ NÃO DETECTADO
+    uuid: ""
     montagem: ""
 disco_warn: 80
 disco_crit: 90

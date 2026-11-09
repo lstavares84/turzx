@@ -1,4 +1,5 @@
-# MATRIX GREEN PRO | versão 3.9.0 | 07/11/2026 21:46 (-03) | alertas.manter_s (5 min) e histerese do ping 0
+# MATRIX GREEN PRO | versão 3.10.0 | 08/11/2026 21:01 (-03) | discos com número de série (serie)
+# histórico: 3.9.0 07/11/2026 21:46 alertas.manter_s (5 min) e histerese do ping 0
 # histórico: 3.8.0 07/11/2026 21:00 limites de manuais, do hardware e do Zabbix
 # histórico: 3.7.0 07/11/2026 20:15 ping verde até 20 ms, âmbar até 100 ms, vermelho acima
 # histórico: 3.6.0 07/11/2026 14:10 terramaster (baias do DAS USB)
@@ -61,9 +62,9 @@ DEFAULTS = {
     },
     "ram": {"warn": 90, "crit": 95},          # Zabbix: 90 % = aviso
     "discos": [
-        {"nome": "M.2", "uuid": "", "montagem": "/"},
-        {"nome": "2T", "uuid": "", "montagem": ""},
-        {"nome": "4T", "uuid": "", "montagem": ""},
+        {"nome": "M.2", "serie": "", "uuid": "", "montagem": "/"},   # serie: nome em /dev/disk/by-id ou só o nº de série
+        {"nome": "2T", "serie": "", "uuid": "", "montagem": ""},
+        {"nome": "4T", "serie": "", "uuid": "", "montagem": ""},
     ],
     "disco_warn": 80,                          # Zabbix: 80 % aviso, 90 % crítico
     "disco_crit": 90,

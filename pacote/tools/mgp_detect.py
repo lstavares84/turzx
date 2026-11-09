@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-# MATRIX GREEN PRO | versão 3.3.0 | 07/11/2026 21:00 (-03) | limites de manuais e do Zabbix (RAM 90/95, discos 80/90)
+# MATRIX GREEN PRO | versão 3.4.0 | 08/11/2026 21:01 (-03) | grava o número de série de cada disco (sobrevive à formatação)
+# histórico: 3.3.0 07/11/2026 21:00 limites de manuais e do Zabbix (RAM 90/95, discos 80/90)
 # histórico: 3.2.0 07/11/2026 20:15 ping verde até 20 ms, âmbar até 100 ms
 # histórico: 3.1.0 01/11/2026 10:55 linha painel.estilo no modelo
 # histórico: 2.1.0 31/10/2026 23:45 Ethernet não obrigatória por padrão
@@ -49,6 +50,22 @@ def best_fs(disk):
     return max(cands) if cands else None
 
 
+def serie_do_disco(nome, byid="/dev/disk/by-id"):
+    """Nome estável do disco em /dev/disk/by-id ('ata-ST2000DM006-2DM164_Z4Z95AL7'): modelo e número de série,
+    que não mudam ao formatar. Prefere ata- e nvme- a usb- e scsi-; ignora wwn, eui e partições."""
+    try:
+        nomes = sorted(os.listdir(byid))
+    except OSError:
+        return ""
+    cand = [n for n in nomes if "-part" not in n and not n.startswith(("wwn-", "dm-", "nvme-eui.", "nvme-nvme."))
+            and not n.endswith("_1") and os.path.basename(os.path.realpath(os.path.join(byid, n))) == nome]
+    for pref in ("ata-", "nvme-", "usb-", "scsi-"):
+        for n in cand:
+            if n.startswith(pref):
+                return n
+    return cand[0] if cand else ""
+
+
 def detect_disks():
     disks = [d for d in lsblk() if d.get("type") == "disk"]
     found = {"M.2": None, "2T": None, "4T": None}
@@ -59,7 +76,7 @@ def detect_disks():
             continue
         name = d.get("name", "")
         info = {"dev": d.get("path"), "modelo": (d.get("model") or "").strip(), "tam": size,
-                "uuid": fs[1], "montagem": fs[2], "rotulo": fs[3]}
+                "uuid": fs[1], "montagem": fs[2], "rotulo": fs[3], "serie": serie_do_disco(name)}
         if name.startswith("nvme") and (found["M.2"] is None or fs[2] == "/"):
             found["M.2"] = info
         elif 1.7e12 <= size <= 2.3e12 and found["2T"] is None:
@@ -85,10 +102,11 @@ def render_yaml(disks, eth, wifi):
     def dk(nome, d):
         if not d:
             mnt = "/" if nome == "M.2" else ""
-            return (f'  - nome: "{nome}"\n    uuid: ""        # ⚠️ NÃO DETECTADO: preencha com o UUID (lsblk -f)\n'
-                    f'    montagem: "{mnt}"\n')
-        return (f'  - nome: "{nome}"\n    uuid: "{d["uuid"]}"   # {d["dev"]} {d["modelo"]} '
-                f'{d["tam"] / 1e12:.2f} TB {d["rotulo"]}\n    montagem: "{d["montagem"]}"\n')
+            return (f'  - nome: "{nome}"\n    serie: ""       # ⚠️ NÃO DETECTADO: nome do disco em /dev/disk/by-id\n'
+                    f'    uuid: ""\n    montagem: "{mnt}"\n')
+        return (f'  - nome: "{nome}"\n    serie: "{d["serie"]}"   # {d["dev"]} {d["modelo"]} {d["tam"] / 1e12:.2f} TB\n'
+                f'    uuid: "{d["uuid"]}"   # reserva: muda se o disco for formatado {d["rotulo"]}\n'
+                f'    montagem: "{d["montagem"]}"\n')
     return f"""# MATRIX GREEN PRO | versão 3.1.0 | gerado em {time.strftime('%d/%m/%Y %H:%M:%S')} por mgp_detect.py
 # Configuração do painel. Edite à vontade: o instalador nunca sobrescreve
 # este arquivo (use --forcar no mgp_detect.py para regenerar).
@@ -158,10 +176,10 @@ def main():
     eth, wifi = detect_net()
     for k, d in disks.items():
         if d:
-            log(f"disco {k}: {d['dev']} {d['modelo']} {d['tam'] / 1e12:.2f} TB uuid={d['uuid']} "
+            log(f"disco {k}: {d['dev']} {d['modelo']} {d['tam'] / 1e12:.2f} TB serie={d['serie']} uuid={d['uuid']} "
                 f"montagem={d['montagem'] or 'DESMONTADO'}")
         else:
-            log(f"disco {k}: NÃO DETECTADO (preencha o UUID manualmente)")
+            log(f"disco {k}: NÃO DETECTADO (preencha serie ou UUID manualmente)")
     log(f"rede: ethernet={eth or 'nenhuma'} wifi={wifi or 'nenhuma'}")
     text = render_yaml(disks, eth, wifi)
     if show:

@@ -1,4 +1,5 @@
-# MATRIX GREEN PRO | versão 2.7.0 | 07/11/2026 22:03 (-03) | discos e baias montados via VeraCrypt, LUKS ou LVM
+# MATRIX GREEN PRO | versão 2.8.0 | 08/11/2026 21:01 (-03) | disco pelo número de série (sobrevive à formatação)
+# histórico: 2.7.0 07/11/2026 22:03 discos e baias montados via VeraCrypt, LUKS ou LVM
 # histórico: 2.6.0 07/11/2026 21:00 motivos de redução de clock da GPU (NVML)
 # histórico: 2.5.0 07/11/2026 20:15 dispositivo de cada disco (para o total sem duplicar)
 # histórico: 2.4.0 07/11/2026 19:00 uso das baias montadas (ocupado, total, percentual)
@@ -161,6 +162,24 @@ def _bloco_base(dev, sysroot="/sys"):
         return n if os.path.exists(f"{sysroot}/class/block/{n}") else None
     except Exception:
         return None
+
+
+def _disco_por_serie(serie, byid="/dev/disk/by-id"):
+    """Disco ('sda', 'nvme0n1') pelo nome em /dev/disk/by-id ('ata-ST2000DM006-2DM164_Z4Z95AL7') ou só pelo número
+    de série ('Z4Z95AL7'). Ao contrário do UUID, não muda quando o disco é formatado. None se não estiver conectado."""
+    serie = str(serie or "").strip()
+    if not serie:
+        return None
+    try:
+        nomes = sorted(os.listdir(byid))
+    except OSError:
+        return None
+    for n in nomes:
+        if "-part" in n or n.startswith(("wwn-", "dm-", "nvme-eui.")):
+            continue
+        if n == serie or n.endswith("_" + serie):
+            return os.path.basename(os.path.realpath(os.path.join(byid, n)))
+    return None
 
 
 def _temp_bloco(base, sysroot="/sys"):
@@ -508,30 +527,55 @@ class Disks:
 
     @staticmethod
     def _mount_for(item):
+        """Ponto de montagem e estado do disco. Procura, nesta ordem: número de série (não muda ao formatar), UUID do
+        sistema de arquivos e ponto de montagem. Se o UUID sumiu (disco formatado) e a montagem está configurada,
+        vale a montagem, em vez de dar o disco como desmontado."""
+        serie = str(item.get("serie") or "").strip()
         uuid = str(item.get("uuid") or "").strip()
         mnt = str(item.get("montagem") or "").strip()
         parts = psutil.disk_partitions(all=False)
-        if uuid:
-            link = f"/dev/disk/by-uuid/{uuid}"
-            if not os.path.exists(link):
-                return None, "OFF"  # disco ausente ou desconectado
-            dev = os.path.basename(os.path.realpath(link))
+        disco = _disco_por_serie(serie)
+        if disco:
+            pontos = []
             for p in parts:
                 try:
-                    if dev in _fisicos(os.path.basename(os.path.realpath(p.device))):   # também via VeraCrypt/LUKS/LVM
-                        return p.mountpoint, "OK"
+                    fis = _fisicos(os.path.basename(os.path.realpath(p.device)))     # também via VeraCrypt/LUKS/LVM
+                    if any(_bloco_base(f"/dev/{f}") == disco for f in fis if not f.startswith("dm-")):
+                        pontos.append(p.mountpoint)
                 except Exception:
                     continue
-            return None, "OFF"  # presente porém desmontado
+            if not pontos:
+                return None, "OFF"  # conectado porém desmontado
+            if mnt in pontos:
+                return mnt, "OK"
+            if "/" in pontos:
+                return "/", "OK"
+            return max(pontos, key=lambda m: shutil.disk_usage(m).total), "OK"   # a maior partição do disco
+        if uuid:
+            link = f"/dev/disk/by-uuid/{uuid}"
+            if os.path.exists(link):
+                dev = os.path.basename(os.path.realpath(link))
+                for p in parts:
+                    try:
+                        if dev in _fisicos(os.path.basename(os.path.realpath(p.device))):
+                            return p.mountpoint, "OK"
+                    except Exception:
+                        continue
+                return None, "OFF"  # presente porém desmontado
         if mnt:
             if os.path.ismount(mnt):
                 return mnt, "OK"
             return None, "OFF"
+        if uuid or serie:
+            return None, "OFF"  # disco ausente, desconectado ou formatado (UUID novo)
         return None, "CFG"  # não configurado
 
     @staticmethod
     def _dev_for(item, mount):
-        """Dispositivo do disco: pelo UUID (mesmo desmontado) ou pelo ponto de montagem."""
+        """Dispositivo do disco: pelo número de série ou pelo UUID (mesmo desmontado), ou pelo ponto de montagem."""
+        disco = _disco_por_serie(item.get("serie"))
+        if disco:
+            return f"/dev/{disco}"
         uuid = str(item.get("uuid") or "").strip()
         if uuid and os.path.exists(f"/dev/disk/by-uuid/{uuid}"):
             return os.path.realpath(f"/dev/disk/by-uuid/{uuid}")

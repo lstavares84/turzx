@@ -1,4 +1,5 @@
-# GAMMA | estilos selecionáveis | versão 1.15.0 | 07/11/2026 21:14 (-03) | o DELTA 5B vira o gamma-delta (apelido gamma-delta-5b)
+# GAMMA | estilos selecionáveis | versão 1.16.0 | 15/11/2026 09:40 (-03) | GAMMA EPSILON (rotação de telas e backup)
+# histórico: 1.15.0 07/11/2026 21:14 o DELTA 5B vira o gamma-delta (apelido gamma-delta-5b)
 # histórico: 1.14.0 07/11/2026 20:35 variantes 5A, 5B e 5C do GAMMA DELTA
 # histórico: 1.13.0 07/11/2026 20:25 6 variantes do GAMMA DELTA (gamma-delta-1 a 6)
 # histórico: 1.12.0 07/11/2026 20:00 12 propostas da v2.0.0 (v2-*)
@@ -37,8 +38,9 @@ ESTILOS = {
     "gamma-gamma-painel": ("GAMMA GAMMA PAINEL", "reator_gamma_gamma_painel"),
     "gamma-gamma-coluna": ("GAMMA GAMMA COLUNA", "reator_gamma_gamma_coluna"),   # estudo: hexágonos em coluna
     "gamma-delta": ("GAMMA DELTA", "reator_gamma_delta"),                  # o antigo estudo DELTA 5B (apelido gamma-delta-5b)
+    "gamma-epsilon": ("GAMMA EPSILON", "reator_gamma_epsilon"),            # DELTA + gráficos + backups em rotação
     # variantes do DELTA: total de TB, mudanças bruscas, refrigeração numa linha e registro (reator_delta2.py)
-    "gamma-epsilon": ("GAMMA EPSILON (protótipo)", "reator_gamma_epsilon"),   # colmeias por grupo ao redor do CORE
+    "gamma-epsilon-prototipo": ("GAMMA EPSILON PROTÓTIPO (colmeias)", "reator_gamma_epsilon_prototipo"),   # estudo parado: colmeias por grupo
     "gamma-delta-1": ("GAMMA DELTA 1", "reator_gamma_delta_v1"),
     "gamma-delta-2": ("GAMMA DELTA 2", "reator_gamma_delta_v2"),
     "gamma-delta-3": ("GAMMA DELTA 3", "reator_gamma_delta_v3"),

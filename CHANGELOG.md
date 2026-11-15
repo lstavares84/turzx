@@ -1,4 +1,4 @@
-<!-- CHANGELOG | GAMMA | versão 2.3.0 | 13/11/2026 19:45 (-03) | criação original (Claude, para Lucas Tavares) -->
+<!-- CHANGELOG | GAMMA | versão 2.4.0 | 15/11/2026 15:45 (-03) | criação original (Claude, para Lucas Tavares) -->
 <!-- histórico: 1.0.0 02/11/2026 19:15 primeira versão do histórico -->
 
 # Histórico de versões
@@ -7,6 +7,9 @@ Segue [SemVer](https://semver.org/lang/pt-BR/) (MAJOR.MINOR.PATCH). Os estilos (
 
 ## [Não lançado]
 
+- Novo estilo GAMMA EPSILON (`gamma-epsilon`, pacote `Gamma-Epsilon`, `--versao epsilon`): o GAMMA DELTA como tela principal e mais duas telas que se alternam a cada minuto, a de gráficos de 24 h (temperatura, uso, memória, rede e ping na largura toda) e a de status das rotinas de backup (estado, última execução, duração, resultado e próxima execução). Enquanto um backup roda, a tela mostra o andamento e volta à rotação quando ele termina; alerta vermelho fixa a tela principal. As rotinas são lidas do systemd e do journal (padrão: `sincronizar-discos`, `sincronizar-sessao` e `espelhar-github`, do repositório `lstavares84/debian`); o percentual vem de um arquivo de andamento que a rotina grava ([Backups na tela](docs/backup.md)). Novas seções `backup` e `rotacao` no `config.yaml`; o histórico passa a guardar uso de CPU e GPU e ping.
+- O protótipo de colmeias que se chamava GAMMA EPSILON passa a ser `gamma-epsilon-prototipo` (matriz: `--extra prototipo`).
+- Instalador, `instalar.sh`, `restaurar.sh` e `diagnosticar.sh` usam a pasta do Turing do serviço já instalado (`WorkingDirectory` de `turing-smart-screen.service`) quando `--dir` não é informado; antes, uma pasta movida fazia o instalador baixar uma cópia nova em `~/turing-smart-screen-linux`.
 - GAMMA DELTA mostra o IP público do roteador e a hora da última mudança ao lado do WIFI: `WAN 177.0.239.244 13/11 19:29`. O IP vem do DNS da OpenDNS (`myip.opendns.com`) a cada 5 minutos, sem a senha do roteador; a hora da mudança é gravada em `~/.local/state/matrixgreenpro/ip_publico.json` e sobrevive a reinícios. Só informação, sem alerta. Nova seção `ip_publico` no `config.yaml`.
 - Correção: disco reformatado aparecia como DESMONTADO para sempre. O tema achava cada disco pelo UUID do sistema de arquivos, que muda ao formatar (aconteceu com o 2T e o 4T do PC em 08/11/2026). Agora cada disco pode ser identificado pelo número de série (`serie`, o nome em `/dev/disk/by-id`, por exemplo `ata-ST2000DM006-2DM164_Z4Z95AL7`), que não muda; o UUID e a montagem ficam de reserva, e um UUID que sumiu cede lugar à montagem configurada antes de o disco ser dado como desmontado. O `mgp_detect.py` grava a série.
 - Tela TURZX / Turing de 5,2" (720x1280, revisão `TUR_USB`, USB `1cbe:0050`), ainda não testada no aparelho. Os quatro estilos são exatamente os mesmos, sem mudança de desenho nem de versão: desenhados em escala 2,25 com fontes e traços na resolução real (`tela.py` e o `Canvas` de `estilos/base.py`), no alto da tela; os 200 px de baixo ficam só com o fundo.

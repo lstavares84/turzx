@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# MATRIX GREEN PRO | versão 3.1.0 | 01/11/2026 11:15 (-03) | sem mudanças funcionais (versão alinhada)
+# MATRIX GREEN PRO | versão 3.2.0 | 15/11/2026 15:40 (-03) | pasta do Turing lida do serviço já instalado
+# histórico: 3.1.0 01/11/2026 11:15 sem mudanças funcionais (versão alinhada)
 # histórico: 2.1.0 01/11/2026 00:20 restauração do tema e dos arquivos anteriores
 # histórico: 2.0.0 31/10/2026 23:58 mgp-restaurar.sh
 #
@@ -14,7 +15,9 @@
 #   ./scripts/restaurar.sh --dir CAMINHO       pasta do programa
 # Nunca apaga ~/.config/matrixgreenpro nem os backups.
 set -uo pipefail
-DIR="${HOME}/turing-smart-screen-linux"; THEME=""; PURGE=0; BACKUP=""; LIST=0; YES=0
+DIR="$(sed -n 's/^WorkingDirectory=//p' "$HOME/.config/systemd/user/turing-smart-screen.service" 2>/dev/null | head -1)"   # pasta do serviço já instalado
+[[ -n "$DIR" && -f "$DIR/main.py" ]] || DIR="${HOME}/turing-smart-screen-linux"
+THEME=""; PURGE=0; BACKUP=""; LIST=0; YES=0
 BKROOT="${HOME}/.local/share/matrixgreenpro/backups"
 log() { printf '[%s] %s\n' "$(date '+%d/%m/%Y %H:%M:%S')" "$*"; }
 confirm() {

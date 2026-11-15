@@ -1,4 +1,5 @@
-# MATRIX GREEN PRO | versão 3.11.0 | 13/11/2026 19:40 (-03) | IP público do roteador (ip_publico)
+# MATRIX GREEN PRO | versão 3.12.0 | 15/11/2026 09:10 (-03) | rotinas de backup (backup) e rotação de telas (rotacao)
+# histórico: 3.11.0 13/11/2026 19:40 IP público do roteador (ip_publico)
 # histórico: 3.10.0 08/11/2026 21:01 discos com número de série (serie)
 # histórico: 3.9.0 07/11/2026 21:46 alertas.manter_s (5 min) e histerese do ping 0
 # histórico: 3.8.0 07/11/2026 21:00 limites de manuais, do hardware e do Zabbix
@@ -82,6 +83,20 @@ DEFAULTS = {
     "ping": {"host": "8.8.8.8", "intervalo_s": 5, "warn_ms": 20, "crit_ms": 100},
     # IP público (o da WAN do roteador, sem NAT duplo) pelo DNS da OpenDNS; guarda a hora da última mudança
     "ip_publico": {"ativo": "sim", "intervalo_s": 300},
+    # rotinas de backup (unidades do systemd com timer); usuario: True = timer da sessão (systemctl --user).
+    # Unidade que não existe no PC é ignorada. andamento: pastas do arquivo <unidade>.json (veja docs/backup.md).
+    "backup": {
+        "rotinas": [
+            {"rotulo": "DISCOS → 12TB", "unidade": "sincronizar-discos", "usuario": False},
+            {"rotulo": "FOTOS → ARCHER", "unidade": "sincronizar-sessao", "usuario": True},
+            {"rotulo": "GITHUB", "unidade": "espelhar-github", "usuario": True},
+        ],
+        "andamento": ["/run/gamma-backup", "$XDG_RUNTIME_DIR/gamma-backup"],
+        "intervalo_s": 5,
+    },
+    # GAMMA EPSILON: telas que se alternam (principal, graficos, backups) e o tempo de cada uma.
+    # Alerta vermelho fixa a principal; backup rodando mostra o andamento; alerta âmbar fixa a principal.
+    "rotacao": {"telas": ["principal", "graficos", "backups"], "periodo_s": 60},
     "clima": {
         "cidade": "RIO DO SUL",
         "latitude": -27.2139,

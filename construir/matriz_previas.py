@@ -1,4 +1,5 @@
-# GAMMA | construir/matriz_previas.py | versão 1.6.0 | 08/11/2026 13:22 (-03) | criação original (Claude, para Lucas Tavares)
+# GAMMA | construir/matriz_previas.py | versão 1.7.0 | 15/11/2026 09:45 (-03) | criação original (Claude, para Lucas Tavares)
+# histórico: 1.7.0 15/11/2026 09:45 opção --epsilon: as 4 telas do GAMMA EPSILON nos 3 estados; --extra prototipo
 # histórico: 1.6.0 08/11/2026 13:22 opção --tela 3.5 ou 5.2 (a 5,2" aparece reduzida à metade)
 # histórico: 1.5.0 07/11/2026 22:20 o DELTA entra nas colunas padrão (4 x 3); sai o --extra delta
 # histórico: 1.4.0 07/11/2026 20:35 opção --delta5: o DELTA 5 e as variantes 5A, 5B e 5C
@@ -8,7 +9,8 @@
 # Matriz de prévias: as 4 versões (ALPHA, BETA, GAMMA, DELTA) nos 3 estados (normal, atenção, crítico), num único PNG.
 # Desenha com o código ATUAL de pacote/ (não com o que está instalado) e os dados de demonstração do painel.
 # Uso, na raiz do repositório:
-#   python3 -I construir/matriz_previas.py SAIDA.png [pasta_do_turing] [--extra coluna] [--tela 3.5|5.2]
+#   python3 -I construir/matriz_previas.py SAIDA.png [pasta_do_turing] [--extra coluna] [--tela 3.5|5.2] [--epsilon]
+# --epsilon: no lugar das 4 versões, as 4 telas do GAMMA EPSILON (principal, gráficos, backups e andamento).
 # --tela: qual tela desenhar (padrão 3.5). A 5,2" (720x1280) entra na matriz reduzida à metade (360x640).
 # --extra NOME (repetível): acrescenta uma variante de estudo como coluna a mais (veja EXTRAS).
 # pasta_do_turing: cópia do turing-smart-screen, só para as fontes em res/fonts (padrão: ~/turing-smart-screen-linux).
@@ -23,7 +25,7 @@ COLUNAS = [("gamma-alpha", "reator_gamma_alpha", "ALPHA", "escala N0/N1/N2, perc
            ("gamma-beta", "reator_gamma_beta", "BETA", "percentuais entre parênteses, baias"),
            ("gamma-gamma", "reator_gamma_gamma", "GAMMA", "7 colmeias e painel por grupo"),
            ("gamma-delta", "reator_gamma_delta", "DELTA", "gráficos de 24 h, alertas e LOG")]
-EXTRAS = {"epsilon": ("gamma-epsilon", "reator_gamma_epsilon", "EPSILON", "protótipo: colmeias por grupo"),
+EXTRAS = {"prototipo": ("gamma-epsilon-prototipo", "reator_gamma_epsilon_prototipo", "PROTÓTIPO", "colmeias por grupo (estudo)"),
                     "coluna": ("gamma-gamma-coluna", "reator_gamma_gamma_coluna", "COLUNA", "estudo: hexágonos em coluna")}
 DELTAS = [("gamma-delta-1", "reator_gamma_delta_v1", "DELTA 1", "variante 1"), ("gamma-delta-2", "reator_gamma_delta_v2", "DELTA 2", "variante 2"), ("gamma-delta-3", "reator_gamma_delta_v3", "DELTA 3", "variante 3"), ("gamma-delta-4", "reator_gamma_delta_v4", "DELTA 4", "variante 4"), ("gamma-delta-5", "reator_gamma_delta_v5", "DELTA 5", "variante 5"), ("gamma-delta-6", "reator_gamma_delta_v6", "DELTA 6", "variante 6")]
 DELTA5 = [("gamma-delta-5", "reator_gamma_delta_v5", "DELTA 5", "base"), ("gamma-delta-5a", "reator_gamma_delta_v5a", "DELTA 5A", "barra por disco"), ("gamma-delta", "reator_gamma_delta", "DELTA", "o oficial (ex 5B)"), ("gamma-delta-5c", "reator_gamma_delta_v5c", "DELTA 5C", "mapa de capacidade")]
@@ -39,6 +41,10 @@ V2 = [("v2-concreto", "v2_brutal", "BRUTALISTA", "concreto"),
       ("v2-8bits", "v2_arcade", "ARCADE", "8 bits"),
       ("v2-osciloscopio", "v2_osciloscopio", "LABORATÓRIO", "osciloscópio"),
       ("v2-grade", "v2_suico", "SUÍÇO", "grade")]
+EPSILON = [("gamma-epsilon", "reator_gamma_epsilon", "PRINCIPAL", "tela 1: o DELTA", "principal"),
+           ("gamma-epsilon", "reator_gamma_epsilon", "GRÁFICOS", "tela 2: 24 h na largura toda", "graficos"),
+           ("gamma-epsilon", "reator_gamma_epsilon", "BACKUPS", "tela 3: status das rotinas", "backups"),
+           ("gamma-epsilon", "reator_gamma_epsilon", "ANDAMENTO", "durante o backup", "andamento")]
 LINHAS = [("normal", "NORMAL", (110, 255, 110)), ("atencao", "ATENÇÃO", (255, 190, 40)), ("critico", "CRÍTICO", (255, 80, 70))]
 
 
@@ -95,6 +101,9 @@ def main():
         elif a == "--deltas":
             COLUNAS[:] = []
             extras.extend(DELTAS)
+        elif a == "--epsilon":
+            COLUNAS[:] = []
+            extras.extend(EPSILON)
         elif a == "--v2":
             COLUNAS[:] = []
             extras.extend(V2)
@@ -112,7 +121,9 @@ def main():
             args.append(a)
     COLUNAS[:] = COLUNAS + extras
     saida = Path(args[0]).resolve()
-    turing = Path(args[1] if len(args) > 1 else Path.home() / "turing-smart-screen-linux")
+    padrao = next((p for p in (Path.home() / "turing-smart-screen-linux", Path.home() / "Documentos" / "Projetos" / "turing-smart-screen-linux")
+                   if (p / "res" / "fonts").is_dir()), Path.home() / "turing-smart-screen-linux")
+    turing = Path(args[1]) if len(args) > 1 else padrao
     if not (turing / "res" / "fonts").is_dir():
         sys.exit(f"[{ts()}] ERRO fontes não encontradas em {turing}/res/fonts")
     versao = (RAIZ / "VERSION").read_text().strip()
@@ -136,15 +147,18 @@ def main():
         FW, FH = LARGURA // red, ALTURA // red
 
         quadros, erros = {}, 0
-        for chave, mod, rotulo, _ in COLUNAS:
+        for chave, mod, rotulo, _, *fixa in COLUNAS:
             m_est = importlib.import_module(f"library.sensors.matrixgreenpro.estilos.{mod}")
             for cen, _, _ in LINHAS:
                 vm = ViewModel(copy.deepcopy(DEFAULTS), (80, 90), (80, 87)).build(panel.demo_snapshot(cen))
                 vm["blink"] = True
+                if fixa:                                      # GAMMA EPSILON: uma tela por coluna
+                    vm["_tela"] = fixa[0]
                 c, v = m_est.draw_frame(vm)                   # o mesmo desenho nas duas telas
                 assert c.img.size == (LARGURA, ALTURA)
-                quadros[(chave, cen)] = c.img if red == 1 else c.img.resize((FW, FH), Image.LANCZOS)
-                n = conferir(c, v, f"{rotulo}-{cen}", REQUIRED)
+                quadros[(rotulo, cen)] = c.img if red == 1 else c.img.resize((FW, FH), Image.LANCZOS)
+                # só a tela principal precisa mostrar todas as métricas; as outras são telas temáticas
+                n = conferir(c, v, f"{rotulo}-{cen}", REQUIRED if not fixa or fixa[0] == "principal" else set())
                 erros += n
                 log(f"{rotulo:<5} {cen:<8} {len(c.texts)} elementos, {n} problema(s)")
 
@@ -159,14 +173,14 @@ def main():
         d.text((24, 14), f"GAMMA | tela de {TELA.replace('.', ',')}\" ({LARGURA}x{ALTURA}) | v{versao} | todas as versões nos 3 estados"
                + (" + estudo" if extras else ""), font=f(26, "Bold"), fill=(110, 255, 110))
         d.text((24, 50), f"{ts()} | código {ref} | dados de demonstração do painel", font=f(14, "Regular"), fill=(150, 170, 150))
-        for k, (chave, _, rotulo, desc) in enumerate(COLUNAS):
+        for k, (chave, _, rotulo, desc, *_f) in enumerate(COLUNAS):
             x = esq + k * (FW + 2 + gx)
             d.text((x, topo - 26), rotulo, font=f(18, "Bold"), fill=(235, 245, 235))
             d.text((x, topo - 4), desc, font=f(12, "Regular"), fill=(130, 150, 130))
             for r, (cen, lab, cor) in enumerate(LINHAS):
                 y = topo + cab + r * (cab + FH + 2 + gy)
                 d.rectangle((x, y, x + FW + 1, y + FH + 1), outline=(40, 70, 45))
-                m.paste(quadros[(chave, cen)], (x + 1, y + 1))
+                m.paste(quadros[(rotulo, cen)], (x + 1, y + 1))
                 if k == 0:
                     d.text((24, y + FH // 2 - 10), lab, font=f(18, "Bold"), fill=cor)
         d.text((24, A - 44), f"Problemas de layout (limites, sobreposição, glifos, métricas): {erros}.", font=f(13, "Bold"),

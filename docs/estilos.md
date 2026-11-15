@@ -1,4 +1,5 @@
-<!-- docs/estilos.md | versão 2.3.0 | 13/11/2026 19:45 (-03) | criação original (Claude, para Lucas Tavares). Fonte: código da v1.8.2 (estilos/, reator_gamma.py, alerts.py) e histórico do projeto. -->
+<!-- docs/estilos.md | versão 2.4.0 | 15/11/2026 15:40 (-03) | criação original (Claude, para Lucas Tavares). Fonte: código da v1.8.2 (estilos/, reator_gamma.py, alerts.py) e histórico do projeto. -->
+<!-- histórico: 2.4.0 15/11/2026 15:40 GAMMA EPSILON (rotação de telas e backups); protótipo de colmeias renomeado -->
 <!-- histórico: 2.3.0 13/11/2026 19:45 DELTA com o IP público (WAN) ao lado do WIFI -->
 <!-- histórico: 2.2.0 08/11/2026 13:30 seção da tela de 5,2" (mesmo desenho em escala 2,25) -->
 <!-- histórico: 2.1.0 08/11/2026 12:35 protótipo GAMMA EPSILON nos estudos -->
@@ -120,6 +121,21 @@ O GAMMA GAMMA reorganizado, com gráficos de 24 h, alertas em destaque e um LOG.
 - **LOG** no rodapé: os últimos alertas âmbar e vermelhos, com hora, item e leitura (a volta ao verde não entra); relógio, data, tempo ligado e clima à direita.
 - Selo `DELTA` com a versão.
 
+## GAMMA EPSILON (`gamma-epsilon`), em desenvolvimento
+
+O GAMMA DELTA com mais duas telas que se alternam a cada minuto e uma tela de backup. Pacotes `Gamma-Epsilon-3.5-v<versão>.zip` e `Gamma-Epsilon-5.2-v<versão>.zip`, instalado com `--versao epsilon`. Telas em `estilos/epsilon_telas.py`.
+
+![GAMMA EPSILON: as 4 telas nos três estados](img/gamma-epsilon-telas.png)
+
+- **Principal:** o GAMMA DELTA, com o selo `EPSILON`.
+- **Gráficos 24 h:** cinco gráficos na largura toda, cada um com o valor atual e o pico (▲): temperatura (CPU em área verde, GPU em linha branca), uso de CPU e GPU, memória (VRAM e RAM, pico em GB), rede (download e upload) e ping, com os limites de 20 e 100 ms tracejados.
+- **Backups:** cada rotina com o estado, a última execução e a duração, o resultado (fundo âmbar quando houve falha ou erro) e a próxima execução; embaixo, o LOG e o relógio.
+- **Andamento:** enquanto um backup roda, o percentual da pasta atual, a barra, as pastas feitas, o copiado, a velocidade, o tempo restante e o decorrido. Sem o arquivo de andamento, só o tempo decorrido com uma barra listrada.
+- **Cabeçalho e escala:** iguais em todas as telas, para um alerta nunca ficar escondido. Um ponto por tela da rotação mostra a atual; no andamento aparece `BACKUP`.
+- **Prioridade:** alerta vermelho fixa a principal, backup rodando mostra o andamento, alerta âmbar fixa a principal; sem nada disso, a rotação (`rotacao.periodo_s`).
+
+Matriz das telas: `construir/matriz_previas.py SAIDA.png --epsilon`. Detalhes dos backups em [Backups na tela](backup.md).
+
 ## Na tela de 5,2"
 
 Os quatro estilos são exatamente os mesmos das versões finais, sem nenhuma mudança de desenho, de conteúdo ou de versão. O quadro é desenhado em escala 2,25 (720 / 320) com fontes e traços na resolução real, sem esticar, e ocupa os primeiros 1080 pixels de altura; os 200 pixels de baixo ficam só com o fundo (a malha de hexágonos). A diferença está só no pacote: `Gamma-<Estilo>-5.2-v<versão>.zip` em vez de `-3.5-`.
@@ -134,7 +150,7 @@ Guardados como brainstorm, com imagens em [docs/brainstorm](brainstorm/README.md
 
 - **Propostas da v2.0.0:** `v2-concreto` (brutalista), `v2-silencio` (minimalista), `v2-hud` (sci-fi), `v2-root` (hacking), `v2-dossie` (espionagem), `v2-vital` (UTI), `v2-cockpit` (cockpit), `v2-metro` (metrô), `v2-anunciador` (sala de controle), `v2-8bits` (arcade), `v2-osciloscopio` (laboratório) e `v2-grade` (suíço).
 - **Variantes do DELTA:** `gamma-delta-1` a `gamma-delta-6`, `gamma-delta-5a` e `gamma-delta-5c` (formas de mostrar o total dos discos, o registro e as marcas).
-- **Protótipo GAMMA EPSILON:** `gamma-epsilon`, tudo em colmeia em volta do CORE, agrupado por categoria (parado; veja o brainstorm).
+- **GAMMA EPSILON PROTÓTIPO (colmeias):** `gamma-epsilon-prototipo`, tudo em colmeia em volta do CORE, agrupado por categoria (parado; veja o brainstorm).
 - **Variantes do GAMMA GAMMA:** `gamma-gamma-colmeia`, `gamma-gamma-mini`, `gamma-gamma-painel` e `gamma-gamma-coluna` (hexágonos em coluna, ao lado de cada grupo).
 - **Legados:** `matrix` (minimalista, usado como reserva), `gamma` (o favo original), `gamma-sonar`, `gamma-raiox`, `gamma-uv`, `gamma-escala`, `gamma-barra`, `gamma-banner`, `gamma-faixa`, `gamma-n3`, `gamma-n3-abas`, `gamma-n3-linha`, `gamma-n3-eventos` e `pcb` (placa de circuito).
 

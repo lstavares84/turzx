@@ -1,4 +1,5 @@
-# MATRIX GREEN PRO | versão 2.7.0 | 13/11/2026 19:40 (-03) | IP público e hora da última mudança (wan_ip, wan_desde)
+# MATRIX GREEN PRO | versão 2.8.0 | 15/11/2026 09:15 (-03) | rotinas de backup (backup) e rotação de telas (rotacao)
+# histórico: 2.7.0 13/11/2026 19:40 IP público e hora da última mudança (wan_ip, wan_desde)
 # histórico: 2.6.2 08/11/2026 07:35 disco desmontado é só informação (branco)
 # histórico: 2.6.1 07/11/2026 21:58 ping com uma casa decimal
 # histórico: 2.6.0 07/11/2026 21:46 alerta mantido 5 min; ping classificado pelo número exibido
@@ -61,6 +62,81 @@ def total(b):
     if b >= 1e9:
         return f"{b / 1e9:.1f}GB"
     return f"{b / 1e6:.0f}MB"
+
+
+def duracao(seg):
+    """Duração curta: 14s, 13m28s, 1h02m, 2d05h."""
+    if seg is None or seg < 0:
+        return "N/D"
+    seg = int(round(seg))
+    if seg < 60:
+        return f"{seg}s"
+    m, s = divmod(seg, 60)
+    if m < 60:
+        return f"{m}m{s:02d}s"
+    h, m = divmod(m, 60)
+    if h < 48:
+        return f"{h}h{m:02d}m"
+    d, h = divmod(h, 24)
+    return f"{d}d{h:02d}h"
+
+
+def _quando(ts):
+    return time.strftime("%d/%m %H:%M", time.localtime(ts)) if ts else "N/D"
+
+
+def _plural(n, um, varios):
+    return f"{n} {um if n == 1 else varios}"
+
+
+def backup_vm(b, now):
+    """Rotinas de backup prontas para a tela: estado, última execução, duração, resultado e próxima execução;
+    "ativo" traz a primeira rotina rodando (com o andamento, quando a rotina grava o arquivo)."""
+    rotinas = b.get("rotinas") if b else None
+    if rotinas is None:
+        return {"nd": True, "rotinas": [], "ativo": None}
+    out, ativo = [], None
+    for r in rotinas:
+        if not r.get("existe"):
+            continue
+        d = {"rotulo": r.get("rotulo", r.get("unidade", "?")), "unidade": r.get("unidade", "")}
+        res = r.get("resumo")
+        fim = r.get("fim") or (res or {}).get("hora")
+        ini = r.get("inicio")
+        d["ultima"] = _quando(ini or fim)
+        d["duracao"] = duracao(fim - ini) if (ini and fim and fim >= ini and not r.get("rodando")) else ""
+        d["proxima"] = _quando(r.get("proxima"))
+        d["em"] = duracao(r["proxima"] - now) if r.get("proxima") and r["proxima"] > now else ""
+        if r.get("rodando"):
+            d["estado"] = ("RODANDO", OK)
+            d["resultado"] = ("EM ANDAMENTO HÁ " + duracao(now - ini) if ini else "EM ANDAMENTO", OK)
+            if ativo is None:
+                a = r.get("andamento") or {}
+                ativo = {"rotulo": d["rotulo"], "unidade": d["unidade"], "detalhado": bool(a),
+                         "decorrido": duracao(now - ini) if ini else "N/D",
+                         "inicio": time.strftime("%H:%M", time.localtime(ini)) if ini else "N/D",
+                         "pct": a.get("pct"), "pasta": str(a.get("pasta") or ""),
+                         "indice": a.get("indice"), "total": a.get("total"),
+                         "copiado": total(a["bytes"]) if a.get("bytes") is not None else "N/D",
+                         "velocidade": rate(a["velocidade"]) if a.get("velocidade") is not None else "N/D",
+                         "restante": duracao(a["restante_s"]) if a.get("restante_s") is not None else "N/D"}
+        else:
+            d["estado"] = ("AGENDADA" if r.get("proxima") else "PARADA", NEUTRAL)
+            itens = dict((res or {}).get("itens") or [])
+            if res and "repositórios" in itens:
+                txt = (f"{_plural(itens['repositórios'], 'REPO', 'REPOS')}  {itens.get('enviados', 0)} ENVIADOS  "
+                       f"{_plural(itens.get('erros', 0), 'ERRO', 'ERROS')}")
+            elif res:
+                txt = (f"{res.get('ok', 0)} OK  {_plural(res.get('puladas', 0), 'PULADA', 'PULADAS')}  "
+                       f"{_plural(res.get('falhas', 0), 'FALHA', 'FALHAS')}")
+            else:
+                txt = "SEM RESUMO NO LOG"
+            ruim = (res or {}).get("falhas", 0) > 0 or (r.get("resultado") not in (None, "success"))
+            if r.get("resultado") not in (None, "success") and not res:
+                txt = "FALHOU (" + str(r.get("resultado")).upper() + ")"
+            d["resultado"] = (txt, WARN if ruim else (NEUTRAL if res else NA))
+        out.append(d)
+    return {"nd": False, "rotinas": out, "ativo": ativo}
 
 
 def disk_use(used, tot):
@@ -443,6 +519,9 @@ class ViewModel:
                 ("SEM INTERNET", lv) if lv == CRIT else ("INSTÁVEL", WARN))
         if vm["ping"][1] not in (NA,) and not no_link:
             health["ping"] = vm["ping"][1]
+        # rotinas de backup e rotação de telas (só o GAMMA EPSILON desenha); backup não entra na saúde
+        vm["backup"] = backup_vm(s.get("backup"), now)
+        vm["rotacao"] = dict(self.cfg.get("rotacao") or {})
         # IP público (WAN do roteador): só informação, sem cor de alerta
         ip = s.get("ip") or {}
         if ip.get("ativo") is False:

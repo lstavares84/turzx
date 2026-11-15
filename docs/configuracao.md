@@ -1,4 +1,5 @@
-<!-- docs/configuracao.md | versão 2.2.0 | 13/11/2026 19:45 (-03) | criação original (Claude, para Lucas Tavares). Fonte: pacote/sensors/matrixgreenpro/settings.py e pacote/extras/config.exemplo.yaml da v1.8.2. -->
+<!-- docs/configuracao.md | versão 2.3.0 | 15/11/2026 15:40 (-03) | criação original (Claude, para Lucas Tavares). Fonte: pacote/sensors/matrixgreenpro/settings.py e pacote/extras/config.exemplo.yaml da v1.8.2. -->
+<!-- histórico: 2.3.0 15/11/2026 15:40 rotinas de backup e rotação de telas (GAMMA EPSILON) -->
 <!-- histórico: 2.2.0 13/11/2026 19:45 IP público do roteador (ip_publico) -->
 <!-- histórico: 2.1.0 08/11/2026 21:03 discos pelo número de série -->
 <!-- histórico: 2.0.0 07/11/2026 22:24 limites com fontes, alertas 2 s e 5 min, discos via VeraCrypt, INTERNET ON/OFF, histórico de 24 h -->
@@ -123,6 +124,18 @@ O **IP público** é perguntado a cada 5 minutos ao DNS da OpenDNS (`myip.opendn
 - `energia.fonte`: `auto`, `none`, `hwmon` (fonte digital com driver), `arquivo`, `tasmota` ou `shelly_gen2`. Sem medidor, TOTAL W aparece como N/D. `psu_watts` define a capacidade da fonte para os alertas (0 desliga).
 - `fps.mangohud_dir`: pasta dos registros do MangoHud (padrão `/tmp/mgp-mangohud`). O FPS só aparece com jogos rodando sob o MangoHud.
 
-## Histórico dos gráficos (GAMMA DELTA)
+## Backups e rotação de telas (GAMMA EPSILON)
 
-O histórico de 24 h fica em `~/.local/state/matrixgreenpro/historico.json`, com média e máximo de cada intervalo de cerca de 10 minutos, e é gravado a cada intervalo fechado. Para recomeçar os gráficos do zero, pare o serviço e apague esse arquivo.
+| Chave | Padrão | Função |
+|---|---|---|
+| `backup.rotinas` | DISCOS → 12TB, FOTOS → ARCHER, GITHUB | cada rotina: `rotulo` (o nome na tela), `unidade` (serviço e timer do systemd, sem o `.service`) e `usuario` (`true` para timer da sessão, `systemctl --user`) |
+| `backup.andamento` | `/run/gamma-backup`, `$XDG_RUNTIME_DIR/gamma-backup` | pastas onde as rotinas gravam o arquivo de andamento |
+| `backup.intervalo_s` | 5 | frequência da leitura |
+| `rotacao.telas` | `principal`, `graficos`, `backups` | telas que se alternam, na ordem |
+| `rotacao.periodo_s` | 60 | segundos de cada tela (mínimo 10) |
+
+Uma unidade que não existe no PC é ignorada. Prioridade das telas: alerta vermelho fixa a principal; backup rodando mostra o andamento; alerta âmbar fixa a principal; sem nada disso, a rotação. O formato do arquivo de andamento e o que a tela lê do systemd e do journal estão em [Backups na tela](backup.md).
+
+## Histórico dos gráficos (GAMMA DELTA e EPSILON)
+
+O histórico de 24 h fica em `~/.local/state/matrixgreenpro/historico.json`, com média e máximo de cada intervalo de cerca de 10 minutos, e é gravado a cada intervalo fechado. Guarda temperatura e uso de CPU e GPU, VRAM, RAM, download, upload e ping (uso e ping desde 15/11/2026). Para recomeçar os gráficos do zero, pare o serviço e apague esse arquivo.

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-# MATRIX GREEN PRO | versão 3.11.0 | 08/11/2026 13:27 (-03) | prévias na tela de 3,5" ou 5,2"
+# MATRIX GREEN PRO | versão 3.12.0 | 15/11/2026 15:40 (-03) | GAMMA EPSILON (tela principal) e protótipo renomeado
+# histórico: 3.11.0 08/11/2026 13:27 prévias na tela de 3,5" ou 5,2"
 # histórico: 3.10.0 07/11/2026 20:25 variantes gamma-delta-1 a 6
 # histórico: 3.9.0 07/11/2026 20:00 12 propostas da v2.0.0
 # histórico: 3.8.0 07/11/2026 19:40 estilos gamma-delta e gamma-gamma-coluna
@@ -122,6 +123,7 @@ def estilos(out):
         for tag, snap in cen:
             vm = ViewModel(copy.deepcopy(DEFAULTS), (80, 90), (80, 87)).build(copy.deepcopy(snap))
             vm["blink"] = tag != "CriticoApagado"        # fase do piscar (estilos de alerta)
+            vm["_tela"] = "principal"                     # GAMMA EPSILON: a tela com todas as métricas (as outras na matriz --epsilon)
             c, v = draw(vm)
             assert c.img.size == (LARGURA, ALTURA)
             camel = {"pcb": "PCB", "gamma": "Gamma", "gamma-sonar": "GammaSonar", "gamma-raiox": "GammaRaioX",
@@ -129,7 +131,7 @@ def estilos(out):
                      "gamma-banner": "GammaBanner", "gamma-faixa": "GammaFaixa", "gamma-n3": "GammaN3", "gamma-alpha": "GammaAlpha",
                      "gamma-n3-abas": "GammaN3Abas", "gamma-n3-linha": "GammaN3Linha",
                      "gamma-n3-eventos": "GammaN3Eventos", "gamma-beta": "GammaBeta", "gamma-gamma-colmeia": "GammaGammaColmeia",
-                     "gamma-gamma-mini": "GammaGammaMini", "gamma-gamma-painel": "GammaGammaPainel", "gamma-gamma-coluna": "GammaGammaColuna", "gamma-delta": "GammaDelta", "gamma-epsilon": "GammaEpsilon", "gamma-delta-1": "GammaDelta1", "gamma-delta-2": "GammaDelta2", "gamma-delta-3": "GammaDelta3", "gamma-delta-4": "GammaDelta4", "gamma-delta-5": "GammaDelta5", "gamma-delta-6": "GammaDelta6", "gamma-delta-5a": "GammaDelta5A", "gamma-delta-5c": "GammaDelta5C", "v2-concreto": "V2Concreto", "v2-silencio": "V2Silencio", "v2-hud": "V2Hud", "v2-root": "V2Root", "v2-dossie": "V2Dossie", "v2-vital": "V2Vital", "v2-cockpit": "V2Cockpit", "v2-metro": "V2Metro", "v2-anunciador": "V2Anunciador", "v2-8bits": "V28Bits", "v2-osciloscopio": "V2Osciloscopio", "v2-grade": "V2Grade", "gamma-gamma": "GammaGamma"}[key]
+                     "gamma-gamma-mini": "GammaGammaMini", "gamma-gamma-painel": "GammaGammaPainel", "gamma-gamma-coluna": "GammaGammaColuna", "gamma-delta": "GammaDelta", "gamma-epsilon-prototipo": "GammaEpsilonPrototipo", "gamma-epsilon": "GammaEpsilon", "gamma-delta-1": "GammaDelta1", "gamma-delta-2": "GammaDelta2", "gamma-delta-3": "GammaDelta3", "gamma-delta-4": "GammaDelta4", "gamma-delta-5": "GammaDelta5", "gamma-delta-6": "GammaDelta6", "gamma-delta-5a": "GammaDelta5A", "gamma-delta-5c": "GammaDelta5C", "v2-concreto": "V2Concreto", "v2-silencio": "V2Silencio", "v2-hud": "V2Hud", "v2-root": "V2Root", "v2-dossie": "V2Dossie", "v2-vital": "V2Vital", "v2-cockpit": "V2Cockpit", "v2-metro": "V2Metro", "v2-anunciador": "V2Anunciador", "v2-8bits": "V28Bits", "v2-osciloscopio": "V2Osciloscopio", "v2-grade": "V2Grade", "gamma-gamma": "GammaGamma"}[key]
             nome = f"MatrixGreenPro-{camel}-{tag}" if not tag.startswith("teste") else f"{key}-{tag}"
             c.img.save(out / f"{nome}.png")
             e = check(c.texts, nome, HL)

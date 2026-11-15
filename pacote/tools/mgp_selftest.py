@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-# MATRIX GREEN PRO | versão 3.7.0 | 13/11/2026 19:45 (-03) | IP público do roteador e hora da última mudança (Claude, para Lucas Tavares)
+# MATRIX GREEN PRO | versão 3.8.0 | 15/11/2026 15:50 (-03) | GAMMA EPSILON: rotinas de backup e rotação de telas (Claude, para Lucas Tavares)
+# histórico: 3.7.0 13/11/2026 19:45 IP público do roteador e hora da última mudança
 # histórico: 3.6.0 08/11/2026 21:02 disco pelo número de série e montagem de reserva
 # histórico: 3.5.0 08/11/2026 13:26 (-03) | tamanho do quadro conforme a tela (3,5" ou 5,2") (Claude, para Lucas Tavares)
 # histórico: 3.4.0 07/11/2026 20:15 mudanças bruscas, total de TB, ping 20/100 ms e variantes do GAMMA DELTA
@@ -415,6 +416,51 @@ def main():
         sv["ip"] = {"ip": "203.0.113.45", "desde": time.mktime((2026, 11, 13, 19, 29, 0, 0, 0, -1))}
         check("IP público e hora da mudança na tela", vm_of(sv)["wan_ip"] == ("203.0.113.45", NEUTRAL)
               and vm_of(sv)["wan_desde"] == ("13/11 19:29", NEUTRAL))
+        # rotinas de backup: linha "Fim" do journal, hora do systemd, arquivo de andamento e texto da tela
+        rf = col.resumo_fim("[15/11/2026 03:21:24] Fim | sincronizadas: 11 | puladas: 2 | com falha: 1")
+        check("backup: linha Fim do sincronizar-discos", rf and (rf["ok"], rf["puladas"], rf["falhas"]) == (11, 2, 1))
+        rg = col.resumo_fim("[15/11/2026 08:04:37] Fim | repositórios: 20 | novos: 0 | atualizados: 0 | enviados: 3 | "
+                            "sem mudança: 17 | com aviso: 0 | erros: 0")
+        check("backup: linha Fim do espelhar-github", rg and rg["ok"] == 20 and rg["falhas"] == 0 and ("enviados", 3) in rg["itens"])
+        check("backup: hora do timer e hora unix do systemd",
+              col._ts_systemd("Mon 2026-11-16 03:01:19 -03") == time.mktime((2026, 11, 16, 3, 1, 19, 0, 0, -1))
+              and col._ts_systemd("@1794609314") == 1794609314.0 and col._ts_systemd("n/a") is None)
+        pa = Path(d) / "andamento"; pa.mkdir()
+        (pa / "sincronizar-discos.json").write_text('{"estado": "rodando", "atual": %d, "pct": 42}' % time.time())
+        (pa / "velha.json").write_text('{"estado": "rodando", "atual": 0, "pct": 1}')
+        os.utime(pa / "velha.json", (time.time() - 600, time.time() - 600))
+        check("backup: arquivo de andamento recente vale", (col.ler_andamento([str(pa)], "sincronizar-discos") or {}).get("pct") == 42)
+        check("backup: arquivo de andamento parado não vale", col.ler_andamento([str(pa)], "velha") is None)
+        from library.sensors.matrixgreenpro.viewmodel import backup_vm
+        agora = time.time()
+        bvm = backup_vm({"rotinas": [
+            {"rotulo": "DISCOS", "unidade": "a", "existe": True, "rodando": False, "resultado": "success",
+             "inicio": agora - 1000, "fim": agora - 192, "proxima": agora + 3600, "resumo": rf},
+            {"rotulo": "SUMIU", "unidade": "b", "existe": False},
+            {"rotulo": "GITHUB", "unidade": "c", "existe": True, "rodando": True, "inicio": agora - 75,
+             "andamento": {"pct": 42.0, "pasta": "Fotos", "indice": 2, "total": 11, "bytes": 12.4e9,
+                           "velocidade": 35.2e6, "restante_s": 751}}]}, agora)
+        check("backup: rotina que não existe some da tela", [x["rotulo"] for x in bvm["rotinas"]] == ["DISCOS", "GITHUB"])
+        check("backup: falha vira âmbar com o texto do resumo",
+              bvm["rotinas"][0]["resultado"] == ("11 OK  2 PULADAS  1 FALHA", WARN) and bvm["rotinas"][0]["duracao"] == "13m28s")
+        a = bvm["ativo"] or {}
+        check("backup: rodando com andamento", a.get("rotulo") == "GITHUB" and a.get("detalhado") and a.get("restante") == "12m31s"
+              and a.get("copiado") == "12.4GB" and a.get("decorrido") == "1m15s")
+        check("backup: systemctl sem resposta = N/D", backup_vm({"rotinas": None}, agora)["nd"] is True)
+        try:                                                    # os pacotes dos outros estilos não levam o EPSILON
+            from library.sensors.matrixgreenpro.estilos.epsilon_telas import escolher
+        except ImportError:
+            escolher = None
+        if escolher:
+            base_vm = {"rotacao": {"telas": ["principal", "graficos", "backups"], "periodo_s": 60},
+                       "hdr_status": ("OK", OK), "backup": {"ativo": None}}
+            check("EPSILON: rotação de 60 s", [escolher(dict(base_vm), t)[0] for t in (0, 60, 125, 180)]
+                  == ["principal", "graficos", "backups", "principal"])
+            vb = dict(base_vm, backup={"ativo": {"rotulo": "X"}})
+            check("EPSILON: backup rodando mostra o andamento", escolher(vb, 60)[0] == "andamento")
+            check("EPSILON: alerta vermelho passa na frente do backup", escolher(dict(vb, hdr_status=("C", CRIT)), 60)[0] == "principal")
+            check("EPSILON: alerta âmbar fixa a principal sem backup", escolher(dict(base_vm, hdr_status=("A", WARN)), 60)[0] == "principal"
+                  and escolher(dict(vb, hdr_status=("A", WARN)), 60)[0] == "andamento")
         pf = Path(d) / "watts"
         pf.write_text("245.5\n")
         cfg["energia"].update(fonte="arquivo", arquivo=str(pf), tipo_arquivo="tomada")
@@ -443,7 +489,7 @@ def main():
     from library.sensors.matrixgreenpro.estilos import renderer
     for nome in ("matrix", "gamma", "gamma-sonar", "gamma-raiox", "gamma-uv", "gamma-escala", "gamma-barra",
                  "gamma-banner", "gamma-faixa", "gamma-n3", "gamma-alpha", "gamma-n3-abas", "gamma-n3-linha",
-                 "gamma-n3-eventos", "gamma-beta", "gamma-gamma-colmeia", "gamma-gamma-mini", "gamma-gamma-painel", "gamma-gamma-coluna", "gamma-delta", "gamma-gamma", "gamma-delta-1", "gamma-delta-2", "gamma-delta-3", "gamma-delta-4", "gamma-delta-5", "gamma-delta-6", "v2-concreto", "v2-silencio", "v2-hud", "v2-root", "v2-dossie", "v2-vital", "v2-cockpit", "v2-metro", "v2-anunciador", "v2-8bits", "v2-osciloscopio", "v2-grade", "gamma-epsilon", "gamma-delta-5a", "gamma-delta-5c", "pcb"):   # "pcb" fica por último (o construtor dos ZIPs depende disso)
+                 "gamma-n3-eventos", "gamma-beta", "gamma-gamma-colmeia", "gamma-gamma-mini", "gamma-gamma-painel", "gamma-gamma-coluna", "gamma-delta", "gamma-gamma", "gamma-delta-1", "gamma-delta-2", "gamma-delta-3", "gamma-delta-4", "gamma-delta-5", "gamma-delta-6", "v2-concreto", "v2-silencio", "v2-hud", "v2-root", "v2-dossie", "v2-vital", "v2-cockpit", "v2-metro", "v2-anunciador", "v2-8bits", "v2-osciloscopio", "v2-grade", "gamma-epsilon-prototipo", "gamma-epsilon", "gamma-delta-5a", "gamma-delta-5c", "pcb"):   # "pcb" fica por último (o construtor dos ZIPs depende disso)
         for sc in ("normal", "atencao", "critico"):
             key, draw = renderer(nome)
             img = draw(ViewModel(copy.deepcopy(DEFAULTS), (80, 90), (80, 87)).build(panel.demo_snapshot(sc)))

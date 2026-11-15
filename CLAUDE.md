@@ -20,7 +20,7 @@ Este repositório é o GAMMA, tema de monitoramento para as telas USB TURZX / Tu
 
 - Não inventar fatos sobre o hardware. Faltando informação, pedir a saída de um comando somente leitura.
 - Mostrar toda modificação visual ou de código do tema na matriz de prévias em PNG (4 versões x 3 estados), gerada por `construir/matriz_previas.py`, nas duas telas (`--tela 5.2` para a de 5,2").
-- Quando a sessão roda no PC do Lucas (existe `~/turing-smart-screen-linux`), toda edição termina assim: autoteste e matriz verdes, envio à tela (com autorização, pelo `construir/aplicar-na-tela.sh delta 3.5`, o estilo e a tela em uso), commit e push. Enviar a versão para a tela física (`construir/aplicar-na-tela.sh`, `instalar-gamma.sh` ou qualquer instalação) só com autorização explícita do Lucas no chat, a cada envio: perguntar e esperar um sim claro.
+- Quando a sessão roda no PC do Lucas (existe `~/Documentos/Projetos/turing-smart-screen-linux`, a pasta do Turing desde 14/11/2026; antes era `~/turing-smart-screen-linux`), toda edição termina assim: autoteste e matriz verdes, envio à tela (com autorização, pelo `construir/aplicar-na-tela.sh delta 3.5`, o estilo e a tela em uso), commit e push. Enviar a versão para a tela física (`construir/aplicar-na-tela.sh`, `instalar-gamma.sh` ou qualquer instalação) só com autorização explícita do Lucas no chat, a cada envio: perguntar e esperar um sim claro.
 - Seguir os critérios de pronto de [docs/desenvolvimento.md](docs/desenvolvimento.md): autoteste verde, prévias sem problema de layout, instalação do zero com usuário comum, SemVer e CHANGELOG atualizados.
 - Pacotes enxutos: nada que não seja essencial entra nos ZIPs.
 - ZIPs são artefatos de lançamento, não vão para o Git.

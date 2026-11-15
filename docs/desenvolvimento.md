@@ -1,4 +1,5 @@
-<!-- docs/desenvolvimento.md | versão 2.1.0 | 08/11/2026 13:30 (-03) | criação original (Claude, para Lucas Tavares). Fonte: tools/, construir/ e regras do projeto na v1.8.3. -->
+<!-- docs/desenvolvimento.md | versão 2.2.0 | 15/11/2026 15:50 (-03) | criação original (Claude, para Lucas Tavares). Fonte: tools/, construir/ e regras do projeto na v1.8.3. -->
+<!-- histórico: 2.2.0 15/11/2026 15:50 matriz --epsilon; pasta do Turing do PC em ~/Documentos/Projetos -->
 <!-- histórico: 2.1.0 08/11/2026 13:30 duas telas: pastas por tela, MGP_TELA, matriz --tela, ZIPs por tela -->
 <!-- histórico: 2.0.0 07/11/2026 22:24 revisão para a v1.8.2: quatro ZIPs, contagens, matriz 4 x 3, aplicar delta, Releases -->
 
@@ -34,7 +35,7 @@
 
 Os testes importam o pacote `library` do Turing Smart Screen, então o tema precisa estar dentro de uma cópia dele.
 
-No PC já instalado:
+No PC já instalado (no PC do Lucas, a pasta do Turing é `~/Documentos/Projetos/turing-smart-screen-linux` desde 14/11/2026; troque o caminho abaixo):
 
 ```bash
 cd ~/turing-smart-screen-linux
@@ -78,7 +79,10 @@ Toda modificação é mostrada ao Lucas como uma matriz em PNG: as 4 versões (A
 ```bash
 python3 -I construir/matriz_previas.py previas/matriz.png ~/turing-smart-screen-linux
 python3 -I construir/matriz_previas.py previas/matriz-5.2.png ~/turing-smart-screen-linux --tela 5.2
+python3 -I construir/matriz_previas.py previas/matriz-epsilon.png --epsilon     # as 4 telas do GAMMA EPSILON
 ```
+
+Sem a pasta do Turing no comando, a matriz procura as fontes em `~/turing-smart-screen-linux` e em `~/Documentos/Projetos/turing-smart-screen-linux`.
 
 Opções: `--extra coluna` acrescenta a variante GAMMA GAMMA COLUNA; `--deltas` troca as colunas pelas 6 variantes de estudo do DELTA; `--delta5` mostra o DELTA e as variantes 5A e 5C; `--v2` mostra as 12 propostas da v2.0.0. O segundo argumento é uma cópia do Turing Smart Screen, usada só pelas fontes de `res/fonts`. Requer Pillow e psutil. A pasta `previas/` fica fora do Git.
 

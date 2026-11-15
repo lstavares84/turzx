@@ -1,4 +1,5 @@
-# GAMMA | construir/construir_zips.py | versão 1.3.0 | 08/11/2026 13:24 (-03) | criação original (Claude, para Lucas Tavares)
+# GAMMA | construir/construir_zips.py | versão 1.4.0 | 15/11/2026 15:45 (-03) | criação original (Claude, para Lucas Tavares)
+# histórico: 1.4.0 15/11/2026 15:45 pacote Epsilon (GAMMA EPSILON) e arquivos extras por estilo (EXTRA)
 # histórico: 1.3.0 08/11/2026 13:24 um pacote por tela (3,5" e 5,2"), Gamma-<Nome>-<tela>-v<versão>; a versão dos estilos não muda
 # histórico: 1.2.3 08/11/2026 07:36 versão 1.8.3
 # histórico: 1.2.2 07/11/2026 21:58 versão 1.8.2
@@ -16,7 +17,11 @@ SRC=str(Path(__file__).resolve().parent.parent); OUT=sys.argv[1]
 V={"1.8.3:Alpha":("gamma-alpha","GAMMA ALPHA","Alpha",["gamma-n3-esq","gamma-sentinela"],"escala N0/N1/N2 sem tarja, percentuais, bomba, ventoinhas, temperaturas e selo de versão na tela (ex GAMMA SENTINELA)"),
    "1.8.3:Beta":("gamma-beta","GAMMA BETA","Beta",["gamma-n3-compacto","gamma-dosimetro"],"percentuais entre parênteses, bomba, ventoinhas, temperaturas, 4 baias do TerraMaster e selo de versão na tela (ex GAMMA DOSÍMETRO)"),
    "1.8.3:Gamma":("gamma-gamma","GAMMA GAMMA","Gamma",["gamma-gamma-fronteira"],"7 colmeias de resumo e painel numérico por grupo, com temperatura dos discos, 4 baias do TerraMaster e selo de versão na tela"),
-   "1.8.3:Delta":("gamma-delta","GAMMA DELTA","Delta",["gamma-delta-5b"],"GAMMA GAMMA com gráficos de 24 h e o pico de cada um, valores em alerta com fundo âmbar ou vermelho, total dos HDs num hexágono, barra de uso da RAM e LOG dos alertas")}
+   "1.8.3:Delta":("gamma-delta","GAMMA DELTA","Delta",["gamma-delta-5b"],"GAMMA GAMMA com gráficos de 24 h e o pico de cada um, valores em alerta com fundo âmbar ou vermelho, total dos HDs num hexágono, barra de uso da RAM e LOG dos alertas"),
+   "1.8.3:Epsilon":("gamma-epsilon","GAMMA EPSILON","Epsilon",[],"o GAMMA DELTA com mais duas telas que se alternam a cada minuto (gráficos de 24 h e status das rotinas de backup) e uma tela com o andamento do backup enquanto ele roda")}
+# arquivos de estilo que cada pacote leva além do próprio reator_<estilo>.py
+EXTRA={"gamma-delta":{"graficos.py","reator_delta2.py"},
+       "gamma-epsilon":{"graficos.py","reator_delta2.py","reator_gamma_delta.py","epsilon_telas.py"}}
 KEEP={"__init__.py","base.py","reator.py","alerta.py","reator_gamma.py","reator_grupos.py"}
 def sub(p,a,b):
     s=open(p,encoding="utf-8").read(); assert a in s,(p,a[:40]); open(p,"w",encoding="utf-8").write(s.replace(a,b,1))
@@ -39,8 +44,8 @@ for chave,tela in PEDIDOS:
     open(f"{R}/sensors/matrixgreenpro/versao.py","w",encoding="utf-8").write(f'# MATRIX GREEN PRO | versao.py | versão {ver} | {time.strftime("%d/%m/%Y %H:%M")} (-03) | gerado pelo construtor dos ZIPs\nVERSAO = "{ver}"\n')
     E=f"{R}/sensors/matrixgreenpro/estilos"; mod=est.replace("-","_")
     for f in os.listdir(E):
-        if f.endswith(".py") and f not in KEEP and f!=f"reator_{mod}.py" and not (est=="gamma-delta" and f in ("graficos.py","reator_delta2.py")): os.remove(f"{E}/{f}")
-    if est not in ("gamma-gamma","gamma-delta"): os.remove(f"{E}/reator_grupos.py")
+        if f.endswith(".py") and f not in KEEP and f!=f"reator_{mod}.py" and f not in EXTRA.get(est,set()): os.remove(f"{E}/{f}")
+    if est not in ("gamma-gamma","gamma-delta","gamma-epsilon"): os.remove(f"{E}/reator_grupos.py")
     s=open(f"{E}/__init__.py",encoding="utf-8").read()
     i=s.index("ESTILOS = {"); j=s.index("def renderer")
     s=s[:i]+f'''ESTILOS = {{

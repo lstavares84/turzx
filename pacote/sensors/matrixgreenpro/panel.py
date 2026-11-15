@@ -1,4 +1,5 @@
-# MATRIX GREEN PRO | versão 3.8.0 | 13/11/2026 19:40 (-03) | IP público do roteador e hora da última mudança
+# MATRIX GREEN PRO | versão 3.9.0 | 15/11/2026 09:10 (-03) | rotinas de backup (coletor e demonstração)
+# histórico: 3.8.0 13/11/2026 19:40 IP público do roteador e hora da última mudança
 # histórico: 3.7.0 08/11/2026 13:21 tela de 3,5" ou 5,2" (tela.py)
 # histórico: 3.6.0 07/11/2026 21:00 demonstração do LOG de alertas
 # histórico: 3.5.0 07/11/2026 20:20 demonstração de mudanças bruscas e do registro
@@ -31,6 +32,34 @@ BANDS = [(0, 21), (21, 78), (78, 167), (167, 204), (204, 283), (283, 361), (361,
 BANDS = [(round(a * ESCALA), round(b * ESCALA)) for a, b in BANDS]
 if H > BANDS[-1][1]:
     BANDS.append((BANDS[-1][1], H))
+
+
+def demo_backup(scenario, now):
+    """Rotinas de backup DEMONSTRATIVAS (mesmos nomes das do repositório debian/discos)."""
+    hoje3 = now - 6 * 3600
+    discos = {"rotulo": "DISCOS → 12TB", "unidade": "sincronizar-discos", "existe": True, "rodando": False,
+              "resultado": "success", "inicio": hoje3, "fim": hoje3 + 808, "proxima": hoje3 + 86400,
+              "resumo": {"ok": 11, "puladas": 0, "falhas": 0, "avisos": 0,
+                         "itens": [("sincronizadas", 11), ("puladas", 0), ("com falha", 0)]}}
+    fotos = {"rotulo": "FOTOS → ARCHER", "unidade": "sincronizar-sessao", "existe": True, "rodando": False,
+             "resultado": "success", "inicio": now - 5 * 3600, "fim": now - 5 * 3600 + 42, "proxima": hoje3 + 86400 + 120,
+             "resumo": {"ok": 1, "puladas": 0, "falhas": 0, "avisos": 0,
+                        "itens": [("sincronizadas", 1), ("puladas", 0), ("com falha", 0)]}}
+    git = {"rotulo": "GITHUB", "unidade": "espelhar-github", "existe": True, "rodando": False,
+           "resultado": "success", "inicio": now - 1500, "fim": now - 1486, "proxima": now + 2100,
+           "resumo": {"ok": 20, "puladas": 0, "falhas": 0, "avisos": 0,
+                      "itens": [("repositórios", 20), ("novos", 0), ("atualizados", 1), ("enviados", 2),
+                                ("sem mudança", 17), ("com aviso", 0), ("erros", 0)]}}
+    if scenario == "atencao":
+        discos.update(rodando=True, inicio=now - 490, fim=None, resumo=None, andamento={
+            "versao": 1, "rotina": "sincronizar-discos", "estado": "rodando", "inicio": now - 490, "atual": now - 2,
+            "pasta": "Fotos", "origem": "/mnt/2TB_3.5/Fotos", "destino": "/mnt/12TB_3.5/Fotos", "indice": 2,
+            "total": 11, "pct": 42.0, "bytes": 12.4e9, "velocidade": 35.2e6, "restante_s": 751})
+    elif scenario == "critico":
+        fotos.update(rodando=True, inicio=now - 75, fim=None, resumo=None, andamento=None)
+        git.update(resultado="exit-code", resumo={"ok": 20, "puladas": 0, "falhas": 1, "avisos": 0,
+                   "itens": [("repositórios", 20), ("enviados", 0), ("com aviso", 0), ("erros", 1)]})
+    return {"rotinas": [discos, fotos, git], "ts": now}
 
 
 def demo_snapshot(scenario="normal"):
@@ -83,6 +112,9 @@ def demo_snapshot(scenario="normal"):
         "ping": {"ok": True, "ms": 95.0} if att else ({"ok": True, "ms": 34.0} if crit else {"ok": True, "ms": 18.0}),
         # IP de documentação (RFC 5737), nunca um IP real
         "ip": {"ip": "203.0.113.45", "desde": now - (180 if crit else 3 * 86400 + 7200), "mudou": True},
+        # backup: normal = tudo agendado; atenção = DISCOS rodando com andamento; crítico = rodando sem andamento
+        # e uma falha no GITHUB
+        "backup": demo_backup(scenario, now),
         "weather": {"state": "OK", "temp": 22.0, "desc": "NUBLADO", "ts": now - 600},
         "power": {"state": "ND"},
         "coleta": {"esperados": 8, "falhas": []},
@@ -122,6 +154,7 @@ class Engine:
             self.net = col.Net(self.cfg)
             self.ping = col.Ping(self.cfg)
             self.ip = col.IpPublico(self.cfg)
+            self.backups = col.Backups(self.cfg)
             self.weather = col.Weather(self.cfg)
             self.power = col.Power(self.cfg)
             from .historico import Historico
@@ -168,6 +201,7 @@ class Engine:
         get("net", self.net.read, "REDE", {"eth": {"exists": False}, "wifi": {"exists": False}})
         get("ping", self.ping.read, "PING", {"ok": None})
         get("ip", self.ip.read, "IP", {"ip": None}, counted=False)     # só informação
+        get("backup", self.backups.read, "BACKUP", {"rotinas": None}, counted=False)
         get("weather", self.weather.read, "CLIMA", {"state": "ND"})
         get("power", self.power.read, "ENERGIA", {"state": "ND"}, counted=self.power.kind != "none")
         s["os"], s["uptime"] = col.os_name(), col.uptime_s()

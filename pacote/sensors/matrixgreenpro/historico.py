@@ -1,4 +1,5 @@
-# MATRIX GREEN PRO | historico.py | versão 1.2.0 | 07/11/2026 19:40 (-03) | criação original (Claude, para Lucas Tavares)
+# MATRIX GREEN PRO | historico.py | versão 1.3.0 | 15/11/2026 09:10 (-03) | criação original (Claude, para Lucas Tavares)
+# histórico: 1.3.0 15/11/2026 09:10 uso de CPU e GPU e ping (gráficos do GAMMA EPSILON)
 # histórico: 1.2.0 07/11/2026 19:40 capacidade de VRAM e RAM nas séries (pico em GB)
 # histórico: 1.1.0 07/11/2026 19:30 temperaturas de CPU e GPU; máximo de cada intervalo (para o pico de 24 h)
 # histórico: 1.0.0 07/11/2026 19:10 criação: VRAM, RAM e rede
@@ -15,7 +16,7 @@ import time
 
 JANELA = 24 * 3600
 N = 148                                     # intervalos, um por pixel do gráfico (9,7 min cada)
-CHAVES = ("cpu_t", "gpu_t", "vram", "ram", "down", "up")
+CHAVES = ("cpu_t", "gpu_t", "vram", "ram", "down", "up", "cpu_u", "gpu_u", "ping")
 ARQUIVO = os.environ.get("MGP_HISTORICO") or os.path.expanduser("~/.local/state/matrixgreenpro/historico.json")
 
 
@@ -32,8 +33,10 @@ def _leitura(s):
     if g.get("vram_used") is not None and g.get("vram_total"):
         vram = 100.0 * g["vram_used"] / g["vram_total"]
     ram = r.get("pct") if r.get("total") else None
+    pg = s.get("ping") or {}
     return {"cpu_t": c.get("temp"), "gpu_t": g.get("temp"), "vram": vram, "ram": ram,
-            "down": n.get("down"), "up": n.get("up")}
+            "down": n.get("down"), "up": n.get("up"), "cpu_u": c.get("util"), "gpu_u": g.get("util"),
+            "ping": pg.get("ms") if pg.get("ok") else None}
 
 
 class Historico:
@@ -122,13 +125,17 @@ def demo_series(s, scenario="normal", n=N):
                "vram": min(99.0, 12 + 18 * dia + 60 * noite + rnd.uniform(-3, 3)),
                "ram": min(99.0, 28 + 10 * dia + 14 * noite + rnd.uniform(-1.5, 1.5))}
         pico = rnd.random() < 0.06
+        val["cpu_u"] = min(100.0, max(1.0, 8 + 25 * dia + 55 * noite + rnd.uniform(-6, 6)))
+        val["gpu_u"] = min(100.0, max(0.0, 3 + 10 * dia + 80 * noite + rnd.uniform(-5, 5)))
+        val["ping"] = max(9.0, 13 + 3 * dia + 4 * noite + (rnd.uniform(15, 60) if rnd.random() < 0.04 else rnd.uniform(-1, 2)))
         val["down"] = max(0.0, (0.3e6 + 2.5e6 * dia + (rnd.uniform(8e6, 22e6) if pico else 0)) * rnd.uniform(0.6, 1.4))
         val["up"] = max(0.0, (0.08e6 + 0.5e6 * dia + (rnd.uniform(1e6, 3e6) if pico else 0)) * rnd.uniform(0.6, 1.4))
         for k, x in val.items():
             out[k].append(x)
             folga = rnd.uniform(1.2, 2.2) if k in ("down", "up") else 1.0
             out[k + "_max"].append(min(99.0, x + rnd.uniform(0, 4)) if k in ("vram", "ram") else
-                                   x + rnd.uniform(0, 5) if k in ("cpu_t", "gpu_t") else x * folga)
+                                   min(100.0, x + rnd.uniform(0, 12)) if k in ("cpu_u", "gpu_u") else
+                                   x + rnd.uniform(0, 5) if k in ("cpu_t", "gpu_t", "ping") else x * folga)
     for k in CHAVES:                                        # último ponto = valor atual da demonstração
         if agora[k] is not None:
             out[k][-1] = agora[k]

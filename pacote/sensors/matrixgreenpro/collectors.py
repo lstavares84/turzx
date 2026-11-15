@@ -1,4 +1,5 @@
-# MATRIX GREEN PRO | versão 2.9.0 | 13/11/2026 19:40 (-03) | IP público (o do roteador) e hora da última mudança
+# MATRIX GREEN PRO | versão 2.10.0 | 15/11/2026 09:00 (-03) | rotinas de backup: systemd, journal e arquivo de andamento
+# histórico: 2.9.0 13/11/2026 19:40 IP público (o do roteador) e hora da última mudança
 # histórico: 2.8.0 08/11/2026 21:01 disco pelo número de série (sobrevive à formatação)
 # histórico: 2.7.0 07/11/2026 22:03 discos e baias montados via VeraCrypt, LUKS ou LVM
 # histórico: 2.6.0 07/11/2026 21:00 motivos de redução de clock da GPU (NVML)
@@ -951,6 +952,143 @@ class IpPublico:
             return {"ativo": False}
         v = self.worker.get(max_age=self.interval * 2 + 30)
         return v if v is not None else {"ip": None}
+
+
+# ---------------------------------------------------------------- Rotinas de backup
+# Cada rotina é uma unidade do systemd (serviço com timer), do sistema ou do usuário. Do systemd vêm o estado
+# (rodando ou não), o início e o fim da última execução, o resultado e a próxima execução; do journal, a linha
+# "Fim | ..." que as rotinas do repositório debian/discos escrevem no fim (contagens de sincronizadas, puladas,
+# falhas ou erros). O andamento detalhado (percentual, pasta, velocidade, tempo restante) vem de um arquivo JSON
+# que a própria rotina grava enquanto roda (formato em docs/backup.md), em /run/gamma-backup (rotina do sistema)
+# ou em $XDG_RUNTIME_DIR/gamma-backup (rotina do usuário). Sem o arquivo, a tela sabe só que a rotina está rodando.
+_RE_FIM = re.compile(r"\[(\d\d/\d\d/\d{4} \d\d:\d\d:\d\d)\] Fim \| (.*)")
+
+
+def _ts_systemd(v):
+    """'@1794609314' (systemctl --timestamp=unix) ou 'Mon 2026-11-16 03:01:19 -03' (as propriedades do timer
+    ignoram --timestamp) -> segundos; vazio, 'n/a' ou 0 -> None."""
+    v = (v or "").strip()
+    m = re.search(r"(\d{4}-\d\d-\d\d \d\d:\d\d:\d\d)", v)
+    if m:
+        return time.mktime(time.strptime(m.group(1), "%Y-%m-%d %H:%M:%S"))
+    try:
+        x = float(v.lstrip("@"))
+        return x if x > 0 else None
+    except ValueError:
+        return None
+
+
+def resumo_fim(linha):
+    """Interpreta a linha 'Fim | sincronizadas: 11 | puladas: 0 | com falha: 0' (ou a do espelhar-github).
+    Devolve {"hora": segundos, "ok": n, "puladas": n, "falhas": n, "itens": [(nome, n), ...]} ou None."""
+    m = _RE_FIM.search(linha or "")
+    if not m:
+        return None
+    try:
+        hora = time.mktime(time.strptime(m.group(1), "%d/%m/%Y %H:%M:%S"))
+    except ValueError:
+        hora = None
+    itens = []
+    for parte in m.group(2).split("|"):
+        if ":" in parte:
+            k, n = parte.rsplit(":", 1)
+            try:
+                itens.append((k.strip(), int(n.strip())))
+            except ValueError:
+                pass
+    d = dict(itens)
+    falhas = d.get("com falha", 0) + d.get("erros", 0)
+    ok = d.get("sincronizadas", d.get("repositórios", 0))
+    return {"hora": hora, "ok": ok, "puladas": d.get("puladas", 0), "falhas": falhas,
+            "avisos": d.get("com aviso", 0), "itens": itens}
+
+
+def ler_andamento(pastas, unidade, agora=None, validade=90):
+    """Arquivo de andamento da rotina (o mais recente entre as pastas). Só vale se foi atualizado há menos de
+    `validade` segundos e diz estado "rodando"."""
+    agora = time.time() if agora is None else agora
+    melhor = None
+    for pasta in pastas:
+        arq = os.path.join(os.path.expandvars(os.path.expanduser(pasta)), unidade + ".json")
+        try:
+            if agora - os.path.getmtime(arq) > validade:
+                continue
+            with open(arq, encoding="utf-8") as f:
+                d = json.load(f)
+        except Exception:
+            continue
+        if d.get("estado") == "rodando" and (melhor is None or d.get("atual", 0) > melhor.get("atual", 0)):
+            melhor = d
+    return melhor
+
+
+class Backups:
+    PROPS = "LoadState,ActiveState,Result,ExecMainStartTimestamp,ExecMainExitTimestamp,ExecMainStatus"
+
+    def __init__(self, cfg, iniciar=True, executar=None):
+        c = cfg.get("backup", {})
+        self.rotinas = [r for r in c.get("rotinas", []) if r.get("unidade")]
+        self.pastas = c.get("andamento", ["/run/gamma-backup", "$XDG_RUNTIME_DIR/gamma-backup"])
+        self.interval = float(c.get("intervalo_s", 5))
+        self.executar = executar or self._executar
+        self.tem_systemctl = shutil.which("systemctl") is not None
+        self.worker = Worker("backup", self._read, self.interval)
+        if self.rotinas and iniciar:
+            self.worker.start()
+
+    @staticmethod
+    def _executar(args):
+        r = subprocess.run(args, capture_output=True, text=True, timeout=10)
+        return r.stdout
+
+    def _show(self, usuario, unidade, props):
+        args = ["systemctl"] + (["--user"] if usuario else []) + ["show", unidade, "-p", props, "--timestamp=unix"]
+        out = {}
+        for linha in self.executar(args).splitlines():
+            if "=" in linha:
+                k, v = linha.split("=", 1)
+                out[k] = v
+        return out
+
+    def _fim(self, usuario, unidade):
+        args = ["journalctl"] + (["--user"] if usuario else []) + ["-u", unidade, "-n", "400", "-o", "cat", "--no-pager"]
+        ultimo = None
+        for linha in self.executar(args).splitlines():
+            r = resumo_fim(linha)
+            if r:
+                ultimo = r
+        return ultimo
+
+    def _uma(self, r, agora):
+        usuario = bool(r.get("usuario"))
+        und = str(r["unidade"])
+        d = {"rotulo": str(r.get("rotulo") or und), "unidade": und, "usuario": usuario}
+        sv = self._show(usuario, und + ".service", self.PROPS)
+        if sv.get("LoadState") != "loaded":
+            d["existe"] = False
+            return d
+        tm = self._show(usuario, und + ".timer", "NextElapseUSecRealtime,LastTriggerUSec")
+        d.update(existe=True, rodando=sv.get("ActiveState") in ("active", "activating", "reloading"),
+                 resultado=sv.get("Result") or None, status=sv.get("ExecMainStatus"),
+                 inicio=_ts_systemd(sv.get("ExecMainStartTimestamp")) or _ts_systemd(tm.get("LastTriggerUSec")),
+                 fim=_ts_systemd(sv.get("ExecMainExitTimestamp")),
+                 proxima=_ts_systemd(tm.get("NextElapseUSecRealtime")))
+        if not d["rodando"]:
+            d["resumo"] = self._fim(usuario, und)
+        d["andamento"] = ler_andamento(self.pastas, und, agora) if d["rodando"] else None
+        return d
+
+    def _read(self, agora=None):
+        if not self.tem_systemctl:
+            raise RuntimeError("systemctl não encontrado")
+        agora = time.time() if agora is None else agora
+        return {"rotinas": [self._uma(r, agora) for r in self.rotinas], "ts": agora}
+
+    def read(self):
+        if not self.rotinas:
+            return {"rotinas": []}
+        v = self.worker.get(max_age=self.interval * 3 + 20)
+        return v if v is not None else {"rotinas": None}
 
 
 # ---------------------------------------------------------------- Clima (Open-Meteo)

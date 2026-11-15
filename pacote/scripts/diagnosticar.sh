@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# MATRIX GREEN PRO | versão 3.2.0 | 08/11/2026 13:23 (-03) | confere a tela instalada (3,5" serial ou 5,2" USB)
+# MATRIX GREEN PRO | versão 3.3.0 | 15/11/2026 15:40 (-03) | pasta do Turing lida do serviço já instalado
+# histórico: 3.2.0 08/11/2026 13:23 confere a tela instalada (3,5" serial ou 5,2" USB)
 # histórico: 3.1.0 01/11/2026 11:15 mostra o estilo ativo
 # histórico: 2.1.0 01/11/2026 00:15 diagnóstico (somente leitura)
 # histórico: 2.0.0 01/11/2026 00:00 mgp-diagnostico.sh
@@ -11,7 +12,9 @@
 #   ./scripts/diagnosticar.sh --resumo        só o essencial (usado no fim do instalador)
 #   ./scripts/diagnosticar.sh --dir CAMINHO   pasta do programa
 set -uo pipefail
-DIR="${HOME}/turing-smart-screen-linux"; RESUMO=0
+DIR="$(sed -n 's/^WorkingDirectory=//p' "$HOME/.config/systemd/user/turing-smart-screen.service" 2>/dev/null | head -1)"   # pasta do serviço já instalado
+[[ -n "$DIR" && -f "$DIR/main.py" ]] || DIR="${HOME}/turing-smart-screen-linux"
+RESUMO=0
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --dir) DIR="${2%/}"; shift ;;

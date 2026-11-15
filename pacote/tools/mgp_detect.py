@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-# MATRIX GREEN PRO | versão 3.5.0 | 13/11/2026 19:45 (-03) | linha ip_publico no config.yaml gerado
+# MATRIX GREEN PRO | versão 3.6.0 | 15/11/2026 15:40 (-03) | seções backup e rotacao no config.yaml gerado
+# histórico: 3.5.0 13/11/2026 19:45 linha ip_publico no config.yaml gerado
 # histórico: 3.4.0 08/11/2026 21:01 grava o número de série de cada disco (sobrevive à formatação)
 # histórico: 3.3.0 07/11/2026 21:00 limites de manuais e do Zabbix (RAM 90/95, discos 80/90)
 # histórico: 3.2.0 07/11/2026 20:15 ping verde até 20 ms, âmbar até 100 ms
@@ -151,6 +152,18 @@ rede:
 
 ping: {{host: 8.8.8.8, intervalo_s: 5, warn_ms: 20, crit_ms: 100}}
 ip_publico: {{ativo: sim, intervalo_s: 300}}   # IP do roteador (WAN) pelo DNS da OpenDNS e hora da última mudança
+
+# rotinas de backup (GAMMA EPSILON): unidades do systemd com timer; usuario: true = timer da sessão.
+# Unidade que não existe no PC é ignorada. Andamento detalhado: veja docs/backup.md.
+backup:
+  rotinas:
+    - {{rotulo: "DISCOS → 12TB", unidade: sincronizar-discos, usuario: false}}
+    - {{rotulo: "FOTOS → ARCHER", unidade: sincronizar-sessao, usuario: true}}
+    - {{rotulo: "GITHUB", unidade: espelhar-github, usuario: true}}
+  intervalo_s: 5
+
+# GAMMA EPSILON: telas que se alternam (principal, graficos, backups) e segundos de cada uma
+rotacao: {{telas: [principal, graficos, backups], periodo_s: 60}}
 
 clima:
   cidade: "RIO DO SUL"

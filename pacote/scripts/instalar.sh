@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# MATRIX GREEN PRO | versão 3.8.0 | 08/11/2026 13:23 (-03) | opção --tela 3.5 ou 5.2 (tema, tela.py e REVISION do config.yaml)
+# MATRIX GREEN PRO | versão 3.9.0 | 15/11/2026 15:40 (-03) | pasta do Turing lida do serviço já instalado
+# histórico: 3.8.0 08/11/2026 13:23 opção --tela 3.5 ou 5.2 (tema, tela.py e REVISION do config.yaml)
 # histórico: 3.7.1 07/11/2026 21:14 estilo conferido em ESTILOS ou ALIASES (aceita apelidos e v2-*)
 # histórico: 3.7.0 07/11/2026 20:40 estilo conferido pelo registro ESTILOS
 # histórico: 3.6.1 02/11/2026 19:25 ESTILO_PADRAO do pacote
@@ -29,7 +30,8 @@ set -uo pipefail
 
 VERSION="$(cat "$(dirname "$0")/../VERSION" 2>/dev/null || echo 2.1.0)"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-DIR="${HOME}/turing-smart-screen-linux"
+DIR="$(sed -n 's/^WorkingDirectory=//p' "$HOME/.config/systemd/user/turing-smart-screen.service" 2>/dev/null | head -1)"   # pasta do serviço já instalado
+[[ -n "$DIR" && -f "$DIR/main.py" ]] || DIR="${HOME}/turing-smart-screen-linux"
 REVERSE=""; TEST_ORIENT=0; MANGO=0; FIX_UNIT=0; RESTART=1; FORCE=0; ESTILO=""; TELA=""
 STATE="${HOME}/.local/state/matrixgreenpro"
 DATA="${HOME}/.local/share/matrixgreenpro"

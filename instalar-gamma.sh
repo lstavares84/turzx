@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# GAMMA | instalador automático | versão 1.8.0 | 08/11/2026 13:23 (-03) | criação original (Claude, para Lucas Tavares)
+# GAMMA | instalador automático | versão 1.9.0 | 15/11/2026 15:40 (-03) | criação original (Claude, para Lucas Tavares)
+# histórico: 1.9.0 15/11/2026 15:40 versão epsilon (GAMMA EPSILON); pasta do Turing lida do serviço já instalado
 # histórico: 1.8.0 08/11/2026 13:23 opção --tela 3.5 ou 5.2 (TURZX 5,2" 720x1280, revisão TUR_USB)
 # histórico: 1.7.0 07/11/2026 19:42 versão delta (GAMMA DELTA)
 # histórico: 1.5.0 07/11/2026 14:25 dica para conferir a numeração das baias do TerraMaster
@@ -24,7 +25,8 @@
 #   ./instalar-gamma.sh --tela 3.5 | --tela 5.2  qual tela (padrão: a do pacote ZIP; no repositório, 3.5)
 #   ./instalar-gamma.sh --mangohud              também configura o FPS real (MangoHud)
 #   ./instalar-gamma.sh --invertido | --normal  gira a imagem 180 graus (ou não)
-#   ./instalar-gamma.sh --dir CAMINHO           pasta do Turing (padrão ~/turing-smart-screen-linux)
+#   ./instalar-gamma.sh --versao epsilon        GAMMA EPSILON (DELTA + gráficos + backups em rotação)
+#   ./instalar-gamma.sh --dir CAMINHO           pasta do Turing (padrão: a do serviço já instalado ou ~/turing-smart-screen-linux)
 #   ./instalar-gamma.sh --estilo NOME           avançado: qualquer estilo do pacote (ex.: gamma-n3, gamma-sonar)
 #   ./instalar-gamma.sh --sem-apt               não instala pacotes do sistema
 #   ./instalar-gamma.sh --sem-servico           não cria o serviço systemd
@@ -38,7 +40,8 @@ if [[ -f "$AQUI/scripts/instalar.sh" ]]; then PKG="$AQUI"                    # l
 elif [[ -f "$AQUI/pacote/scripts/instalar.sh" ]]; then PKG="$AQUI/pacote"    # layout do repositório
 else echo "[$(date '+%d/%m/%Y %H:%M:%S')] ERRO: pacote do GAMMA não encontrado ao lado deste script"; exit 1; fi
 
-DIR="${HOME}/turing-smart-screen-linux"
+DIR="$(sed -n 's/^WorkingDirectory=//p' "$HOME/.config/systemd/user/turing-smart-screen.service" 2>/dev/null | head -1)"   # pasta do serviço já instalado
+[[ -n "$DIR" && -f "$DIR/main.py" ]] || DIR="${HOME}/turing-smart-screen-linux"
 ESTILO=""; TELA=""; SEM_APT=0; SEM_SERVICO=0; RESTAURAR=0; RELOGIN=0
 REPASSE=()
 STATE="${HOME}/.local/state/matrixgreenpro"; mkdir -p "$STATE"
@@ -56,7 +59,8 @@ while [[ $# -gt 0 ]]; do
                 beta|dosimetro|dosímetro|compacto) ESTILO="gamma-beta" ;;
                 gamma) ESTILO="gamma-gamma" ;;
                 delta) ESTILO="gamma-delta" ;;
-                *) die "--versao aceita: alpha, beta, gamma ou delta (sentinela, dosimetro, esquerda e compacto ainda funcionam)" ;;
+                epsilon) ESTILO="gamma-epsilon" ;;
+                *) die "--versao aceita: alpha, beta, gamma, delta ou epsilon (sentinela, dosimetro, esquerda e compacto ainda funcionam)" ;;
               esac; shift ;;
     --estilo) ESTILO="${2:-}"; shift ;;
     --tela) TELA="${2/,/.}"; [[ "$TELA" == "3.5" || "$TELA" == "5.2" ]] || die "--tela aceita 3.5 ou 5.2"; shift ;;
@@ -92,8 +96,9 @@ if [[ -z "$ESTILO" ]]; then
     echo "  2) BETA   percentuais entre parênteses e informações à esquerda"
     echo "  3) GAMMA  7 colmeias de resumo (CORE no centro) e painel numérico por grupo"
     echo "  4) DELTA  o GAMMA com gráficos de 24 h (temperatura, VRAM e RAM, rede)"
+    echo "  5) EPSILON o DELTA com telas de gráficos e de backups em rotação"
     read -r -p "Número (Enter = 3): " n
-    case "$n" in 1) ESTILO="gamma-alpha" ;; 2) ESTILO="gamma-beta" ;; 4) ESTILO="gamma-delta" ;; *) ESTILO="gamma-gamma" ;; esac
+    case "$n" in 1) ESTILO="gamma-alpha" ;; 2) ESTILO="gamma-beta" ;; 4) ESTILO="gamma-delta" ;; 5) ESTILO="gamma-epsilon" ;; *) ESTILO="gamma-gamma" ;; esac
   else
     ESTILO="gamma-gamma"
   fi

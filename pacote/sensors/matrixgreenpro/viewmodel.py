@@ -1,4 +1,5 @@
-# MATRIX GREEN PRO | versão 2.6.2 | 08/11/2026 07:35 (-03) | disco desmontado é só informação (branco)
+# MATRIX GREEN PRO | versão 2.7.0 | 13/11/2026 19:40 (-03) | IP público e hora da última mudança (wan_ip, wan_desde)
+# histórico: 2.6.2 08/11/2026 07:35 disco desmontado é só informação (branco)
 # histórico: 2.6.1 07/11/2026 21:58 ping com uma casa decimal
 # histórico: 2.6.0 07/11/2026 21:46 alerta mantido 5 min; ping classificado pelo número exibido
 # histórico: 2.5.0 07/11/2026 21:00 alertas confirmados em 2 s, limites sustentados, clock da GPU, link e LOG de alertas
@@ -442,6 +443,15 @@ class ViewModel:
                 ("SEM INTERNET", lv) if lv == CRIT else ("INSTÁVEL", WARN))
         if vm["ping"][1] not in (NA,) and not no_link:
             health["ping"] = vm["ping"][1]
+        # IP público (WAN do roteador): só informação, sem cor de alerta
+        ip = s.get("ip") or {}
+        if ip.get("ativo") is False:
+            vm["wan_ip"] = vm["wan_desde"] = ("", NA)
+        elif ip.get("ip"):
+            vm["wan_ip"] = (ip["ip"], NEUTRAL)
+            vm["wan_desde"] = (time.strftime("%d/%m %H:%M", time.localtime(ip["desde"])), NEUTRAL)
+        else:
+            vm["wan_ip"], vm["wan_desde"] = ("N/D", NA), ("", NA)
         wx = s["weather"]
         vm["city"] = self.cfg["clima"].get("cidade", "")
         if wx.get("state") == "ND":

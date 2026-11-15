@@ -1,4 +1,5 @@
-# MATRIX GREEN PRO | versão 3.10.0 | 08/11/2026 21:01 (-03) | discos com número de série (serie)
+# MATRIX GREEN PRO | versão 3.11.0 | 13/11/2026 19:40 (-03) | IP público do roteador (ip_publico)
+# histórico: 3.10.0 08/11/2026 21:01 discos com número de série (serie)
 # histórico: 3.9.0 07/11/2026 21:46 alertas.manter_s (5 min) e histerese do ping 0
 # histórico: 3.8.0 07/11/2026 21:00 limites de manuais, do hardware e do Zabbix
 # histórico: 3.7.0 07/11/2026 20:15 ping verde até 20 ms, âmbar até 100 ms, vermelho acima
@@ -79,6 +80,8 @@ DEFAULTS = {
     # Sem nenhum enlace (nem Ethernet nem Wi-Fi) é sempre crítico.
     "rede": {"ethernet": "auto", "wifi": "auto", "ethernet_obrigatoria": False},
     "ping": {"host": "8.8.8.8", "intervalo_s": 5, "warn_ms": 20, "crit_ms": 100},
+    # IP público (o da WAN do roteador, sem NAT duplo) pelo DNS da OpenDNS; guarda a hora da última mudança
+    "ip_publico": {"ativo": "sim", "intervalo_s": 300},
     "clima": {
         "cidade": "RIO DO SUL",
         "latitude": -27.2139,

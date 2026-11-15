@@ -1,4 +1,5 @@
-# MATRIX GREEN PRO | versão 3.9.0 | 08/11/2026 21:03 (-03) | discos pelo número de série (serie)
+# MATRIX GREEN PRO | versão 3.10.0 | 13/11/2026 19:45 (-03) | IP público do roteador (ip_publico)
+# histórico: 3.9.0 08/11/2026 21:03 discos pelo número de série (serie)
 # histórico: 3.8.0 07/11/2026 21:00 limites de manuais e do Zabbix (RAM 90/95, discos 80/90)
 # Configuração do painel. Edite à vontade: o instalador nunca sobrescreve
 # este arquivo (use --forcar no mgp_detect.py para regenerar).
@@ -53,6 +54,7 @@ rede:
   ethernet_obrigatoria: false   # true = Ethernet caída gera aviso mesmo com Wi-Fi ativo
 
 ping: {host: 8.8.8.8, intervalo_s: 5, warn_ms: 20, crit_ms: 100}   # verde até 20 ms, âmbar até 100 ms, vermelho acima
+ip_publico: {ativo: sim, intervalo_s: 300}   # IP do roteador (WAN) pelo DNS da OpenDNS e hora da última mudança
 
 clima:
   cidade: "RIO DO SUL"

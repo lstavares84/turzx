@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-# MATRIX GREEN PRO | versão 3.6.0 | 08/11/2026 21:02 (-03) | disco pelo número de série e montagem de reserva (Claude, para Lucas Tavares)
+# MATRIX GREEN PRO | versão 3.7.0 | 13/11/2026 19:45 (-03) | IP público do roteador e hora da última mudança (Claude, para Lucas Tavares)
+# histórico: 3.6.0 08/11/2026 21:02 disco pelo número de série e montagem de reserva
 # histórico: 3.5.0 08/11/2026 13:26 (-03) | tamanho do quadro conforme a tela (3,5" ou 5,2") (Claude, para Lucas Tavares)
 # histórico: 3.4.0 07/11/2026 20:15 mudanças bruscas, total de TB, ping 20/100 ms e variantes do GAMMA DELTA
 # histórico: 3.3.0 07/11/2026 19:00 uso das baias e estilos gamma-delta e gamma-gamma-coluna; 3.2.0 07/11/2026 18:40 estilo de estudo na lista de estilos
@@ -392,6 +393,28 @@ def main():
         check("série completa (by-id) = disco", col._disco_por_serie("ata-ST2000DM006-2DM164_Z4Z95AL7", str(bid)) == "sda")
         check("só o número de série = disco", col._disco_por_serie("26075T800686", str(bid)) == "nvme0n1")
         check("série inexistente = None", col._disco_por_serie("ZZZ999", str(bid)) is None)
+        # IP público: hora da primeira vista, mantida enquanto não muda, trocada (e gravada) na mudança
+        arq = str(Path(d) / "ip.json")
+        resp = ["203.0.113.45"]
+        ipc = col.IpPublico(cfg, arquivo=arq, consulta=lambda: resp[0], iniciar=False)
+        r1 = ipc._read(agora=1000.0)
+        r2 = ipc._read(agora=2000.0)
+        check("IP público: primeira vista grava a hora", r1 == {"ip": "203.0.113.45", "desde": 1000.0, "mudou": False})
+        check("IP público igual mantém a hora", r2["desde"] == 1000.0)
+        resp[0] = "198.51.100.7"
+        r3 = col.IpPublico(cfg, arquivo=arq, consulta=lambda: resp[0], iniciar=False)._read(agora=3000.0)
+        check("IP público mudou: nova hora, sobrevive a reinício", r3 == {"ip": "198.51.100.7", "desde": 3000.0, "mudou": True})
+        resp[0] = None
+        try:
+            ipc._read(); falhou = False
+        except RuntimeError:
+            falhou = True
+        check("IP público sem resposta do DNS = erro (tela mostra N/D)", falhou)
+        sv = base(); sv["ip"] = {"ip": None}
+        check("IP público N/D na tela", vm_of(sv)["wan_ip"] == ("N/D", NA))
+        sv["ip"] = {"ip": "203.0.113.45", "desde": time.mktime((2026, 11, 13, 19, 29, 0, 0, 0, -1))}
+        check("IP público e hora da mudança na tela", vm_of(sv)["wan_ip"] == ("203.0.113.45", NEUTRAL)
+              and vm_of(sv)["wan_desde"] == ("13/11 19:29", NEUTRAL))
         pf = Path(d) / "watts"
         pf.write_text("245.5\n")
         cfg["energia"].update(fonte="arquivo", arquivo=str(pf), tipo_arquivo="tomada")

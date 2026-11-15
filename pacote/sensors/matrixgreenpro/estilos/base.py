@@ -1,4 +1,5 @@
-# MATRIX GREEN PRO | estilos alternativos | versão 4.0.0 | 08/11/2026 13:18 (-03) | criação original (Claude, para Lucas Tavares)
+# MATRIX GREEN PRO | estilos alternativos | versão 4.1.0 | 13/11/2026 19:40 (-03) | criação original (Claude, para Lucas Tavares)
+# histórico: 4.1.0 13/11/2026 19:40 iface_row sem as taxas (taxas=False), para dar lugar a outra informação
 # histórico: 4.0.0 08/11/2026 13:18 escala por tela (tela.py): 3,5" em 1x, 5,2" em 2,25x com fontes e traços na resolução real
 # histórico: 3.0.0-alfa 31/10/2026 23:40 criação
 # Base comum dos cinco estilos alternativos. Todos recebem o MESMO modelo de visão
@@ -296,16 +297,16 @@ def grid(c, step, colr, box=(0, 0, W - 1, int(HL) - 1)):
 
 
 def iface_row(c, v, key, y, x_tag, tag, x_state, x_right, f_tag, f_state, f_info, f_rates,
-              col, c_tag, c_info=None, c_rates=None, min_info_x=0):
+              col, c_tag, c_info=None, c_rates=None, min_info_x=0, taxas=True):
     """Linha ETH/WIFI padronizada: rótulo, estado, informação ajustada, taxas à direita."""
     d = v.raw(key, {"state": ("N/D", NA), "info": ("", NA), "rates": ("", NA)})
     if tag:
         c.text(f"{key}.tag", x_tag, y, tag, f_tag, c_tag)
     b = c.text(f"{key}.state", x_state, y, d["state"][0], f_state, col(d["state"][1]))
-    rb = c.text(f"{key}.rates", x_right, y, d["rates"][0], f_rates,
+    rb = c.text(f"{key}.rates", x_right, y, d["rates"][0] if taxas else "", f_rates,
                 c_rates or col(d["rates"][1]), anchor="rs")
     xi = max(b[2] + 6, min_info_x)
-    room = (rb[0] if d["rates"][0] else x_right) - 6 - xi
+    room = (rb[0] if d["rates"][0] and taxas else x_right) - 6 - xi
     ic = col(d["info"][1]) if (c_info is None or d["info"][1] != NEUTRAL) else c_info
     c.text(f"{key}.info", xi, y, c.fit(d["info"][0], f_info, room), f_info, ic)
     return d

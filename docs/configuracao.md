@@ -1,4 +1,5 @@
-<!-- docs/configuracao.md | versão 2.1.0 | 08/11/2026 21:03 (-03) | criação original (Claude, para Lucas Tavares). Fonte: pacote/sensors/matrixgreenpro/settings.py e pacote/extras/config.exemplo.yaml da v1.8.2. -->
+<!-- docs/configuracao.md | versão 2.2.0 | 13/11/2026 19:45 (-03) | criação original (Claude, para Lucas Tavares). Fonte: pacote/sensors/matrixgreenpro/settings.py e pacote/extras/config.exemplo.yaml da v1.8.2. -->
+<!-- histórico: 2.2.0 13/11/2026 19:45 IP público do roteador (ip_publico) -->
 <!-- histórico: 2.1.0 08/11/2026 21:03 discos pelo número de série -->
 <!-- histórico: 2.0.0 07/11/2026 22:24 limites com fontes, alertas 2 s e 5 min, discos via VeraCrypt, INTERNET ON/OFF, histórico de 24 h -->
 
@@ -109,10 +110,13 @@ cd ~/turing-smart-screen-linux && .venv/bin/python3 tools/mgp_baias.py
 | `rede.ethernet`, `rede.wifi` | `auto` | interfaces mostradas |
 | `rede.ethernet_obrigatoria` | `false` | `true` faz Ethernet caída gerar aviso mesmo com Wi-Fi ativo |
 | `ping.host` | `8.8.8.8` | destino do ping (intervalo de 5 s) |
+| `ip_publico.ativo` / `intervalo_s` | `sim` / 300 | IP público, o da WAN do roteador, e hora da última mudança |
 | `clima.cidade`, `latitude`, `longitude` | Rio do Sul (-27.2139, -49.6428) | local do clima no Open-Meteo |
 | `clima.intervalo_min` / `desatualizado_min` | 15 / 45 | frequência e idade máxima do dado |
 
 Sem nenhum enlace (nem Ethernet nem Wi-Fi) é sempre crítico. A internet é avaliada à parte, pelo ping: `INTERNET OK`, `INSTÁVEL`, `SEM INTERNET` ou `SEM REDE` (no GAMMA DELTA, `INTERNET ON` ou `INTERNET OFF`). O ping aparece com uma casa decimal.
+
+O **IP público** é perguntado a cada 5 minutos ao DNS da OpenDNS (`myip.opendns.com` em 208.67.222.222, reserva 208.67.220.220), que responde com o IP de origem da consulta: o mesmo da porta WAN do roteador quando a operadora não usa NAT duplo. Não precisa da senha do roteador. A hora da última mudança fica em `~/.local/state/matrixgreenpro/ip_publico.json` e sobrevive a reinícios; até a primeira mudança vista, ela é a hora em que o tema viu o IP pela primeira vez. É só informação, sem cor de alerta; sem resposta do DNS aparece `N/D`. O GAMMA DELTA mostra `WAN 177.0.239.244 13/11 19:29` ao lado do WIFI, no lugar das taxas do Wi-Fi.
 
 ## Energia e FPS
 

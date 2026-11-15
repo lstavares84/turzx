@@ -1,4 +1,5 @@
-# MATRIX GREEN PRO | versão 2.8.0 | 08/11/2026 21:01 (-03) | disco pelo número de série (sobrevive à formatação)
+# MATRIX GREEN PRO | versão 2.9.0 | 13/11/2026 19:40 (-03) | IP público (o do roteador) e hora da última mudança
+# histórico: 2.8.0 08/11/2026 21:01 disco pelo número de série (sobrevive à formatação)
 # histórico: 2.7.0 07/11/2026 22:03 discos e baias montados via VeraCrypt, LUKS ou LVM
 # histórico: 2.6.0 07/11/2026 21:00 motivos de redução de clock da GPU (NVML)
 # histórico: 2.5.0 07/11/2026 20:15 dispositivo de cada disco (para o total sem duplicar)
@@ -10,7 +11,7 @@
 # histórico: 1.0.0 31/10/2026 22:40 criação inicial
 # Coletores de métricas. Regras:
 #  * nenhum coletor bloqueia a transmissão para a tela: tudo que pode demorar
-#    (GPU, ping, clima, discos, energia por HTTP) roda em thread própria;
+#    (GPU, ping, IP público, clima, discos, energia por HTTP) roda em thread própria;
 #  * nada é inventado: sem medição o valor é None e a tela mostra N/D;
 #  * valor antigo nunca é exibido como atual (cada leitura tem carimbo de tempo).
 import csv
@@ -853,6 +854,103 @@ class Ping:
     def read(self):
         v = self.worker.get(max_age=self.interval * 3 + 5)
         return v if v is not None else {"ok": None, "ms": None}
+
+
+# ---------------------------------------------------------------- IP público (WAN do roteador)
+# Pergunta ao DNS da OpenDNS o nome especial myip.opendns.com, que responde com o IP de origem da consulta:
+# é o IP público, o mesmo da porta WAN do roteador quando não há NAT duplo. Sem senha do roteador e sem
+# serviço HTTP de terceiros. A hora da última mudança fica gravada em disco e sobrevive a reinícios; antes
+# da primeira mudança vista, ela é a hora em que o tema viu o IP pela primeira vez.
+def _dns_a(nome, servidor, timeout=3.0):
+    """Consulta DNS tipo A por UDP; devolve o primeiro IPv4 da resposta ou None."""
+    import random
+    import struct
+    qid = random.randint(0, 0xFFFF)
+    q = struct.pack(">HHHHHH", qid, 0x0100, 1, 0, 0, 0)
+    q += b"".join(bytes([len(p)]) + p.encode() for p in nome.split(".")) + b"\0" + struct.pack(">HH", 1, 1)
+    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as so:
+        so.settimeout(timeout)
+        so.sendto(q, (servidor, 53))
+        r, _ = so.recvfrom(512)
+    rid, flags, qd, an = struct.unpack(">HHHH", r[:8])
+    if rid != qid or flags & 0x000F or an == 0:
+        return None
+    i = 12
+    for _ in range(qd):                                     # pula a pergunta
+        while r[i]:
+            i += r[i] + 1
+        i += 5
+    for _ in range(an):
+        i += 2 if r[i] & 0xC0 == 0xC0 else (r.index(0, i) + 1 - i)
+        tipo, _cl, _ttl, n = struct.unpack(">HHIH", r[i:i + 10])
+        i += 10
+        if tipo == 1 and n == 4:
+            return socket.inet_ntoa(r[i:i + 4])
+        i += n
+    return None
+
+
+class IpPublico:
+    SERVIDORES = ("208.67.222.222", "208.67.220.220")       # resolver1 e resolver2.opendns.com
+    ARQUIVO = os.environ.get("MGP_IP_PUBLICO") or os.path.expanduser("~/.local/state/matrixgreenpro/ip_publico.json")
+
+    def __init__(self, cfg, arquivo=None, consulta=None, iniciar=True):
+        c = cfg.get("ip_publico", {})
+        self.ativo = str(c.get("ativo", "sim")).lower() not in ("nao", "não", "false", "0", "no")
+        self.interval = float(c.get("intervalo_s", 300))
+        self.arquivo = arquivo or self.ARQUIVO
+        self.consulta = consulta or self._consultar
+        self.estado = self._carregar()
+        self.worker = Worker("ip", self._read, self.interval)
+        if self.ativo and iniciar:
+            self.worker.start()
+
+    def _carregar(self):
+        try:
+            with open(self.arquivo, encoding="utf-8") as f:
+                d = json.load(f)
+            return {"ip": str(d["ip"]), "desde": float(d["desde"]), "mudou": bool(d.get("mudou"))}
+        except Exception:
+            return None
+
+    def _gravar(self):
+        try:
+            os.makedirs(os.path.dirname(self.arquivo), exist_ok=True)
+            tmp = self.arquivo + ".tmp"
+            with open(tmp, "w", encoding="utf-8") as f:
+                json.dump(self.estado, f)
+            os.replace(tmp, self.arquivo)
+        except Exception as e:
+            log(f"ip público: não gravou {self.arquivo}: {e}", "warning")
+
+    def _consultar(self):
+        for srv in self.SERVIDORES:
+            try:
+                ip = _dns_a("myip.opendns.com", srv)
+                if ip:
+                    return ip
+            except Exception:
+                continue
+        return None
+
+    def _read(self, agora=None):
+        ip = self.consulta()
+        if not ip:
+            raise RuntimeError("sem resposta do DNS da OpenDNS")
+        agora = time.time() if agora is None else agora
+        e = self.estado
+        if e is None or e["ip"] != ip:
+            if e is not None:
+                log(f"IP público mudou: {e['ip']} -> {ip}")
+            self.estado = {"ip": ip, "desde": agora, "mudou": e is not None}
+            self._gravar()
+        return dict(self.estado)
+
+    def read(self):
+        if not self.ativo:
+            return {"ativo": False}
+        v = self.worker.get(max_age=self.interval * 2 + 30)
+        return v if v is not None else {"ip": None}
 
 
 # ---------------------------------------------------------------- Clima (Open-Meteo)

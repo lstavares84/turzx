@@ -1,4 +1,5 @@
-# GAMMA DELTA | motor do GAMMA DELTA e das variantes | versão 0.5.0 | 08/11/2026 13:31 (-03) | criação original (Claude, para Lucas Tavares)
+# GAMMA DELTA | motor do GAMMA DELTA e das variantes | versão 0.6.0 | 13/11/2026 19:40 (-03) | criação original (Claude, para Lucas Tavares)
+# histórico: 0.6.0 13/11/2026 19:40 IP público do roteador e hora da última mudança ao lado do WIFI (P["wan"])
 # histórico: 0.5.0 08/11/2026 13:31 hexágono do total na resolução real da tela (escala da 5,2")
 # histórico: 0.4.1 08/11/2026 07:35 disco desmontado mostra só a palavra, sem tarjas vazias
 # histórico: 0.4.0 07/11/2026 22:03 traço do hexágono do total 30 % mais fino (3,5 px, desenhado em 4x)
@@ -297,8 +298,17 @@ def render(vm, P):
     T.par("net.rx", tb[0] - 8, y, "RX", "net_rx", fv=F["s"], right=True)
     for key, tag in (("eth", "ETH"), ("wifi", "WIFI")):
         y += step
-        iface_row(c, v, key, y, 6, tag, 44, 314, F["xs"], F["sb"], F["xs"], F["xs"], col, P["sub"],
-                  c_info=P["white"], c_rates=P["white"])
+        x_dir = 314
+        wan = P.get("wan") and key == "wifi" and v.raw("wan_ip", ("", NA))[0]
+        if wan:                                                 # IP público e hora da última mudança, no lugar das taxas
+            t, lv = v("wan_desde")
+            b = c.text("wan.desde", x_dir, y, t, F["xs"], P["sub"], anchor="rs") if t else (x_dir, y, x_dir + 4, y)
+            t, lv = v("wan_ip")
+            b = c.text("wan.ip", b[0] - 4, y, t, F["sb"], P["white"] if lv != NA else P["sub"], anchor="rs")
+            b = c.text("wan.lab", b[0] - 4, y, "WAN", F["xs"], P["sub"], anchor="rs")
+            x_dir = b[0] - 6
+        iface_row(c, v, key, y, 6, tag, 44, x_dir, F["xs"], F["sb"], F["xs"], F["xs"], col, P["sub"],
+                  c_info=P["white"], c_rates=P["white"], taxas=not wan)
 
     _rodape(c, v, P, col, F, y + 6)
     if P.get("bloom"):

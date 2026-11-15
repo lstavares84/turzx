@@ -1,4 +1,5 @@
-# MATRIX GREEN PRO | versão 3.7.0 | 08/11/2026 13:21 (-03) | tela de 3,5" ou 5,2" (tela.py)
+# MATRIX GREEN PRO | versão 3.8.0 | 13/11/2026 19:40 (-03) | IP público do roteador e hora da última mudança
+# histórico: 3.7.0 08/11/2026 13:21 tela de 3,5" ou 5,2" (tela.py)
 # histórico: 3.6.0 07/11/2026 21:00 demonstração do LOG de alertas
 # histórico: 3.5.0 07/11/2026 20:20 demonstração de mudanças bruscas e do registro
 # histórico: 3.4.0 07/11/2026 19:10 histórico de 24 h para os gráficos (historico.py)
@@ -80,6 +81,8 @@ def demo_snapshot(scenario="normal"):
         "os": "DEBIAN 13 TRIXIE",
         "uptime": 2 * 86400 + 5 * 3600 + 18 * 60,
         "ping": {"ok": True, "ms": 95.0} if att else ({"ok": True, "ms": 34.0} if crit else {"ok": True, "ms": 18.0}),
+        # IP de documentação (RFC 5737), nunca um IP real
+        "ip": {"ip": "203.0.113.45", "desde": now - (180 if crit else 3 * 86400 + 7200), "mudou": True},
         "weather": {"state": "OK", "temp": 22.0, "desc": "NUBLADO", "ts": now - 600},
         "power": {"state": "ND"},
         "coleta": {"esperados": 8, "falhas": []},
@@ -118,6 +121,7 @@ class Engine:
             self.baias = col.Baias(self.cfg)
             self.net = col.Net(self.cfg)
             self.ping = col.Ping(self.cfg)
+            self.ip = col.IpPublico(self.cfg)
             self.weather = col.Weather(self.cfg)
             self.power = col.Power(self.cfg)
             from .historico import Historico
@@ -163,6 +167,7 @@ class Engine:
         get("baias", self.baias.read, "BAIAS", None, counted=False)     # recurso opcional: só existe com o gabinete USB
         get("net", self.net.read, "REDE", {"eth": {"exists": False}, "wifi": {"exists": False}})
         get("ping", self.ping.read, "PING", {"ok": None})
+        get("ip", self.ip.read, "IP", {"ip": None}, counted=False)     # só informação
         get("weather", self.weather.read, "CLIMA", {"state": "ND"})
         get("power", self.power.read, "ENERGIA", {"state": "ND"}, counted=self.power.kind != "none")
         s["os"], s["uptime"] = col.os_name(), col.uptime_s()

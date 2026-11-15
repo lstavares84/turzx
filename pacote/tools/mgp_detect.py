@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-# MATRIX GREEN PRO | versão 3.4.0 | 08/11/2026 21:01 (-03) | grava o número de série de cada disco (sobrevive à formatação)
+# MATRIX GREEN PRO | versão 3.5.0 | 13/11/2026 19:45 (-03) | linha ip_publico no config.yaml gerado
+# histórico: 3.4.0 08/11/2026 21:01 grava o número de série de cada disco (sobrevive à formatação)
 # histórico: 3.3.0 07/11/2026 21:00 limites de manuais e do Zabbix (RAM 90/95, discos 80/90)
 # histórico: 3.2.0 07/11/2026 20:15 ping verde até 20 ms, âmbar até 100 ms
 # histórico: 3.1.0 01/11/2026 10:55 linha painel.estilo no modelo
@@ -149,6 +150,7 @@ rede:
   ethernet_obrigatoria: false   # true = Ethernet caída gera aviso mesmo com Wi-Fi ativo
 
 ping: {{host: 8.8.8.8, intervalo_s: 5, warn_ms: 20, crit_ms: 100}}
+ip_publico: {{ativo: sim, intervalo_s: 300}}   # IP do roteador (WAN) pelo DNS da OpenDNS e hora da última mudança
 
 clima:
   cidade: "RIO DO SUL"

@@ -1,4 +1,5 @@
-<!-- docs/estilos.md | versão 2.2.0 | 08/11/2026 13:30 (-03) | criação original (Claude, para Lucas Tavares). Fonte: código da v1.8.2 (estilos/, reator_gamma.py, alerts.py) e histórico do projeto. -->
+<!-- docs/estilos.md | versão 2.3.0 | 13/11/2026 19:45 (-03) | criação original (Claude, para Lucas Tavares). Fonte: código da v1.8.2 (estilos/, reator_gamma.py, alerts.py) e histórico do projeto. -->
+<!-- histórico: 2.3.0 13/11/2026 19:45 DELTA com o IP público (WAN) ao lado do WIFI -->
 <!-- histórico: 2.2.0 08/11/2026 13:30 seção da tela de 5,2" (mesmo desenho em escala 2,25) -->
 <!-- histórico: 2.1.0 08/11/2026 12:35 protótipo GAMMA EPSILON nos estudos -->
 <!-- histórico: 2.0.0 07/11/2026 22:24 revisão para a v1.8.2: paleta com códigos, GAMMA DELTA reescrito, estudos atuais -->
@@ -115,7 +116,7 @@ O GAMMA GAMMA reorganizado, com gráficos de 24 h, alertas em destaque e um LOG.
 - **Discos** com uso, percentual e livre; o canto direito do grupo traz o **total de todos os HDs** (discos e baias montadas, cada dispositivo uma vez, inclusive VeraCrypt e LUKS) num hexágono cujo contorno se enche com o uso, com o percentual e o total usado no centro.
 - **TERRAMASTER** com uso nas baias montadas: `1 6.24/11.99TB (52%)`. A cor do percentual segue os limites dos discos, só como informação (não entra na saúde).
 - **Refrigeração numa linha:** BOMBA, RAD, SQUAMA (INF e LAT estão em série; mostra a entrada que tem leitura) e TRA, com a PLACA no título.
-- **REDE** com PING de uma casa decimal e `INTERNET ON` ou `OFF` no título.
+- **REDE** com PING de uma casa decimal e `INTERNET ON` ou `OFF` no título; ao lado do WIFI, o IP público do roteador e a hora da última mudança (`WAN 177.0.239.244 13/11 19:29`).
 - **LOG** no rodapé: os últimos alertas âmbar e vermelhos, com hora, item e leitura (a volta ao verde não entra); relógio, data, tempo ligado e clima à direita.
 - Selo `DELTA` com a versão.
 

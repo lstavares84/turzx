@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-# GAMMA NOBREAK | nobreak/nobreak_tela.py | versão 0.1.0 | 21/11/2026 10:17 (-03) | criação original (Claude, para Lucas Tavares)
+# GAMMA NOBREAK | nobreak/nobreak_tela.py | versão 0.2.0 | 21/11/2026 10:31 (-03) | criação original (Claude, para Lucas Tavares)
+# histórico: 0.2.0 21/11/2026 10:31 tag MINERANDO pelo processo do minerador; dados separados por minerando ou não
 # histórico: 0.1.0 21/11/2026 10:17 criação: tela de 5,2" em paisagem só com o nobreak Ragtech 4162, log em CSV
 #
 # Tela exclusiva do nobreak na TURZX / Turing de 5,2" (720x1280, revisão TUR_USB, USB 1cbe:0050), em PAISAGEM
@@ -9,6 +10,8 @@
 #   tela:    biblioteca do turing-smart-screen-python (LcdCommTuringUSB), sem uma segunda instância do programa.
 #   cores:   só os próprios alarmes do nobreak decidem âmbar e vermelho (nenhum limite inventado aqui).
 #   log:     ~/.local/state/nobreak/nobreak-AAAA-MM-DD.csv (uma linha por leitura) e nobreak-eventos.log.
+#   mineração: o computador está minerando quando um processo da lista MINERADORES está rodando (nome do processo
+#            ou do executável, sem diferenciar maiúsculas). A lista muda com --mineradores ou NOBREAK_MINERADORES.
 # Uso:
 #   python3 nobreak_tela.py                      tela + log (o serviço systemd roda assim)
 #   python3 nobreak_tela.py --previa saida.png   desenha um quadro com a leitura real e sai (não usa a tela)
@@ -41,6 +44,11 @@ JANELA = 900                      # pontos guardados para os gráficos (15 min a
 BG, PAINEL, LINHA = (3, 10, 4), (8, 22, 10), (35, 75, 35)
 VERDE, GELO, BRANCO, SUB = (120, 255, 90), (190, 255, 170), (230, 255, 225), (110, 170, 110)
 AMBAR, VERMELHO = (255, 190, 0), (255, 60, 50)
+
+# processos de mineração reconhecidos (nomes usuais dos mineradores, inclusive os que o Kryptex usa por baixo)
+MINERADORES = ["kryptex", "xmrig", "lolminer", "gminer", "t-rex", "nbminer", "teamredminer", "srbminer-multi",
+               "bzminer", "rigel", "onezerominer", "nanominer", "excavator", "ethminer", "wildrig"]
+CINZA = (70, 95, 70)
 
 # alarmes do próprio nobreak (texto do ragtech_read.py) -> nível
 CRITICOS = {"bateria esgotada", "sobrecarga", "saida anormal", "falha inversor", "curto-circuito", "superaquecimento",
@@ -90,13 +98,14 @@ class Demo:
     """Dados de demonstração (quadro de prévia): rede normal com uma queda curta no meio da janela."""
 
     def __init__(self):
-        self.t = 0
+        self.t, self.minerando = 0, False
 
     def ler(self):
         self.t += 1
         ob = 380 < self.t % 900 < 470
+        self.minerando = 150 < self.t % 900 < 640
         vin = 0.0 if ob else 118 + 3 * math.sin(self.t / 40) + random.uniform(-0.6, 0.6)
-        a = 1.9 + 0.5 * math.sin(self.t / 25) + random.uniform(-0.05, 0.05)
+        a = 1.9 + 0.5 * math.sin(self.t / 25) + random.uniform(-0.05, 0.05) + (2.4 if self.minerando else 0)
         bat = 100.0 if not ob else 100 - (self.t % 900 - 380) * 0.2
         d = {"hora": time.strftime("%Y-%m-%d %H:%M:%S"), "modelo_id": 6, "modelo": "Easy 1200 TI", "firmware": 1.2,
              "entrada_V": round(vin, 1), "saida_V": round(115 + random.uniform(-0.4, 0.4), 1), "saida_A": round(a, 2),
@@ -110,9 +119,34 @@ class Demo:
         pass
 
 
+class Mineracao:
+    """Diz se algum minerador da lista está rodando, olhando /proc (nome do processo e do executável)."""
+
+    def __init__(self, nomes):
+        self.nomes = [n.strip().lower() for n in nomes if n.strip()]
+        self.qual = ""
+
+    def ativa(self):
+        for pid in os.listdir("/proc"):
+            if not pid.isdigit():
+                continue
+            try:
+                comm = Path(f"/proc/{pid}/comm").read_text().strip().lower()
+                arg0 = Path(f"/proc/{pid}/cmdline").read_bytes().split(b"\0")[0].decode(errors="ignore")
+            except OSError:
+                continue
+            exe = os.path.basename(arg0).lower()
+            for n in self.nomes:
+                if comm == n[:15] or exe == n or exe.startswith(n + ".") or exe.startswith(n + "-"):
+                    self.qual = os.path.basename(arg0) or comm
+                    return True
+        self.qual = ""
+        return False
+
+
 # ---------------------------------------------------------------- estado, eventos e log
 class Registro:
-    CAMPOS = ["data_hora", "entrada_V", "saida_V", "saida_A", "potencia_W", "carga_%", "carga_fw_%", "freq_Hz",
+    CAMPOS = ["data_hora", "minerando", "entrada_V", "saida_V", "saida_A", "potencia_W", "carga_%", "carga_fw_%", "freq_Hz",
               "bateria_%", "bateria_V", "temp_C", "status", "modelo", "firmware"]
 
     def __init__(self, pasta):
@@ -124,7 +158,61 @@ class Registro:
         self.dia, self.quedas, self.s_bateria = time.strftime("%Y-%m-%d"), 0, 0.0
         self.t_ant, self.leituras, self.falhas = None, 0, 0
         self.min_max = {}
+        self.min_ant = None
+        self.cmp = {True: {}, False: {}}          # somas do dia por categoria: minerando e sem mineração
         self._carregar_eventos()
+        self._retomar_dia()
+
+    COMPARAR = ("potencia_W", "carga_%", "saida_A", "temp_C", "entrada_V")
+
+    def _somar(self, minerando, d, dt):
+        c = self.cmp[minerando]
+        c["s"] = c.get("s", 0.0) + dt
+        c["n"] = c.get("n", 0) + 1
+        for k in self.COMPARAR:
+            if k == "entrada_V" and str(d.get("status", "")).startswith("OB"):
+                continue
+            c[k] = c.get(k, 0.0) + float(d[k])
+            c[k + "#"] = c.get(k + "#", 0) + 1
+        c["pico"] = max(c.get("pico", 0.0), float(d["potencia_W"]))
+
+    def media(self, minerando, k):
+        c = self.cmp[minerando]
+        return c[k] / c[k + "#"] if c.get(k + "#") else None
+
+    def _retomar_dia(self):
+        """Depois de reiniciar, recupera do CSV e do log de eventos de hoje as somas, os mínimos e máximos e as quedas."""
+        p = self.pasta / f"nobreak-{self.dia}.csv"
+        if p.exists():
+            try:
+                with open(p, newline="", encoding="utf-8") as f:
+                    linhas = list(csv.DictReader(f, delimiter=";"))
+                t_ant = None
+                for r in linhas:
+                    if "minerando" not in r:
+                        break
+                    t = time.mktime(time.strptime(r["data_hora"], "%d/%m/%Y %H:%M:%S"))
+                    dt = min(t - t_ant, 10) if t_ant else 1.0
+                    t_ant = t
+                    d = {k: float(r[k]) for k in self.COMPARAR}
+                    d["potencia_W"], d["status"] = float(r["potencia_W"]), r["status"]
+                    self._somar(r["minerando"] == "sim", d, dt)
+                    for k in ("entrada_V", "saida_V", "potencia_W", "freq_Hz", "bateria_V", "temp_C"):
+                        if k == "entrada_V" and r["status"].startswith("OB"):
+                            continue
+                        v = float(r[k]); lo, hi = self.min_max.get(k, (v, v))
+                        self.min_max[k] = (min(lo, v), max(hi, v))
+                    if r["status"].startswith("OB"):
+                        self.s_bateria += dt
+            except (ValueError, KeyError, OSError) as e:
+                log(f"não consegui retomar o CSV de hoje: {e}")
+        ev = self.pasta / "nobreak-eventos.log"
+        if ev.exists():
+            hoje = time.strftime("%d/%m/%Y")
+            for linha in ev.read_text(encoding="utf-8").splitlines():
+                if linha.startswith(hoje) and "FOI PARA A BATERIA" in linha:
+                    self.quedas += 1
+                    self.ultima_queda = time.mktime(time.strptime(linha[:19], "%d/%m/%Y %H:%M:%S"))
 
     def _carregar_eventos(self):
         p = self.pasta / "nobreak-eventos.log"
@@ -145,13 +233,20 @@ class Registro:
             self.evento(f"LEITURA FALHOU: {motivo}")
             self.flags_ant = "FALHA"
 
-    def anotar(self, d):
+    def anotar(self, d, minerando=False, qual=""):
         agora = time.time()
         hoje = time.strftime("%Y-%m-%d")
         if hoje != self.dia:                          # virada do dia: zera os contadores do dia
             self.dia, self.quedas, self.s_bateria, self.min_max = hoje, 0, 0.0, {}
+            self.cmp = {True: {}, False: {}}
         d = dict(d)
         d["potencia_W"] = round(d["saida_V"] * d["saida_A"], 1)
+        d["minerando"] = "sim" if minerando else "não"
+        if self.min_ant is not None and minerando != self.min_ant:
+            self.evento(f"COMEÇOU A MINERAR ({qual}, {d['potencia_W']:.0f} W)" if minerando
+                        else f"PAROU DE MINERAR ({d['potencia_W']:.0f} W)")
+        self.min_ant = minerando
+        self._somar(minerando, d, min(agora - self.t_ant, 10) if self.t_ant else 1.0)
         ob = d["status"].startswith("OB")
         flags = tuple(sorted(x.strip() for x in d["status"].split(";")[1:] if x.strip()))
         estado = ("OB" if ob else "OL",) + flags
@@ -189,6 +284,10 @@ class Registro:
 
     def _csv(self, d):
         p = self.pasta / f"nobreak-{self.dia}.csv"
+        if p.exists():                                # CSV de uma versão anterior (sem a coluna minerando)
+            with open(p, encoding="utf-8") as f:
+                if f.readline().strip().split(";") != self.CAMPOS:
+                    p.rename(p.with_name(p.stem + "-sem-mineracao.csv"))
         novo = not p.exists()
         with open(p, "a", newline="", encoding="utf-8") as f:
             w = csv.writer(f, delimiter=";")
@@ -229,7 +328,7 @@ def _nivel(flags):
     return None
 
 
-def desenhar(reg, F, ultimo, erro, intervalo):
+def desenhar(reg, F, ultimo, erro, intervalo, minerando=False, qual=""):
     im = Image.new("RGB", (W, H), BG)
     dr = ImageDraw.Draw(im)
     txt = lambda xy, s, f, c, a="ls": dr.text(xy, s, font=f, fill=c, anchor=a)
@@ -241,8 +340,10 @@ def desenhar(reg, F, ultimo, erro, intervalo):
 
     # ---- cabeçalho
     txt((20, 44), "NOBREAK", F("jb", 34), VERDE)
-    if d:
-        txt((210, 44), f"Ragtech {d['modelo']} | firmware {d['firmware']}", F("rb", 20, "Regular"), SUB)
+    tx0, tx1 = 250, 600                               # tag da mineração
+    cor_m = GELO if minerando else CINZA
+    dr.rounded_rectangle((tx0, 8, tx1, 58), 8, fill=(18, 52, 22) if minerando else BG, outline=cor_m, width=3)
+    txt(((tx0 + tx1) // 2, 46), "MINERANDO" if minerando else "SEM MINERAÇÃO", F("jb", 30), cor_m, "ms")
     if erro and not d:
         cor_st, rot = VERMELHO, "SEM LEITURA"
     elif ob:
@@ -307,25 +408,45 @@ def desenhar(reg, F, ultimo, erro, intervalo):
     cor_t = VERMELHO if "superaquecimento" in flags else BRANCO
     bloco(442, y2, 199, h2, "TEMPERATURA", (f"{d['temp_C']}" if d else "--"), "°C", cor_t, faixa("temp_C", "°C"))
 
-    x3 = 653
-    dr.rounded_rectangle((x3, y2, 1260, y2 + h2), 10, fill=PAINEL, outline=LINHA, width=2)
+    x3, x4 = 653, 940
+    dr.rounded_rectangle((x3, y2, x4 - 12, y2 + h2), 10, fill=PAINEL, outline=LINHA, width=2)
     txt((x3 + 14, y2 + 30), "HOJE", F("rb", 20), SUB)
     linhas = [("quedas de energia", str(reg.quedas)), ("tempo na bateria", _dur(reg.s_bateria)),
-              ("última queda", time.strftime("%d/%m %H:%M", time.localtime(reg.ultima_queda)) if reg.ultima_queda else "nenhuma")]
+              ("última queda", time.strftime("%H:%M", time.localtime(reg.ultima_queda)) if reg.ultima_queda else "nenhuma")]
     if ob and reg.ob_desde:
         linhas.insert(0, ("NA BATERIA HÁ", _dur(time.time() - reg.ob_desde)))
-    for i, (a, b) in enumerate(linhas[:4]):
+    if flags:                                         # alarmes do nobreak na última linha
+        fl = flags[0].upper() + (f" +{len(flags) - 1}" if len(flags) > 1 else "")
+        linhas = linhas[:3] + [("alarme", fl)]
+    else:
+        linhas = linhas[:3] + [("alarmes", "nenhum")]
+    for i, (a, b) in enumerate(linhas):
         yy = y2 + 62 + i * 28
-        cor = AMBAR if a.startswith("NA BATERIA") else BRANCO
-        txt((x3 + 14, yy), a, F("rb", 20, "Regular"), SUB if cor == BRANCO else cor)
-        txt((x3 + 290, yy), b, F("jb", 22), cor, "rs")
-    xa = x3 + 310
-    txt((xa, y2 + 30), "ALARMES DO NOBREAK", F("rb", 20), SUB)
-    if not flags:
-        txt((xa, y2 + 64), "nenhum", F("jb", 22), VERDE)
-    for i, f in enumerate(flags[:4]):
-        cor = VERMELHO if f in CRITICOS else AMBAR
-        txt((xa, y2 + 64 + i * 28), f"■ {f.upper()}", F("jb", 20), cor)
+        cor = AMBAR if a.startswith("NA BATERIA") else (alerta or AMBAR) if a == "alarme" else \
+            VERDE if b == "nenhum" and a == "alarmes" else BRANCO
+        txt((x3 + 14, yy), a, F("rb", 19, "Regular"), SUB if cor in (BRANCO, VERDE) else cor)
+        fb = F("jb", 20)
+        while dr.textlength(b, font=fb) > x4 - 26 - (x3 + 170) and len(b) > 3:
+            b = b[:-2] + "…"
+        txt((x4 - 26, yy), b, fb, cor, "rs")
+
+    # comparação do dia: minerando x sem mineração
+    dr.rounded_rectangle((x4, y2, 1260, y2 + h2), 10, fill=PAINEL, outline=LINHA, width=2)
+    txt((x4 + 14, y2 + 30), "MÉDIAS", F("rb", 20), SUB)
+    c1, c2 = 1150, 1246
+    txt((c1, y2 + 30), "MINERANDO", F("jb", 15), GELO, "rs")
+    txt((c2, y2 + 30), "SEM", F("jb", 15), SUB, "rs")
+    fmt = lambda x, f: "--" if x is None else f.format(x)
+    tab = [("tempo", _dur(reg.cmp[True].get("s", 0)), _dur(reg.cmp[False].get("s", 0))),
+           ("potência", fmt(reg.media(True, "potencia_W"), "{:.0f} W"), fmt(reg.media(False, "potencia_W"), "{:.0f} W")),
+           ("pico", fmt(reg.cmp[True].get("pico"), "{:.0f} W"), fmt(reg.cmp[False].get("pico"), "{:.0f} W")),
+           ("carga", fmt(reg.media(True, "carga_%"), "{:.0f}%"), fmt(reg.media(False, "carga_%"), "{:.0f}%")),
+           ("temperatura", fmt(reg.media(True, "temp_C"), "{:.0f}°C"), fmt(reg.media(False, "temp_C"), "{:.0f}°C"))]
+    for i, (a, b1, b2) in enumerate(tab):
+        yy = y2 + 56 + i * 24
+        txt((x4 + 14, yy), a, F("rb", 18, "Regular"), SUB)
+        txt((c1, yy), b1, F("jb", 18), GELO if minerando else BRANCO, "rs")
+        txt((c2, yy), b2, F("jb", 18), BRANCO if not minerando else SUB, "rs")
 
     # ---- gráficos dos últimos 15 minutos
     yg0, yg1 = 450, 676
@@ -350,6 +471,17 @@ def desenhar(reg, F, ultimo, erro, intervalo):
             for yy in range(gy0, gy1, 6):
                 dr.point((xx, yy), fill=LINHA)
         Y = lambda val: gy1 - (val - lo) / (hi - lo) * (gy1 - gy0)
+        mins = [p[1].get("minerando") == "sim" for p in pts]   # trechos minerando: faixa de fundo destacada
+        off0 = JANELA - len(mins)
+        i0 = None
+        for i, m in enumerate(mins + [False]):
+            if m and i0 is None:
+                i0 = i
+            elif not m and i0 is not None:
+                xa = gx0 + (gx1 - gx0) * (i0 + off0) / (JANELA - 1)
+                xb = gx0 + (gx1 - gx0) * (i - 1 + off0) / (JANELA - 1)
+                dr.rectangle((xa, gy0, max(xa + 1, xb), gy1), fill=(16, 44, 30))
+                i0 = None
         n = JANELA
         for nome, s, cor in series:
             trecho = []
@@ -376,7 +508,8 @@ def desenhar(reg, F, ultimo, erro, intervalo):
 
     # ---- rodapé
     pasta = str(reg.pasta).replace(str(Path.home()), "~")
-    estado = f"a cada {intervalo:g} s | {reg.leituras} leituras, {reg.falhas} falhas | log {pasta}/nobreak-{reg.dia}.csv"
+    modelo = f"Ragtech {d['modelo']} fw {d['firmware']} | " if d else ""
+    estado = f"{modelo}a cada {intervalo:g} s | {reg.leituras} leituras, {reg.falhas} falhas | log {pasta}/nobreak-{reg.dia}.csv"
     if erro:
         estado = f"ÚLTIMA LEITURA FALHOU: {erro}"
     fr = F("jb", 14, "Regular")
@@ -413,22 +546,27 @@ def main():
     ap.add_argument("--previa", help="grava um quadro em PNG e sai (não usa a tela)")
     ap.add_argument("--demo", action="store_true", help="dados de demonstração")
     ap.add_argument("--sem-tela", action="store_true", help="só lê e grava o log")
+    ap.add_argument("--mineradores", default=os.environ.get("NOBREAK_MINERADORES", ",".join(MINERADORES)),
+                    help="nomes de processo de mineração, separados por vírgula")
     a = ap.parse_args()
 
     ESTADO.mkdir(parents=True, exist_ok=True)
     F = Fontes(a.turing)
     fonte = Demo() if a.demo else Nobreak(a.leitor, a.va)
     reg = Registro(ESTADO / ("demo" if a.demo else ""))
+    mina = Mineracao(a.mineradores.split(","))
+    minerando = lambda: fonte.minerando if a.demo else mina.ativa()
 
     if a.previa:
-        n = 900 if a.demo else 3
+        n = 600 if a.demo else 3
         d, erro = None, None
         for _ in range(n):
             d, erro = fonte.ler()
+            m = minerando()
             if d:
-                d = reg.anotar(d) if not a.demo else _anotar_demo(reg, d)
+                d = reg.anotar(d, m, mina.qual) if not a.demo else _anotar_demo(reg, d, m)
         fonte.fechar()
-        desenhar(reg, F, d, erro, a.intervalo).save(a.previa)
+        desenhar(reg, F, d, erro, a.intervalo, m, mina.qual).save(a.previa)
         log(f"prévia gravada: {a.previa}" + (f" | erro: {erro}" if erro else ""))
         return 0
 
@@ -442,13 +580,14 @@ def main():
         while True:
             t0 = time.time()
             d, erro = fonte.ler()
+            m = minerando()
             if d:
-                ultimo = reg.anotar(d)
+                ultimo = reg.anotar(d, m, mina.qual)
             else:
                 reg.falha(erro)
             if lcd:
                 try:
-                    lcd.DisplayPILImage(desenhar(reg, F, ultimo if d else None, erro, a.intervalo))
+                    lcd.DisplayPILImage(desenhar(reg, F, ultimo if d else None, erro, a.intervalo, m, mina.qual))
                 except Exception as e:
                     log(f"falha ao enviar à tela: {type(e).__name__}: {e}")
                     time.sleep(5)
@@ -464,10 +603,10 @@ def main():
     return 0
 
 
-def _anotar_demo(reg, d):
+def _anotar_demo(reg, d, m):
     """Na demonstração, espalha as leituras pelos últimos 15 min sem gravar o CSV real."""
     reg._csv = lambda d: None
-    return reg.anotar(d)
+    return reg.anotar(d, m, "xmrig")
 
 
 if __name__ == "__main__":

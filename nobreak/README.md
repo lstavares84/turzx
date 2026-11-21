@@ -1,4 +1,5 @@
-<!-- nobreak/README.md | versão 1.3.0 | 21/11/2026 17:44 (-03) | criação original (Claude, para Lucas Tavares) -->
+<!-- nobreak/README.md | versão 1.4.0 | 21/11/2026 18:15 (-03) | criação original (Claude, para Lucas Tavares) -->
+<!-- histórico: 1.4.0 21/11/2026 18:15 potência real pela carga do firmware (conferida com tomada medidora) -->
 <!-- histórico: 1.3.0 21/11/2026 17:44 dinheiro acumulado (gasto, gerado, saldo), cotação automática do dólar, MINERANDO piscando -->
 <!-- histórico: 1.2.0 21/11/2026 10:48 histórico retomado ao reiniciar, gráficos por tempo, faixas da ANEEL e do fabricante -->
 <!-- histórico: 1.1.0 21/11/2026 10:33 tag MINERANDO e médias separadas por minerando ou não -->
@@ -18,7 +19,7 @@ A tela de 5,2" mostra só o nobreak Ragtech New Easy Pro NEP 1200 (modelo 4162),
 - Dinheiro acumulado desde a primeira execução: gasto com a energia enquanto minera, valor gerado pela mineração (estimado) e saldo, em reais e em dólares, mais o tempo total minerando e a energia total que passou pelo nobreak. Ao reiniciar, continua de onde parou.
 - Cotação do dólar, automática, com a fonte e a hora da cotação.
 - Médias de hoje separadas em minerando e sem mineração: tempo, potência média, pico, carga e temperatura, para comparar o comportamento.
-- Entrada, saída, frequência, corrente, potência (V x A), carga (com a carga informada pelo firmware), bateria (% e V) e temperatura, cada um com o valor atual, o mínimo, a média e o máximo do dia e a faixa de operação, com a situação (ADEQUADA, PRECÁRIA, CRÍTICA, NORMAL, FORA ou OK).
+- Entrada, saída, frequência, corrente, potência real (carga do firmware x 840 W), carga (V x A sobre 1200 VA, com a carga do firmware ao lado), bateria (% e V) e temperatura, cada um com o valor atual, o mínimo, a média e o máximo do dia e a faixa de operação, com a situação (ADEQUADA, PRECÁRIA, CRÍTICA, NORMAL, FORA ou OK).
 - Rede hoje: a parte do dia com a tensão de entrada adequada, precária e crítica, as quedas de energia e o tempo na bateria; durante uma queda, há quanto tempo está na bateria.
 - Os alarmes do próprio nobreak (bateria fraca, sobrecarga, superaquecimento e outros). Só eles decidem âmbar e vermelho; nenhum limite foi inventado aqui.
 - Gráficos dos últimos 15 minutos: tensão de entrada e de saída, potência e tensão da bateria, com o tempo minerando marcado por uma faixa mais clara.
@@ -41,7 +42,7 @@ A classificação na tela é da leitura instantânea e serve como indicação: a
 - Leitura: `ragtech_read.py`, do repositório `ragtech_4162` (só leitura, protocolo do driver `ragtech` do NUT). Este programa usa só a função `poll()` e nunca envia comando de escrita ao nobreak. A calibração dos valores é do leitor.
 - Tela: biblioteca do turing-smart-screen-python (`LcdCommTuringUSB`), sem uma segunda instância do programa. A tela de 3,5" continua com o serviço do Turing.
 - Mineração: o computador conta como minerando quando um processo de mineração conhecido está rodando (Kryptex, XMRig, lolMiner, GMiner, T-Rex, NBMiner, TeamRedMiner, SRBMiner, BzMiner, Rigel, OneZeroMiner, NanoMiner, Excavator, Ethminer, WildRig). Para trocar a lista: `--mineradores nome1,nome2` ou a variável `NOBREAK_MINERADORES`. Começar e parar de minerar entram no log de eventos.
-- Dinheiro: o acumulado fica em `~/.local/state/nobreak/acumulado.json`, gravado a cada 30 s e ao parar o serviço; ao iniciar, a tela continua dele. Gasto = energia medida na saída do nobreak enquanto minera x tarifa. Gerado = receita estimada pelo hashrate do SRBMiner (lido do log em `~/mineracao/logs`), pela receita de referência por dia a um hashrate de referência, o mesmo modelo do painel do chat da mineração. A tarifa (R$ 0,869/kWh, Celesc), a receita de referência (US$ 3,05/dia a 190 TH/s) e o câmbio de reserva vêm de `~/mineracao/painel.conf`, relido a cada minuto: mudou lá, muda aqui. Saldo = gerado - gasto; os valores em outra moeda usam a cotação do momento.
+- Dinheiro: o acumulado fica em `~/.local/state/nobreak/acumulado.json`, gravado a cada 30 s e ao parar o serviço; ao iniciar, a tela continua dele. Gasto = energia medida na saída do nobreak enquanto minera x tarifa (sem a COSIP, que é fixa na conta). Gerado = receita estimada pelo hashrate do SRBMiner (lido do log em `~/mineracao/logs`), pela receita de referência por dia a um hashrate de referência, o mesmo modelo do painel do chat da mineração. A tarifa (R$ 0,869/kWh, Celesc), a receita de referência (US$ 3,05/dia a 190 TH/s) e o câmbio de reserva vêm de `~/mineracao/painel.conf`, relido a cada minuto: mudou lá, muda aqui. Saldo = gerado - gasto; os valores em outra moeda usam a cotação do momento.
 - Cotação: dólar comercial (venda) da AwesomeAPI (`economia.awesomeapi.com.br`, gratuita, sem chave, com atraso de alguns minutos e só em dia útil), consultada a cada 10 min em segundo plano e guardada em `cotacao.json`. Sem internet, vale a última guardada; sem nenhuma, o câmbio do `painel.conf`.
 - Log: `~/.local/state/nobreak/nobreak-AAAA-MM-DD.csv`, uma linha por leitura, com a coluna `minerando` (sim ou não), separada por ponto e vírgula, com data e hora `dd/mm/aaaa HH:MM:SS`; eventos (quedas, volta da rede, alarmes, mineração, falhas de leitura) em `nobreak-eventos.log`.
 
@@ -62,3 +63,8 @@ Depois, com o usuário comum:
 Para parar: `./instalar.sh --parar`. Depois de reiniciar, o dia inteiro (mínimos, médias, máximos, tempos por faixa, mineração e quedas) e os últimos 15 minutos dos gráficos voltam do CSV e do log de eventos; o período desligado ou sem leitura fica em branco nos gráficos. Respostas embaralhadas do nobreak (modelo desconhecido) são descartadas e contadas como falha. A prévia (`--previa`) desenha a partir do log, sem abrir a porta do nobreak. Para ver um quadro sem usar a tela: `python3 nobreak_tela.py --previa quadro.png` (ou `--demo`).
 
 Só um programa por vez pode ler a porta serial do nobreak. Com o serviço ligado, use o CSV do log em vez de rodar o `ragtech_read.py` em paralelo.
+
+## Potência real
+
+A potência é a carga que o firmware do nobreak informa, em % de 840 W. Tensão x corrente da saída é potência aparente (VA), maior que a real: em 21/11/2026 às 18:05, com o PC minerando, a saída dava 109,4 V x 7,75 A = 848 VA, enquanto uma tomada medidora (Ekaza 20 A) entre a parede e o nobreak marcava 584 a 590 W (221 V, 2,79 A, fator de potência 0,95) e o firmware 68,8% x 840 W = 578 W. A diferença de 1,6% são as perdas do próprio nobreak, que a Celesc também cobra. A resolução é de 1% (8,4 W). Até a versão 0.4.0 a tela usava V x A; ao iniciar a 0.5.0, o acumulado de energia e gasto é refeito uma vez a partir dos CSV, e as linhas antigas do log são relidas com a regra nova.
+

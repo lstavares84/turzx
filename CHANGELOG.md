@@ -1,4 +1,4 @@
-<!-- CHANGELOG | GAMMA | versão 2.5.0 | 21/11/2026 18:10 (-03) | criação original (Claude, para Lucas Tavares) -->
+<!-- CHANGELOG | GAMMA | versão 2.6.0 | 21/11/2026 18:15 (-03) | criação original (Claude, para Lucas Tavares) -->
 <!-- histórico: 1.0.0 02/11/2026 19:15 primeira versão do histórico -->
 
 # Histórico de versões
@@ -7,6 +7,7 @@ Segue [SemVer](https://semver.org/lang/pt-BR/) (MAJOR.MINOR.PATCH). Os estilos (
 
 ## [Não lançado]
 
+- Correção na tela do nobreak: a potência passa a ser a carga do firmware x 840 W (potência real). Antes era tensão x corrente da saída, que é potência aparente (VA) e superestimava o consumo em cerca de 45% (848 contra 587 W reais na tomada medidora em 21/11/2026), e com ela o gasto com energia da mineração. Log, médias, gráficos e o acumulado de energia e gasto foram refeitos com a regra nova.
 - Tela do nobreak: gasto com energia enquanto minera, valor gerado pela mineração (estimado pelo hashrate, com a receita de referência do `~/mineracao/painel.conf`) e saldo, em reais e dólares, acumulados em `acumulado.json` e retomados ao reiniciar; cotação automática do dólar (AwesomeAPI, a cada 10 min, com cache). MINERANDO pisca na tela do nobreak e na tela de mineração do GAMMA EPSILON.
 - GAMMA EPSILON ganha a tela de mineração: com um minerador rodando (a mesma lista de processos da tela do nobreak), ela entra no lugar da rotação, do backup e de um alerta vermelho. Saúde do hardware em barras com as marcas de aviso e de limite (GPU: temperatura, potência contra o limite em vigor, ventoinha e VRAM; CPU e sistema: temperatura, uso e RAM), clock ou motivo da redução, bomba e radiador; produção do SRBMiner-MULTI lida do próprio log (hashrate, média de 15 min, rejeição, shares, pool, latência, última share e gráfico de 60 min). Sem dados de energia: ficam na tela de 5,2". Nova seção `mineracao` no `config.yaml`.
 - Tela do nobreak (`nobreak/`): a TURZX de 5,2" em paisagem (1280x720) só com o nobreak Ragtech NEP 1200 (4162), lida a cada 1 s pelo `ragtech_read.py` (só leitura), com gráficos de 15 min, contadores do dia, alarmes do próprio nobreak e log em CSV e de eventos em `~/.local/state/nobreak`. Serviço systemd de usuário próprio, separado do Turing da tela de 3,5".

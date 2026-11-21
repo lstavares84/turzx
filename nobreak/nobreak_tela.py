@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-# GAMMA NOBREAK | nobreak/nobreak_tela.py | versão 0.4.0 | 21/11/2026 17:41 (-03) | criação original (Claude, para Lucas Tavares)
+# GAMMA NOBREAK | nobreak/nobreak_tela.py | versão 0.5.0 | 21/11/2026 18:15 (-03) | criação original (Claude, para Lucas Tavares)
+# histórico: 0.5.0 21/11/2026 18:15 potência real = carga do firmware x 840 W (antes: tensão x corrente da saída, que é
+#            potência aparente em VA e dava 848 "W" contra 587 W reais na tomada medidora); log, médias, gráficos e
+#            acumulado refeitos com a regra nova
 # histórico: 0.4.0 21/11/2026 17:41 energia gasta, receita estimada da mineração e saldo, acumulados em acumulado.json
 #            (continuam de onde pararam); cotação automática do dólar (AwesomeAPI, a cada 10 min, com cache);
 #            MINERANDO pisca
@@ -85,6 +88,17 @@ PRODIST_TENSAO = {220: {"adequada": (202, 231), "precaria": (191, 233)},
 PRODIST_FREQ = {"normal": (59.9, 60.1), "disturbio": (59.5, 60.5)}     # itens 65 e 66
 FAB_SAIDA_V = (115 * 0.98, 115 * 1.02)                                # saída 115 V, regulação +/- 2 %
 FAB_POTENCIA_W, FAB_CARGA = 840, 100                                  # 1200 VA / 840 W
+
+
+def potencia_real(d):
+    """Potência real (W) consumida pela saída do nobreak: a carga que o firmware informa (% de 840 W).
+    Tensão x corrente da saída é potência APARENTE (VA): em 21/11/2026 18:05 dava 848 VA, enquanto a tomada
+    medidora na parede marcava 587 W e o firmware 68,8% x 840 = 578 W (a diferença de 1,6% são as perdas do
+    nobreak). Sem a carga do firmware, fica a aparente (o valor de antes), que superestima o consumo."""
+    fw = d.get("carga_fw_%")
+    if fw is not None and fw >= 0:
+        return round(float(fw) * FAB_POTENCIA_W / 100.0, 1)
+    return round(d["saida_V"] * d["saida_A"], 1)
 PAINEL_CONF = Path.home() / "mineracao" / "painel.conf"            # tarifa, receita de referência e câmbio de reserva
 LOG_MINERADOR = str(Path.home() / "mineracao" / "logs" / "mineracao_*.log")
 URL_COTACAO = "https://economia.awesomeapi.com.br/json/last/USD-BRL"
@@ -296,6 +310,41 @@ class Financas:
         except (OSError, ValueError):
             pass
         self.cfg, self.cfg_t, self.salvo_t = ler_painel_conf(), time.time(), 0.0
+        if self.a.get("potencia") != "carga_fw" and self.gravar:
+            self.recalcular_energia()
+
+    def recalcular_energia(self):
+        """Uma vez só: refaz energia e gasto acumulados com a potência real, a partir dos CSV desde 'desde'
+        (o acumulado antigo usava a potência aparente). A receita estimada não muda."""
+        tarifa = self.cfg["TARIFA_BRL_KWH"] or 0.0
+        k_tot = k_min = 0.0
+        dia = time.strftime("%Y-%m-%d", time.localtime(self.a["desde"]))
+        hoje = time.strftime("%Y-%m-%d")
+        t_ant = None
+        while dia <= hoje:
+            p = self.arq.parent / f"nobreak-{dia}.csv"
+            try:
+                with open(p, newline="", encoding="utf-8") as f:
+                    for r in csv.DictReader(f, delimiter=";"):
+                        try:
+                            t = time.mktime(time.strptime(r["data_hora"], "%d/%m/%Y %H:%M:%S"))
+                            w = potencia_real({"carga_fw_%": float(r["carga_fw_%"]), "saida_V": float(r["saida_V"]),
+                                               "saida_A": float(r["saida_A"])})
+                        except (ValueError, KeyError):
+                            continue
+                        if t >= self.a["desde"] and t_ant is not None and 0 < t - t_ant <= LACUNA_S:
+                            kwh = w * (t - t_ant) / 3.6e6
+                            k_tot += kwh
+                            if r.get("minerando") == "sim":
+                                k_min += kwh
+                        t_ant = t
+            except OSError:
+                pass
+            dia = time.strftime("%Y-%m-%d", time.localtime(time.mktime(time.strptime(dia, "%Y-%m-%d")) + 86400 + 3600))
+        log(f"acumulado refeito com a potência real: {self.a['kwh_total']:.3f} -> {k_tot:.3f} kWh "
+            f"(minerando {self.a['kwh_min']:.3f} -> {k_min:.3f} kWh)")
+        self.a.update(kwh_total=k_tot, brl_total=k_tot * tarifa, kwh_min=k_min, brl_min=k_min * tarifa, potencia="carga_fw")
+        self.salvar()
 
     def somar(self, potencia_w, minerando, ths, dt, agora):
         if agora - self.cfg_t > 60:                      # o painel.conf pode mudar (tarifa, referência)
@@ -398,6 +447,7 @@ class Registro:
                         d = {k: float(r[k]) for k in VARS if k in r}
                         d.update(status=r["status"], modelo=r["modelo"], firmware=r["firmware"],
                                  minerando=r["minerando"], **{"carga_fw_%": float(r["carga_fw_%"])})
+                        d["potencia_W"] = potencia_real(d)       # linhas antigas guardaram a aparente (VA)
                     except (ValueError, KeyError):
                         continue
                     yield t, d
@@ -452,7 +502,7 @@ class Registro:
         if hoje != self.dia:                              # virada do dia: zera as somas do dia
             self._zerar_dia(hoje)
         d = dict(d)
-        d["potencia_W"] = round(d["saida_V"] * d["saida_A"], 1)
+        d["potencia_W"] = potencia_real(d)
         d["minerando"] = "sim" if minerando else "não"
         if self.min_ant is not None and minerando != self.min_ant:
             self.evento(f"COMEÇOU A MINERAR ({qual}, {d['potencia_W']:.0f} W)" if minerando

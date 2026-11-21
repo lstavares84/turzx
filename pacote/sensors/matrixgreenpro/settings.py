@@ -102,7 +102,7 @@ DEFAULTS = {
     # processos: nomes de processo (vazio = a lista padrão); log: log do SRBMiner-MULTI (produção);
     # limites: queda do hashrate sobre a média de 15 min (%), rejeição (%), última share (s), latência da pool (ms)
     "mineracao": {"ativo": "sim", "processos": [], "log": "~/mineracao/logs/mineracao_*.log", "intervalo_s": 5,
-                  "queda_pct": [15, 30], "rejeicao_pct": [1, 2], "ultima_share_s": [60, 120], "latencia_ms": [100, 250]},
+                  "queda_pct": [15, 30], "rejeicao_pct": [1, 2], "ultima_share_s": [300, 600], "latencia_ms": [100, 250]},
     "clima": {
         "cidade": "RIO DO SUL",
         "latitude": -27.2139,

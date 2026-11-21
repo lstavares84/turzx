@@ -1,4 +1,5 @@
-# MATRIX GREEN PRO | versão 2.9.0 | 21/11/2026 17:55 (-03) | mineração (saúde em barras e produção)
+# MATRIX GREEN PRO | versão 2.9.1 | 21/11/2026 18:25 (-03) | mineração: cores das barras = saúde do painel; potência contra o máximo da placa
+# histórico: 2.9.0 21/11/2026 17:55 mineração (saúde em barras e produção)
 # histórico: 2.8.0 15/11/2026 09:15 rotinas de backup (backup) e rotação de telas (rotacao)
 # histórico: 2.7.0 13/11/2026 19:40 IP público e hora da última mudança (wan_ip, wan_desde)
 # histórico: 2.6.2 08/11/2026 07:35 disco desmontado é só informação (branco)
@@ -156,20 +157,30 @@ def hashrate(h):
     return f"{h:.0f}", "H/s"
 
 
-def mineracao_vm(m, s, cfg, cpu_l, gpu_l, now):
+def mineracao_vm(m, s, cfg, cpu_l, gpu_l, now, vm=None):
     """Tela de mineração: 7 barras de saúde (valor, faixa, aviso e limite) e a produção do minerador.
-    Os níveis daqui são só desta tela: a saúde do PC (N1/N2) continua a mesma."""
+    A cor de cada barra é o nível da saúde do painel (o mesmo do N1/N2): barra vermelha = N2. A potência da GPU
+    é medida contra o máximo da placa (300 W na RTX 5070 Ti), não contra o limite em vigor (o minerar_pearl.sh
+    baixa para 250 W), e estar no limite não é alerta: é a placa se controlando. Só a produção tem níveis próprios."""
     if not m or not m.get("ativo"):
         return {"ativo": bool(m and m.get("ativo"))}
     c = cfg.get("mineracao", {})
     g, cp, r = s.get("gpu") or {}, s.get("cpu") or {}, s.get("ram") or {}
-    lim_w = g.get("power_limit")
+    lim_w = g.get("power_max") or g.get("power_limit")
+    vm = vm or {}
+
+    def painel(chave):                                         # nível da saúde do painel para a barra
+        lv = (vm.get(chave) or ("", NA))[1] if chave != "ram_lvl" else vm.get("ram_lvl", NA)
+        return {NEUTRAL: OK, LOST: WARN}.get(lv, lv)
     vram = 100.0 * g["vram_used"] / g["vram_total"] if g.get("vram_used") is not None and g.get("vram_total") else None
 
     def item(chave, rotulo, valor, txt, vmin, aviso, limite, grupo):
         return {"chave": chave, "rotulo": rotulo, "valor": valor, "txt": txt if valor is not None else "N/D",
-                "vmin": vmin, "aviso": aviso, "limite": limite, "nivel": _nv(valor, aviso, limite), "grupo": grupo,
+                "vmin": vmin, "aviso": aviso, "limite": limite, "grupo": grupo,
+                "nivel": NA if valor is None else (painel(NIVEL[chave]) if NIVEL.get(chave) else OK),
                 "pct_limite": None if valor is None or not limite else 100.0 * (valor - vmin) / (limite - vmin)}
+    NIVEL = {"gpu_t": "gpu_temp", "gpu_fan": "gpu_fan_pct", "vram": "vram_pct_txt", "cpu_t": "cpu_temp",
+             "cpu_u": "cpu_util", "ram": "ram_lvl", "gpu_w": None}
     gt, ct, pw = g.get("temp"), cp.get("temp"), g.get("power")
     saude = [
         item("gpu_t", "GPU TEMP", gt, f"{round(gt)}°C" if gt is not None else "", 30, gpu_l[0], gpu_l[1], "GPU"),
@@ -185,9 +196,10 @@ def mineracao_vm(m, s, cfg, cpu_l, gpu_l, now):
     ]
     rz, mhz = g.get("throttle"), g.get("mhz")
     reducao = None
-    if rz:
+    if rz:                                                     # mesmos níveis do painel: limite de potência é informação
         reducao = ("HARDWARE", CRIT) if rz & (0x8 | 0x40 | 0x80) else ("TEMPERATURA", WARN) if rz & 0x20 else \
-                  ("POTÊNCIA", WARN) if rz & 0x4 else None
+                  (f"LIMITE {round(g['power_limit'])}W" if g.get("power_limit") else "LIMITE DE POTÊNCIA", NEUTRAL) \
+                  if rz & 0x4 else None
     clock = f"{int(mhz)}" + (f"/{m['mclk']}" if m.get("mclk") else "") + "MHz" if mhz is not None else "N/D"
     hr, med = m.get("hr"), m.get("media15")
     q = 100.0 * (med - hr) / med if hr is not None and med else None
@@ -196,7 +208,7 @@ def mineracao_vm(m, s, cfg, cpu_l, gpu_l, now):
     rej = 100.0 * rj / (ac + rj) if ac is not None and rj is not None and (ac + rj) else (0.0 if ac is not None else None)
     ra, rc = c.get("rejeicao_pct", [1, 2])
     ush = now - m["ush"] if m.get("ush") else None
-    ua, uc = c.get("ultima_share_s", [60, 120])
+    ua, uc = c.get("ultima_share_s", [300, 600])
     la, lc = c.get("latencia_ms", [100, 250])
     lat = m.get("lat_ms")
     t_hr, un = hashrate(hr)
@@ -206,6 +218,14 @@ def mineracao_vm(m, s, cfg, cpu_l, gpu_l, now):
         i = 59 - int((now - t) // 60)
         if 0 <= i < 60:
             serie[i] = h if serie[i] is None else (serie[i] + h) / 2
+    # o SRBMiner grava a tabela a cada 90 s: minuto sem tabela entre duas leituras repete a anterior
+    # (até 3 min; lacuna maior = minerador parado, fica em branco)
+    ult, falta = None, 0
+    for i in range(60):
+        if serie[i] is not None:
+            ult, falta = serie[i], 0
+        elif ult is not None and falta < 3 and any(x is not None for x in serie[i + 1:i + 4]):
+            serie[i], falta = ult, falta + 1
     ini = m.get("inicio")
     return {"ativo": True, "processo": m.get("processo", "?"), "ha": duracao(now - ini) if ini else "N/D",
             "saude": saude, "reducao": reducao, "clock": clock,
@@ -603,7 +623,7 @@ class ViewModel:
         # rotinas de backup e rotação de telas (só o GAMMA EPSILON desenha); backup não entra na saúde
         vm["backup"] = backup_vm(s.get("backup"), now)
         vm["rotacao"] = dict(self.cfg.get("rotacao") or {})
-        vm["mineracao"] = mineracao_vm(s.get("mineracao"), s, self.cfg, self.cpu_limits, self.gpu_limits, now)
+        vm["mineracao"] = mineracao_vm(s.get("mineracao"), s, self.cfg, self.cpu_limits, self.gpu_limits, now, vm)
         # IP público (WAN do roteador): só informação, sem cor de alerta
         ip = s.get("ip") or {}
         if ip.get("ativo") is False:

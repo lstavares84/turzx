@@ -321,7 +321,7 @@ def mineracao(vm, P):
     # clock (ou o motivo da redução) e a refrigeração líquida
     red = mi.get("reducao")
     if red:
-        _realce(c, P, "mi.clock", 6, y, "CLOCK ↓ " + red[0], F["xs"], red[1])
+        _realce(c, P, "mi.clock", 6, y, "CLOCK ↓ " + red[0], F["xs"], red[1], normal=P["sub"])
     else:
         c.text("mi.clock", 6, y, "CLOCK " + mi.get("clock", "N/D"), F["xs"], P["sub"])
     tb, lb = v("pump")

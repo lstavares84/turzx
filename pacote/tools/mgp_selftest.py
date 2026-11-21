@@ -464,15 +464,25 @@ def main():
               col.ler_log_srbminer(log_srb, desde=time.mktime((2026, 11, 17, 0, 0, 0, 0, 0, -1))).get("hr") is None)
         from library.sensors.matrixgreenpro.viewmodel import mineracao_vm
         agora = time.time()
-        sm = {"gpu": {"temp": 89, "power": 290, "power_limit": 300, "fan_pct": 100, "vram_used": 5, "vram_total": 16,
-                      "throttle": 0x20, "mhz": 2600},
+        sm = {"gpu": {"temp": 89, "power": 250, "power_limit": 250, "power_max": 300, "fan_pct": 100, "vram_used": 5,
+                      "vram_total": 16, "throttle": 0x20, "mhz": 2600},
               "cpu": {"temp": 60, "util": 100}, "ram": {"pct": 40, "total": 32}}
         mm = {"ativo": True, "processo": "SRBMiner-MULTI", "inicio": agora - 600, "hr": 150e12, "media15": 192e12,
-              "ac": 97, "rj": 3, "ush": agora - 130, "lat_ms": 23, "serie": [(agora - 30, 150e12)], "mclk": 13801}
-        mv = mineracao_vm(mm, sm, DEFAULTS, (88, 94), (80, 88), agora)
+              "ac": 97, "rj": 3, "ush": agora - 700, "lat_ms": 23, "mclk": 13801,
+              "serie": [(agora - 30, 150e12), (agora - 150, 151e12), (agora - 600, 150e12)]}
+        vmp = {"gpu_temp": ("89°C", CRIT), "gpu_fan_pct": ("100%", OK), "vram_pct_txt": ("31%", OK),
+               "cpu_temp": ("60°C", OK), "cpu_util": ("100%", WARN), "ram_lvl": OK}
+        mv = mineracao_vm(mm, sm, DEFAULTS, (88, 94), (80, 88), agora, vmp)
         nv = {it["chave"]: it["nivel"] for it in mv["saude"]}
-        check("mineração: barras com aviso e limite", (nv["gpu_t"], nv["gpu_w"], nv["vram"], nv["cpu_u"]) == (CRIT, WARN, OK, WARN))
-        check("mineração: queda de 22% âmbar, rejeição 3% vermelha, última share de 2 min vermelha",
+        pw = next(it for it in mv["saude"] if it["chave"] == "gpu_w")
+        check("mineração: cor da barra = saúde do painel", (nv["gpu_t"], nv["vram"], nv["cpu_u"]) == (CRIT, OK, WARN))
+        check("mineração: potência no limite de 250 W não é alerta e vai contra os 300 W da placa",
+              nv["gpu_w"] == OK and pw["txt"] == "250/300W" and round(pw["pct_limite"]) == 84)
+        sm2 = dict(sm, gpu=dict(sm["gpu"], throttle=0x4))
+        check("mineração: clock reduzido pelo limite de potência é só informação",
+              mineracao_vm(mm, sm2, DEFAULTS, (88, 94), (80, 88), agora, vmp)["reducao"] == ("LIMITE 250W", NEUTRAL))
+        check("mineração: tabela a cada 90 s não deixa buraco no gráfico", mv["serie"][-3:] == [151e12, 151e12, 150e12])
+        check("mineração: queda de 22% âmbar, rejeição 3% vermelha, última share de 11 min vermelha",
               mv["hr"] == ("150.0", WARN) and mv["rejeicao"] == ("3.0%", CRIT) and mv["ush"][1] == CRIT
               and mv["unidade"] == "TH/s" and mv["reducao"] == ("TEMPERATURA", WARN))
         check("mineração: sem minerador = sem tela", mineracao_vm({"ativo": False}, sm, DEFAULTS, (88, 94), (80, 88), agora)["ativo"] is False)

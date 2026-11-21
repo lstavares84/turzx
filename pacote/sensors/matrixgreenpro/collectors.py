@@ -1,4 +1,5 @@
-# MATRIX GREEN PRO | versão 2.11.0 | 21/11/2026 17:45 (-03) | mineração: processo do minerador e log do SRBMiner-MULTI
+# MATRIX GREEN PRO | versão 2.12.0 | 21/11/2026 18:25 (-03) | potência máxima da GPU (power_max), além do limite em vigor
+# histórico: 2.11.0 21/11/2026 17:45 mineração: processo do minerador e log do SRBMiner-MULTI
 # histórico: 2.10.0 15/11/2026 09:00 rotinas de backup: systemd, journal e arquivo de andamento
 # histórico: 2.9.0 13/11/2026 19:40 IP público (o do roteador) e hora da última mudança
 # histórico: 2.8.0 08/11/2026 21:01 disco pelo número de série (sobrevive à formatação)
@@ -360,7 +361,7 @@ class Cpu:
 
 # ---------------------------------------------------------------- GPU NVIDIA
 class Gpu:
-    FIELDS = "name,utilization.gpu,temperature.gpu,clocks.gr,memory.used,memory.total,fan.speed,power.draw,power.limit"
+    FIELDS = "name,utilization.gpu,temperature.gpu,clocks.gr,memory.used,memory.total,fan.speed,power.draw,power.limit,power.max_limit"
 
     def __init__(self, cfg):
         self.cfg = cfg["gpu"]
@@ -429,6 +430,8 @@ class Gpu:
                     d["fan_rpm"] = None
             q("power", lambda: nv.nvmlDeviceGetPowerUsage(h) / 1000.0)
             q("power_limit", lambda: nv.nvmlDeviceGetEnforcedPowerLimit(h) / 1000.0)
+            # máximo que a placa aceita (o limite em vigor pode ter sido baixado, como faz o minerar_pearl.sh)
+            q("power_max", lambda: nv.nvmlDeviceGetPowerManagementLimitConstraints(h)[1] / 1000.0)
             # motivos de redução de clock (bits da NVML: 0x8 HW slowdown, 0x20 SW térmico, 0x40 HW térmico,
             # 0x80 HW power brake); o nome da função mudou nas versões novas da NVML
             fz = getattr(nv, "nvmlDeviceGetCurrentClocksEventReasons", None) or \
@@ -448,7 +451,7 @@ class Gpu:
                 "vram_used": vu / 1024 if vu is not None else None,
                 "vram_total": vt / 1024 if vt is not None else None,
                 "fan_pct": _num(p[6]), "fan_rpm": None,  # nvidia-smi não expõe RPM
-                "power": _num(p[7]), "power_limit": _num(p[8])}
+                "power": _num(p[7]), "power_limit": _num(p[8]), "power_max": _num(p[9]) if len(p) > 9 else None}
 
     def read(self):
         if self.worker is None:

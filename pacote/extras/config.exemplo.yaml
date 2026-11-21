@@ -77,7 +77,7 @@ mineracao:
   log: "~/mineracao/logs/mineracao_*.log"
   queda_pct: [15, 30]        # queda do hashrate sobre a média de 15 min: âmbar, vermelho
   rejeicao_pct: [1, 2]       # shares rejeitadas
-  ultima_share_s: [60, 120]  # tempo desde a última share aceita
+  ultima_share_s: [300, 600]  # tempo desde a última share aceita
   latencia_ms: [100, 250]    # latência da share até a pool
 
 clima:

@@ -147,10 +147,10 @@ Com um minerador rodando, a tela de mineração entra no lugar da rotação, do 
 | `mineracao.log` | `~/mineracao/logs/mineracao_*.log` | log do SRBMiner-MULTI, de onde vêm hashrate, médias, shares, pool e latência |
 | `mineracao.queda_pct` | 15, 30 | queda do hashrate sobre a média de 15 min (âmbar, vermelho) |
 | `mineracao.rejeicao_pct` | 1, 2 | shares rejeitadas (%) |
-| `mineracao.ultima_share_s` | 60, 120 | tempo desde a última share aceita (s) |
+| `mineracao.ultima_share_s` | 300, 600 | tempo desde a última share aceita (s); no Pearl sai cerca de uma share por minuto |
 | `mineracao.latencia_ms` | 100, 250 | latência da share até a pool (ms) |
 
-As barras de saúde usam os limites do painel: GPU e CPU pela temperatura máxima de cada uma, VRAM 90/97 %, RAM 90/95 %, uso da CPU com âmbar a 90 % (100 % nunca é vermelho), ventoinha da GPU com âmbar a 90 % e potência da GPU com âmbar a 95 % e vermelho a 99 % do limite em vigor (o `power limit` do minerador). Os níveis de produção ficam só na tela de mineração: não entram no N1 nem no N2. Esses limites de produção são propostas, sem norma. Com outro minerador que não o SRBMiner-MULTI, a tela aparece com a saúde e a produção em N/D.
+A cor de cada barra de saúde é o nível do próprio painel (o mesmo que conta no N1 e no N2): barra vermelha é sempre N2. As marcas âmbar e vermelha mostram os limites (temperatura máxima de GPU e CPU, VRAM 90/97 %, RAM 90/95 %, uso da CPU 90 %, ventoinha 90/100 %). A potência da GPU é medida contra o máximo da placa (300 W na RTX 5070 Ti), não contra o limite em vigor que o minerador ajusta (250 W): estar no limite é a placa se controlando, não alerta, e o clock reduzido por isso aparece como `CLOCK ↓ LIMITE 250W`, em cinza. Os níveis de produção ficam só na tela de mineração: não entram no N1 nem no N2. Esses limites de produção são propostas, sem norma. Com outro minerador que não o SRBMiner-MULTI, a tela aparece com a saúde e a produção em N/D.
 
 ## Histórico dos gráficos (GAMMA DELTA e EPSILON)
 

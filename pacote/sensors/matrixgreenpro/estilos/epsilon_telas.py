@@ -1,11 +1,14 @@
-# GAMMA EPSILON | estilos/epsilon_telas.py | versão 1.0.0 | 15/11/2026 09:30 (-03) | criação original (Claude, para Lucas Tavares)
+# GAMMA EPSILON | estilos/epsilon_telas.py | versão 1.1.0 | 21/11/2026 18:00 (-03) | criação original (Claude, para Lucas Tavares)
+# histórico: 1.1.0 21/11/2026 18:00 tela de mineração (fusão G: barras de saúde com limite e produção do minerador)
 # histórico: 1.0.0 15/11/2026 09:30 criação: telas de gráficos, de status dos backups e de andamento do backup
 # Telas do GAMMA EPSILON além da principal (que é o GAMMA DELTA). Todas mantêm o cabeçalho e a escala N0/N1/N2,
 # para um alerta ficar visível em qualquer tela; à direita da escala ficam o nome da tela e a posição na rotação.
 #   graficos  = 5 gráficos de 24 h na largura toda: temperatura, uso, memória, rede e ping;
 #   backups   = cada rotina de backup: estado, última execução, duração, resultado e próxima execução;
-#   andamento = o backup rodando agora: percentual da pasta atual, pastas feitas, velocidade e tempo restante.
-# escolher() decide a tela: alerta vermelho > backup rodando > alerta âmbar > rotação (uma tela por período).
+#   andamento = o backup rodando agora: percentual da pasta atual, pastas feitas, velocidade e tempo restante;
+#   mineracao = com um minerador rodando: saúde do hardware em barras (aviso e limite) e a produção do minerador.
+# escolher() decide a tela: mineração > alerta vermelho > backup rodando > alerta âmbar > rotação.
+# Durante a mineração a tela fica nela mesmo com alerta: a escala N0/N1/N2 e o último alerta continuam à vista.
 import os
 import time
 
@@ -17,18 +20,21 @@ from .reator_delta2 import _rodape
 
 F_NOME = font(JB, 12, "Bold")          # nomes das rotinas: a JetBrains Mono tem a seta →
 
-NOMES = {"principal": "PRINCIPAL", "graficos": "GRÁFICOS 24 H", "backups": "BACKUPS", "andamento": "BACKUP"}
+NOMES = {"principal": "PRINCIPAL", "graficos": "GRÁFICOS 24 H", "backups": "BACKUPS", "andamento": "BACKUP",
+         "mineracao": "MINERANDO"}
 
 
 def escolher(vm, agora=None):
     """Tela a desenhar agora e a lista da rotação. MGP_EPSILON_TELA (ou vm['_tela']) fixa uma tela (prévias)."""
     rot = vm.get("rotacao") or {}
-    telas = [t for t in rot.get("telas", ["principal", "graficos", "backups"]) if t in NOMES and t != "andamento"]
+    telas = [t for t in rot.get("telas", ["principal", "graficos", "backups"]) if t in NOMES and t not in ("andamento", "mineracao")]
     telas = telas or ["principal"]
     fixa = os.environ.get("MGP_EPSILON_TELA") or vm.get("_tela")
     if fixa in NOMES:
         return fixa, telas
     lv = (vm.get("hdr_status") or ("", OK))[1]
+    if (vm.get("mineracao") or {}).get("ativo"):
+        return "mineracao", telas
     if lv == CRIT:
         return "principal", telas
     if (vm.get("backup") or {}).get("ativo"):
@@ -45,6 +51,8 @@ def indicador(c, P, F, tela, telas):
     if tela == "andamento":
         c.text("hdr.tela", 172, 17, "BACKUP", F["xs"], P["amber"], anchor="ms")
         return
+    if tela == "mineracao":                                     # o MINERANDO do alto já diz qual tela é
+        return
     n = len(telas)
     if n < 2:
         return
@@ -58,7 +66,12 @@ def indicador(c, P, F, tela, telas):
 
 
 def _topo(c, v, P, F, tela, telas):
-    """Nome da tela e relógio à direita da escala N0/N1/N2."""
+    """Nome da tela e relógio à direita da escala N0/N1/N2 (na mineração, o tempo minerando)."""
+    if tela == "mineracao":
+        mi = v.raw("mineracao") or {}
+        c.text("tela.nome", 314, 42, "MINERANDO", font(ROBOTO, 15, "Bold"), P["amber"], anchor="rs")
+        c.text("tela.pos", 314, 57, "HÁ " + mi.get("ha", "N/D"), F["xs"], P["sub"], anchor="rs")
+        return
     c.text("tela.nome", 314, 42, NOMES[tela], font(ROBOTO, 15, "Bold"), P["accent"], anchor="rs")
     t, _ = v("clock")
     pos = f"{telas.index(tela) + 1}/{len(telas)}  " if tela in telas else ""
@@ -246,4 +259,114 @@ def andamento(vm, P):
             nb = c.text(f"an.o{i}.nome", 6, y, c.fit(r["rotulo"], F["sb"], 130), F["sb"], P["white"])
             c.text(f"an.o{i}.res", 314, y, c.fit(t, F["xs"], 314 - nb[2] - 10), F["xs"], amb if lv == WARN else P["sub"], anchor="rs")
     _rodape(c, v, P, col, F, y)
+    return c, v, y
+
+
+# ------------------------------------------------------------------ tela de mineração (fusão G)
+def _cor(P, lv):
+    return {OK: P["accent"], WARN: P["amber"], CRIT: P["red"]}.get(lv, P["sub"])
+
+
+def _realce(c, P, nome, x, y, t, f, lv, anchor="ls", normal=None):
+    """Valor em alerta com fundo na cor do nível (como no DELTA); fora de alerta, na cor normal."""
+    if lv in (WARN, CRIT):
+        b = c.d.textbbox((x, y), t, font=f, anchor=anchor)
+        c.rect((b[0] - 2, b[1] - 1, b[2] + 1, b[3] + 1), fill=_cor(P, lv))
+        return c.text(nome, x, y, t, f, P["bg"], anchor=anchor)
+    return c.text(nome, x, y, t, f, normal or (P["sub"] if lv == NA else P["white"]), anchor=anchor)
+
+
+def _barra_saude(c, P, F, it, y):
+    """Rótulo, leitura e % do limite (só para °C e W: em % a leitura já diz), barra com a marca âmbar no aviso
+    e a vermelha no limite; a faixa vai até 10% além do limite."""
+    lv, val = it["nivel"], it["valor"]
+    cor = _cor(P, lv) if lv != OK else P["white"]
+    c.text(f"mi.{it['chave']}.lab", 6, y, it["rotulo"], F["xs"], P["sub"])
+    if it["txt"].endswith("%") or val is None:
+        c.text(f"mi.{it['chave']}.pct", 314, y, it["txt"], F["xs"], cor if val is not None else P["sub"], anchor="rs")
+    else:
+        b = c.text(f"mi.{it['chave']}.pct", 314, y, f"{it['pct_limite']:.0f}%", F["xs"], cor, anchor="rs")
+        c.text(f"mi.{it['chave']}.val", b[0] - 8, y, it["txt"], F["xs"], P["sub"], anchor="rs")
+    x, w, h, yb = 6, 309, 4, y + 4
+    vmin, lim = it["vmin"], it["limite"]
+    topo = lim + (lim - vmin) * 0.1
+    pos = lambda v: x + (w - 1) * max(0.0, min(1.0, (v - vmin) / (topo - vmin)))
+    c.rect((x, yb, x + w - 1, yb + h - 1), fill=mix(P["accent"], P["bg"], 0.88))
+    if val is not None:
+        c.rect((x, yb, round(pos(val)), yb + h - 1), fill=_cor(P, lv))
+    for v_, mc in ((it["aviso"], P["amber"]), (lim, P["red"])):
+        mx = round(pos(v_))
+        c.line((mx, yb - 2, mx, yb + h + 1), mc, 1)
+    return y + 19
+
+
+def mineracao(vm, P):
+    v, c, col, F, _ = _base(vm, P)
+    v.raw("hdr_status")
+    mi = v.raw("mineracao") or {}
+    saude = mi.get("saude") or []
+    y = 82
+    for grupo, titulo in (("GPU", "GPU"), ("CPU", "CPU E SISTEMA")):
+        _titulo(c, P, F, titulo, y)
+        y += 17
+        for it in saude:
+            if it["grupo"] == grupo:
+                y = _barra_saude(c, P, F, it, y)
+        y += 2
+    y -= 2
+    # clock (ou o motivo da redução) e a refrigeração líquida
+    red = mi.get("reducao")
+    if red:
+        _realce(c, P, "mi.clock", 6, y, "CLOCK ↓ " + red[0], F["xs"], red[1])
+    else:
+        c.text("mi.clock", 6, y, "CLOCK " + mi.get("clock", "N/D"), F["xs"], P["sub"])
+    tb, lb = v("pump")
+    tr_, lr_ = v("cpu_fan")
+    t = f"BOMBA {tb.replace('RPM', '')}  RAD {tr_.replace('RPM', '')}"
+    c.text("mi.cool", 314, y, t, F["xs"], P["red"] if CRIT in (lb, lr_) else P["sub"], anchor="rs")
+    y += 20
+    # produção
+    _titulo(c, P, F, "PRODUÇÃO", y)
+    y += 8
+    caixas = (("HASHRATE " + mi.get("unidade", ""), mi.get("hr", ("N/D", NA))), ("MÉDIA 15 MIN", mi.get("media", ("N/D", NA))),
+              ("REJEIÇÃO", mi.get("rejeicao", ("N/D", NA))))
+    for i, (lab, (val, lv)) in enumerate(caixas):
+        x0 = 6 + i * 104
+        c.rect((x0, y, x0 + 100, y + 38), outline=_cor(P, lv) if lv in (WARN, CRIT) else P["dim"])
+        c.text(f"mi.cx{i}.lab", x0 + 50, y + 12, lab, font(JB, 9, "Regular"), P["sub"], anchor="ms")
+        c.text(f"mi.cx{i}.val", x0 + 50, y + 32, val, F["m"], _cor(P, lv) if lv in (WARN, CRIT) else
+               (P["sub"] if lv == NA else P["white"]), anchor="ms")
+    y += 54
+    b = c.text("mi.sh.lab", 6, y, "SHARES", F["xs"], P["sub"])
+    sb = c.text("mi.sh", b[2] + 5, y, mi.get("shares", "N/D"), F["sb"], P["white"])
+    t, lv = mi.get("lat", ("N/D", NA))
+    lb_ = _realce(c, P, "mi.lat", 314, y, t, F["sb"], lv, anchor="rs")
+    c.text("mi.pool", lb_[0] - 6, y, c.fit(mi.get("pool", "N/D"), F["xs"], lb_[0] - 16 - sb[2]), F["xs"], P["sub"], anchor="rs")
+    y += 15
+    b = c.text("mi.ush.lab", 6, y, "ÚLTIMA SHARE", F["xs"], P["sub"])
+    t, lv = mi.get("ush", ("N/D", NA))
+    _realce(c, P, "mi.ush", b[2] + 6, y, t, F["sb"], lv)
+    if mi.get("sem_log"):
+        c.text("mi.semlog", 314, y, "SEM LOG DO MINERADOR", F["xs"], P["sub"], anchor="rs")
+    # hashrate de 60 min, com a média de 15 min tracejada
+    serie = mi.get("serie") or []
+    vals = [x for x in serie if x is not None]
+    g = Grafico(c, P, 6, 309, y + 8, 452, 0.0, max(vals) * 1.15 if vals else 1.0)
+    g.serie(serie, P["accent"], True)
+    if mi.get("media_v") and vals:
+        ly = g.y(mi["media_v"])
+        for x in range(6, 315, 5):
+            c.line((x, ly, min(x + 2, 314), ly), mix(P["white"], P["bg"], 0.4))
+    c.text("mi.gr.lab", 8, y + 17, "HASHRATE 60 MIN", F["xs"], P["sub"])
+    # pé: relógio, data e o último alerta (o LOG completo fica na tela principal)
+    yp = 476
+    c.line((6, yp - 14, 314, yp - 14), P["dim"])
+    t, _ = v("clock")
+    cb = c.text("sys.clock", 6, yp, t, font(JB, 14, "Bold"), P["accent"])
+    t, _ = v("date")
+    c.text("sys.date", cb[2] + 8, yp, t, F["xs"], P["white"])
+    reg = v.raw("registro") or []
+    if reg:
+        it = reg[0]
+        c.text("sys.ult", 314, yp, c.fit(it[1], F["xs"], 130), F["xs"], P["red"] if it[2] == CRIT else P["amber"], anchor="rs")
     return c, v, y

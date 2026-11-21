@@ -1,4 +1,5 @@
-<!-- docs/configuracao.md | versão 2.3.0 | 15/11/2026 15:40 (-03) | criação original (Claude, para Lucas Tavares). Fonte: pacote/sensors/matrixgreenpro/settings.py e pacote/extras/config.exemplo.yaml da v1.8.2. -->
+<!-- docs/configuracao.md | versão 2.4.0 | 21/11/2026 18:10 (-03) | criação original (Claude, para Lucas Tavares). Fonte: pacote/sensors/matrixgreenpro/settings.py e pacote/extras/config.exemplo.yaml da v1.8.2. -->
+<!-- histórico: 2.4.0 21/11/2026 18:10 mineração (GAMMA EPSILON) -->
 <!-- histórico: 2.3.0 15/11/2026 15:40 rotinas de backup e rotação de telas (GAMMA EPSILON) -->
 <!-- histórico: 2.2.0 13/11/2026 19:45 IP público do roteador (ip_publico) -->
 <!-- histórico: 2.1.0 08/11/2026 21:03 discos pelo número de série -->
@@ -135,6 +136,21 @@ O **IP público** é perguntado a cada 5 minutos ao DNS da OpenDNS (`myip.opendn
 | `rotacao.periodo_s` | 60 | segundos de cada tela (mínimo 10) |
 
 Uma unidade que não existe no PC é ignorada. Prioridade das telas: alerta vermelho fixa a principal; backup rodando mostra o andamento; alerta âmbar fixa a principal; sem nada disso, a rotação. O formato do arquivo de andamento e o que a tela lê do systemd e do journal estão em [Backups na tela](backup.md).
+
+## Mineração (GAMMA EPSILON)
+
+Com um minerador rodando, a tela de mineração entra no lugar da rotação, do backup e até de um alerta vermelho (a escala N0/N1/N2 e o último alerta continuam no alto e no pé). Quando o minerador fecha, a rotação volta.
+
+| Chave | Padrão | Função |
+|---|---|---|
+| `mineracao.processos` | lista padrão | nomes de processo que contam como minerando (vazio = kryptex, xmrig, lolminer, gminer, t-rex, nbminer, teamredminer, srbminer-multi, bzminer, rigel, onezerominer, nanominer, excavator, ethminer, wildrig; a mesma da tela do nobreak) |
+| `mineracao.log` | `~/mineracao/logs/mineracao_*.log` | log do SRBMiner-MULTI, de onde vêm hashrate, médias, shares, pool e latência |
+| `mineracao.queda_pct` | 15, 30 | queda do hashrate sobre a média de 15 min (âmbar, vermelho) |
+| `mineracao.rejeicao_pct` | 1, 2 | shares rejeitadas (%) |
+| `mineracao.ultima_share_s` | 60, 120 | tempo desde a última share aceita (s) |
+| `mineracao.latencia_ms` | 100, 250 | latência da share até a pool (ms) |
+
+As barras de saúde usam os limites do painel: GPU e CPU pela temperatura máxima de cada uma, VRAM 90/97 %, RAM 90/95 %, uso da CPU com âmbar a 90 % (100 % nunca é vermelho), ventoinha da GPU com âmbar a 90 % e potência da GPU com âmbar a 95 % e vermelho a 99 % do limite em vigor (o `power limit` do minerador). Os níveis de produção ficam só na tela de mineração: não entram no N1 nem no N2. Esses limites de produção são propostas, sem norma. Com outro minerador que não o SRBMiner-MULTI, a tela aparece com a saúde e a produção em N/D.
 
 ## Histórico dos gráficos (GAMMA DELTA e EPSILON)
 

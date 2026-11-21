@@ -1,4 +1,5 @@
-# MATRIX GREEN PRO | versão 3.9.0 | 15/11/2026 09:10 (-03) | rotinas de backup (coletor e demonstração)
+# MATRIX GREEN PRO | versão 3.10.0 | 21/11/2026 17:50 (-03) | mineração (coletor e demonstração)
+# histórico: 3.9.0 15/11/2026 09:10 rotinas de backup (coletor e demonstração)
 # histórico: 3.8.0 13/11/2026 19:40 IP público do roteador e hora da última mudança
 # histórico: 3.7.0 08/11/2026 13:21 tela de 3,5" ou 5,2" (tela.py)
 # histórico: 3.6.0 07/11/2026 21:00 demonstração do LOG de alertas
@@ -15,6 +16,7 @@
 # Exposto ao programa como sensor personalizado "MatrixGreenProPanel".
 import math
 import os
+import random
 import threading
 import time
 
@@ -60,6 +62,29 @@ def demo_backup(scenario, now):
         git.update(resultado="exit-code", resumo={"ok": 20, "puladas": 0, "falhas": 1, "avisos": 0,
                    "itens": [("repositórios", 20), ("enviados", 0), ("com aviso", 0), ("erros", 1)]})
     return {"rotinas": [discos, fotos, git], "ts": now}
+
+
+def demo_mineracao(scenario, now):
+    """Mineração DEMONSTRATIVA (SRBMiner-MULTI, pearlhash, RTX 5070 Ti; números parecidos com os do log real)."""
+    rnd = random.Random({"normal": 1, "atencao": 2, "critico": 3}.get(scenario, 1))
+    media = 192.5e12 if scenario != "critico" else 190.8e12
+    serie = []
+    for i in range(120):                                       # 60 min, uma tabela a cada 30 s
+        hr = media + rnd.uniform(-0.6e12, 0.6e12)
+        if scenario == "atencao" and i > 100:
+            hr = 160e12 + rnd.uniform(-1e12, 1e12)
+        if scenario == "critico" and i > 96:
+            hr = 98e12 + rnd.uniform(-3e12, 3e12)
+        if scenario == "critico" and 40 < i < 48:
+            continue                                          # minerador reiniciou: sem tabela
+        serie.append((now - (120 - i) * 30, hr))
+    hr = serie[-1][1]
+    ush = {"normal": 12, "atencao": 48, "critico": 190}.get(scenario, 12)
+    return {"ativo": True, "processo": "SRBMiner-MULTI", "inicio": now - {"normal": 18720, "atencao": 27600}.get(scenario, 32580),
+            "serie": serie, "t": now - 5, "hr": hr, "unidade": "TH/s", "media15": media, "media1h": media,
+            "ac": {"normal": 1243, "atencao": 1871}.get(scenario, 2210), "rj": {"normal": 2, "atencao": 27}.get(scenario, 73),
+            "hw": 0, "pool": "prl-br.kryptex.network:7048", "ush": now - ush,
+            "lat_ms": {"normal": 23, "atencao": 44}.get(scenario, 140), "mclk": 13801}
 
 
 def demo_snapshot(scenario="normal"):
@@ -115,6 +140,7 @@ def demo_snapshot(scenario="normal"):
         # backup: normal = tudo agendado; atenção = DISCOS rodando com andamento; crítico = rodando sem andamento
         # e uma falha no GITHUB
         "backup": demo_backup(scenario, now),
+        "mineracao": demo_mineracao(scenario, now),
         "weather": {"state": "OK", "temp": 22.0, "desc": "NUBLADO", "ts": now - 600},
         "power": {"state": "ND"},
         "coleta": {"esperados": 8, "falhas": []},
@@ -155,6 +181,7 @@ class Engine:
             self.ping = col.Ping(self.cfg)
             self.ip = col.IpPublico(self.cfg)
             self.backups = col.Backups(self.cfg)
+            self.mineracao = col.Mineracao(self.cfg)
             self.weather = col.Weather(self.cfg)
             self.power = col.Power(self.cfg)
             from .historico import Historico
@@ -202,6 +229,7 @@ class Engine:
         get("ping", self.ping.read, "PING", {"ok": None})
         get("ip", self.ip.read, "IP", {"ip": None}, counted=False)     # só informação
         get("backup", self.backups.read, "BACKUP", {"rotinas": None}, counted=False)
+        get("mineracao", self.mineracao.read, "MINERAÇÃO", {"ativo": None}, counted=False)
         get("weather", self.weather.read, "CLIMA", {"state": "ND"})
         get("power", self.power.read, "ENERGIA", {"state": "ND"}, counted=self.power.kind != "none")
         s["os"], s["uptime"] = col.os_name(), col.uptime_s()

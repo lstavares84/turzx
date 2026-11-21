@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-# MATRIX GREEN PRO | versão 3.6.0 | 15/11/2026 15:40 (-03) | seções backup e rotacao no config.yaml gerado
+# MATRIX GREEN PRO | versão 3.7.0 | 21/11/2026 18:10 (-03) | seção mineracao no config.yaml gerado
+# histórico: 3.6.0 15/11/2026 15:40 seções backup e rotacao no config.yaml gerado
 # histórico: 3.5.0 13/11/2026 19:45 linha ip_publico no config.yaml gerado
 # histórico: 3.4.0 08/11/2026 21:01 grava o número de série de cada disco (sobrevive à formatação)
 # histórico: 3.3.0 07/11/2026 21:00 limites de manuais e do Zabbix (RAM 90/95, discos 80/90)
@@ -164,6 +165,16 @@ backup:
 
 # GAMMA EPSILON: telas que se alternam (principal, graficos, backups) e segundos de cada uma
 rotacao: {{telas: [principal, graficos, backups], periodo_s: 60}}
+
+# GAMMA EPSILON: com um minerador rodando, a tela de mineração entra no lugar da rotação (e do backup).
+# processos: [] = lista padrão (kryptex, xmrig, lolminer, gminer, t-rex, srbminer-multi...); log: log do SRBMiner-MULTI
+mineracao:
+  ativo: sim
+  log: "~/mineracao/logs/mineracao_*.log"
+  queda_pct: [15, 30]        # queda do hashrate sobre a média de 15 min: âmbar, vermelho
+  rejeicao_pct: [1, 2]       # shares rejeitadas
+  ultima_share_s: [60, 120]  # tempo desde a última share aceita
+  latencia_ms: [100, 250]    # latência da share até a pool
 
 clima:
   cidade: "RIO DO SUL"

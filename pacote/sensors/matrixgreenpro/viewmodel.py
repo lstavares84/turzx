@@ -1,4 +1,5 @@
-# MATRIX GREEN PRO | versão 2.8.0 | 15/11/2026 09:15 (-03) | rotinas de backup (backup) e rotação de telas (rotacao)
+# MATRIX GREEN PRO | versão 2.9.0 | 21/11/2026 17:55 (-03) | mineração (saúde em barras e produção)
+# histórico: 2.8.0 15/11/2026 09:15 rotinas de backup (backup) e rotação de telas (rotacao)
 # histórico: 2.7.0 13/11/2026 19:40 IP público e hora da última mudança (wan_ip, wan_desde)
 # histórico: 2.6.2 08/11/2026 07:35 disco desmontado é só informação (branco)
 # histórico: 2.6.1 07/11/2026 21:58 ping com uma casa decimal
@@ -137,6 +138,86 @@ def backup_vm(b, now):
             d["resultado"] = (txt, WARN if ruim else (NEUTRAL if res else NA))
         out.append(d)
     return {"nd": False, "rotinas": out, "ativo": ativo}
+
+
+def _nv(v, aviso, limite):
+    if v is None:
+        return NA
+    return CRIT if v >= limite else WARN if v >= aviso else OK
+
+
+def hashrate(h):
+    """H/s -> (número, unidade) com 1 casa: 192.6 TH/s."""
+    if h is None:
+        return "N/D", ""
+    for mult, un in ((1e15, "PH/s"), (1e12, "TH/s"), (1e9, "GH/s"), (1e6, "MH/s"), (1e3, "kH/s")):
+        if h >= mult:
+            return f"{h / mult:.1f}", un
+    return f"{h:.0f}", "H/s"
+
+
+def mineracao_vm(m, s, cfg, cpu_l, gpu_l, now):
+    """Tela de mineração: 7 barras de saúde (valor, faixa, aviso e limite) e a produção do minerador.
+    Os níveis daqui são só desta tela: a saúde do PC (N1/N2) continua a mesma."""
+    if not m or not m.get("ativo"):
+        return {"ativo": bool(m and m.get("ativo"))}
+    c = cfg.get("mineracao", {})
+    g, cp, r = s.get("gpu") or {}, s.get("cpu") or {}, s.get("ram") or {}
+    lim_w = g.get("power_limit")
+    vram = 100.0 * g["vram_used"] / g["vram_total"] if g.get("vram_used") is not None and g.get("vram_total") else None
+
+    def item(chave, rotulo, valor, txt, vmin, aviso, limite, grupo):
+        return {"chave": chave, "rotulo": rotulo, "valor": valor, "txt": txt if valor is not None else "N/D",
+                "vmin": vmin, "aviso": aviso, "limite": limite, "nivel": _nv(valor, aviso, limite), "grupo": grupo,
+                "pct_limite": None if valor is None or not limite else 100.0 * (valor - vmin) / (limite - vmin)}
+    gt, ct, pw = g.get("temp"), cp.get("temp"), g.get("power")
+    saude = [
+        item("gpu_t", "GPU TEMP", gt, f"{round(gt)}°C" if gt is not None else "", 30, gpu_l[0], gpu_l[1], "GPU"),
+        item("gpu_w", "GPU POTÊNCIA", pw if lim_w else None, f"{round(pw or 0)}/{round(lim_w or 0)}W", 0,
+             0.95 * (lim_w or 1), 0.99 * (lim_w or 1), "GPU"),
+        item("gpu_fan", "GPU VENTOINHA", g.get("fan_pct"), f"{round(g.get('fan_pct') or 0)}%", 0, 90, 100, "GPU"),
+        item("vram", "VRAM", vram, f"{round(vram or 0)}%", 0, cfg["gpu"]["vram_warn"], cfg["gpu"]["vram_crit"], "GPU"),
+        item("cpu_t", "CPU TEMP", ct, f"{round(ct)}°C" if ct is not None else "", 30, cpu_l[0], cpu_l[1], "CPU"),
+        item("cpu_u", "CPU USO", cp.get("util"), f"{round(cp.get('util') or 0)}%", 0,
+             float(cfg["cpu"].get("uso_warn", 90)), 100.5, "CPU"),     # uso de 100% é âmbar, nunca vermelho (como no painel)
+        item("ram", "RAM", r.get("pct") if r.get("total") else None, f"{round(r.get('pct') or 0)}%", 0,
+             cfg["ram"]["warn"], cfg["ram"]["crit"], "CPU"),
+    ]
+    rz, mhz = g.get("throttle"), g.get("mhz")
+    reducao = None
+    if rz:
+        reducao = ("HARDWARE", CRIT) if rz & (0x8 | 0x40 | 0x80) else ("TEMPERATURA", WARN) if rz & 0x20 else \
+                  ("POTÊNCIA", WARN) if rz & 0x4 else None
+    clock = f"{int(mhz)}" + (f"/{m['mclk']}" if m.get("mclk") else "") + "MHz" if mhz is not None else "N/D"
+    hr, med = m.get("hr"), m.get("media15")
+    q = 100.0 * (med - hr) / med if hr is not None and med else None
+    qa, qc = c.get("queda_pct", [15, 30])
+    ac, rj = m.get("ac"), m.get("rj")
+    rej = 100.0 * rj / (ac + rj) if ac is not None and rj is not None and (ac + rj) else (0.0 if ac is not None else None)
+    ra, rc = c.get("rejeicao_pct", [1, 2])
+    ush = now - m["ush"] if m.get("ush") else None
+    ua, uc = c.get("ultima_share_s", [60, 120])
+    la, lc = c.get("latencia_ms", [100, 250])
+    lat = m.get("lat_ms")
+    t_hr, un = hashrate(hr)
+    # série de 60 min, um ponto por minuto (falta de tabela = None)
+    serie = [None] * 60
+    for t, h in m.get("serie") or []:
+        i = 59 - int((now - t) // 60)
+        if 0 <= i < 60:
+            serie[i] = h if serie[i] is None else (serie[i] + h) / 2
+    ini = m.get("inicio")
+    return {"ativo": True, "processo": m.get("processo", "?"), "ha": duracao(now - ini) if ini else "N/D",
+            "saude": saude, "reducao": reducao, "clock": clock,
+            "hr": (t_hr, OK if q is None else (CRIT if q >= qc else WARN if q >= qa else OK)), "unidade": un or "H/s",
+            "media": (hashrate(med)[0], OK), "media_v": med,
+            "rejeicao": (f"{rej:.1f}%" if rej is not None else "N/D", NA if rej is None else (CRIT if rej >= rc else WARN if rej >= ra else OK)),
+            "shares": f"{ac} A  {rj} R" if ac is not None else "N/D",
+            "pool": (m.get("pool") or "N/D").split(":")[0],
+            "lat": (f"{lat}ms" if lat is not None else "N/D", NA if lat is None else (CRIT if lat > lc else WARN if lat > la else OK)),
+            "ush": ("N/D" if ush is None else f"HÁ {int(ush)}s" if ush < 60 else f"HÁ {int(ush // 60)}m{int(ush % 60):02d}s",
+                    NA if ush is None else (CRIT if ush >= uc else WARN if ush >= ua else OK)),
+            "serie": serie, "sem_log": hr is None}
 
 
 def disk_use(used, tot):
@@ -522,6 +603,7 @@ class ViewModel:
         # rotinas de backup e rotação de telas (só o GAMMA EPSILON desenha); backup não entra na saúde
         vm["backup"] = backup_vm(s.get("backup"), now)
         vm["rotacao"] = dict(self.cfg.get("rotacao") or {})
+        vm["mineracao"] = mineracao_vm(s.get("mineracao"), s, self.cfg, self.cpu_limits, self.gpu_limits, now)
         # IP público (WAN do roteador): só informação, sem cor de alerta
         ip = s.get("ip") or {}
         if ip.get("ativo") is False:

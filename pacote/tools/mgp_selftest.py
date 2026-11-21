@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-# MATRIX GREEN PRO | versão 3.8.0 | 15/11/2026 15:50 (-03) | GAMMA EPSILON: rotinas de backup e rotação de telas (Claude, para Lucas Tavares)
+# MATRIX GREEN PRO | versão 3.9.0 | 21/11/2026 18:05 (-03) | mineração: log do SRBMiner-MULTI, barras e prioridade (Claude, para Lucas Tavares)
+# histórico: 3.8.0 15/11/2026 15:50 GAMMA EPSILON: rotinas de backup e rotação de telas
 # histórico: 3.7.0 13/11/2026 19:45 IP público do roteador e hora da última mudança
 # histórico: 3.6.0 08/11/2026 21:02 disco pelo número de série e montagem de reserva
 # histórico: 3.5.0 08/11/2026 13:26 (-03) | tamanho do quadro conforme a tela (3,5" ou 5,2") (Claude, para Lucas Tavares)
@@ -447,6 +448,34 @@ def main():
         check("backup: rodando com andamento", a.get("rotulo") == "GITHUB" and a.get("detalhado") and a.get("restante") == "12m31s"
               and a.get("copiado") == "12.4GB" and a.get("decorrido") == "1m15s")
         check("backup: systemctl sem resposta = N/D", backup_vm({"rotinas": None}, agora)["nd"] is True)
+        # mineração: log do SRBMiner-MULTI (formato real de 15/11/2026) e níveis da tela
+        log_srb = ("[15/11/2026 19:20:30] [2026-11-15 19:20:30] Connected to prl-br.kryptex.network:7048 [pearlhash]\n"
+                   "[16/11/2026 04:23:56] [2026-11-16 04:23:56] #0  RTX 5070 Ti              192.58 TH/s   249.8W   0.771"
+                   "     69%   67C        2752  13801     569     3     0\n"
+                   "[16/11/2026 04:23:56] [2026-11-16 04:23:56]     15 min                   192.48 TH/s\n"
+                   "[16/11/2026 04:24:10] [2026-11-16 04:24:10] GPU0[t0] share accepted [   23ms] [pearlhash][0]\n")
+        ls_ = col.ler_log_srbminer(log_srb)
+        check("mineração: tabela do SRBMiner (hashrate, W, °C, shares)", ls_.get("hr") == 192.58e12 and ls_.get("w") == 249.8
+              and ls_.get("temp") == 67 and (ls_.get("ac"), ls_.get("rj")) == (569, 3) and ls_.get("mclk") == 13801)
+        check("mineração: média de 15 min, pool e última share", ls_.get("media15") == 192.48e12
+              and ls_.get("pool") == "prl-br.kryptex.network:7048" and ls_.get("lat_ms") == 23
+              and ls_.get("ush") == time.mktime((2026, 11, 16, 4, 24, 10, 0, 0, -1)))
+        check("mineração: log de antes do minerador abrir é ignorado",
+              col.ler_log_srbminer(log_srb, desde=time.mktime((2026, 11, 17, 0, 0, 0, 0, 0, -1))).get("hr") is None)
+        from library.sensors.matrixgreenpro.viewmodel import mineracao_vm
+        agora = time.time()
+        sm = {"gpu": {"temp": 89, "power": 290, "power_limit": 300, "fan_pct": 100, "vram_used": 5, "vram_total": 16,
+                      "throttle": 0x20, "mhz": 2600},
+              "cpu": {"temp": 60, "util": 100}, "ram": {"pct": 40, "total": 32}}
+        mm = {"ativo": True, "processo": "SRBMiner-MULTI", "inicio": agora - 600, "hr": 150e12, "media15": 192e12,
+              "ac": 97, "rj": 3, "ush": agora - 130, "lat_ms": 23, "serie": [(agora - 30, 150e12)], "mclk": 13801}
+        mv = mineracao_vm(mm, sm, DEFAULTS, (88, 94), (80, 88), agora)
+        nv = {it["chave"]: it["nivel"] for it in mv["saude"]}
+        check("mineração: barras com aviso e limite", (nv["gpu_t"], nv["gpu_w"], nv["vram"], nv["cpu_u"]) == (CRIT, WARN, OK, WARN))
+        check("mineração: queda de 22% âmbar, rejeição 3% vermelha, última share de 2 min vermelha",
+              mv["hr"] == ("150.0", WARN) and mv["rejeicao"] == ("3.0%", CRIT) and mv["ush"][1] == CRIT
+              and mv["unidade"] == "TH/s" and mv["reducao"] == ("TEMPERATURA", WARN))
+        check("mineração: sem minerador = sem tela", mineracao_vm({"ativo": False}, sm, DEFAULTS, (88, 94), (80, 88), agora)["ativo"] is False)
         try:                                                    # os pacotes dos outros estilos não levam o EPSILON
             from library.sensors.matrixgreenpro.estilos.epsilon_telas import escolher
         except ImportError:
@@ -459,6 +488,8 @@ def main():
             vb = dict(base_vm, backup={"ativo": {"rotulo": "X"}})
             check("EPSILON: backup rodando mostra o andamento", escolher(vb, 60)[0] == "andamento")
             check("EPSILON: alerta vermelho passa na frente do backup", escolher(dict(vb, hdr_status=("C", CRIT)), 60)[0] == "principal")
+            check("EPSILON: mineração passa na frente de tudo, até do alerta vermelho",
+                  escolher(dict(vb, hdr_status=("C", CRIT), mineracao={"ativo": True}), 60)[0] == "mineracao")
             check("EPSILON: alerta âmbar fixa a principal sem backup", escolher(dict(base_vm, hdr_status=("A", WARN)), 60)[0] == "principal"
                   and escolher(dict(vb, hdr_status=("A", WARN)), 60)[0] == "andamento")
         pf = Path(d) / "watts"
@@ -489,7 +520,7 @@ def main():
     from library.sensors.matrixgreenpro.estilos import renderer
     for nome in ("matrix", "gamma", "gamma-sonar", "gamma-raiox", "gamma-uv", "gamma-escala", "gamma-barra",
                  "gamma-banner", "gamma-faixa", "gamma-n3", "gamma-alpha", "gamma-n3-abas", "gamma-n3-linha",
-                 "gamma-n3-eventos", "gamma-beta", "gamma-gamma-colmeia", "gamma-gamma-mini", "gamma-gamma-painel", "gamma-gamma-coluna", "gamma-delta", "gamma-gamma", "gamma-delta-1", "gamma-delta-2", "gamma-delta-3", "gamma-delta-4", "gamma-delta-5", "gamma-delta-6", "v2-concreto", "v2-silencio", "v2-hud", "v2-root", "v2-dossie", "v2-vital", "v2-cockpit", "v2-metro", "v2-anunciador", "v2-8bits", "v2-osciloscopio", "v2-grade", "gamma-epsilon-prototipo", "gamma-epsilon", "gamma-delta-5a", "gamma-delta-5c", "pcb"):   # "pcb" fica por último (o construtor dos ZIPs depende disso)
+                 "gamma-n3-eventos", "gamma-beta", "gamma-gamma-colmeia", "gamma-gamma-mini", "gamma-gamma-painel", "gamma-gamma-coluna", "gamma-delta", "gamma-gamma", "gamma-delta-1", "gamma-delta-2", "gamma-delta-3", "gamma-delta-4", "gamma-delta-5", "gamma-delta-6", "v2-concreto", "v2-silencio", "v2-hud", "v2-root", "v2-dossie", "v2-vital", "v2-cockpit", "v2-metro", "v2-anunciador", "v2-8bits", "v2-osciloscopio", "v2-grade", "gamma-epsilon-prototipo", "gamma-epsilon", "gamma-epsilon-mineracao", "gamma-delta-5a", "gamma-delta-5c", "pcb"):   # "pcb" fica por último (o construtor dos ZIPs depende disso)
         for sc in ("normal", "atencao", "critico"):
             key, draw = renderer(nome)
             img = draw(ViewModel(copy.deepcopy(DEFAULTS), (80, 90), (80, 87)).build(panel.demo_snapshot(sc)))

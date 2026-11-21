@@ -1,4 +1,5 @@
-# MATRIX GREEN PRO | versão 3.12.0 | 15/11/2026 09:10 (-03) | rotinas de backup (backup) e rotação de telas (rotacao)
+# MATRIX GREEN PRO | versão 3.13.0 | 21/11/2026 17:50 (-03) | mineração (mineracao)
+# histórico: 3.12.0 15/11/2026 09:10 rotinas de backup (backup) e rotação de telas (rotacao)
 # histórico: 3.11.0 13/11/2026 19:40 IP público do roteador (ip_publico)
 # histórico: 3.10.0 08/11/2026 21:01 discos com número de série (serie)
 # histórico: 3.9.0 07/11/2026 21:46 alertas.manter_s (5 min) e histerese do ping 0
@@ -97,6 +98,11 @@ DEFAULTS = {
     # GAMMA EPSILON: telas que se alternam (principal, graficos, backups) e o tempo de cada uma.
     # Alerta vermelho fixa a principal; backup rodando mostra o andamento; alerta âmbar fixa a principal.
     "rotacao": {"telas": ["principal", "graficos", "backups"], "periodo_s": 60},
+    # GAMMA EPSILON: com um minerador rodando, a tela de mineração entra no lugar da rotação (e do backup).
+    # processos: nomes de processo (vazio = a lista padrão); log: log do SRBMiner-MULTI (produção);
+    # limites: queda do hashrate sobre a média de 15 min (%), rejeição (%), última share (s), latência da pool (ms)
+    "mineracao": {"ativo": "sim", "processos": [], "log": "~/mineracao/logs/mineracao_*.log", "intervalo_s": 5,
+                  "queda_pct": [15, 30], "rejeicao_pct": [1, 2], "ultima_share_s": [60, 120], "latencia_ms": [100, 250]},
     "clima": {
         "cidade": "RIO DO SUL",
         "latitude": -27.2139,

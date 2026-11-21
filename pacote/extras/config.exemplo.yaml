@@ -1,4 +1,5 @@
-# MATRIX GREEN PRO | versão 3.11.0 | 15/11/2026 15:40 (-03) | rotinas de backup e rotação de telas (GAMMA EPSILON)
+# MATRIX GREEN PRO | versão 3.12.0 | 21/11/2026 18:10 (-03) | tela de mineração do GAMMA EPSILON (mineracao)
+# histórico: 3.11.0 15/11/2026 15:40 rotinas de backup e rotação de telas (GAMMA EPSILON)
 # histórico: 3.10.0 13/11/2026 19:45 IP público do roteador (ip_publico)
 # histórico: 3.9.0 08/11/2026 21:03 discos pelo número de série (serie)
 # histórico: 3.8.0 07/11/2026 21:00 limites de manuais e do Zabbix (RAM 90/95, discos 80/90)
@@ -68,6 +69,16 @@ backup:
 
 # GAMMA EPSILON: telas que se alternam (principal, graficos, backups) e segundos de cada uma
 rotacao: {telas: [principal, graficos, backups], periodo_s: 60}
+
+# GAMMA EPSILON: com um minerador rodando, a tela de mineração entra no lugar da rotação (e do backup).
+# processos: [] = lista padrão (kryptex, xmrig, lolminer, gminer, t-rex, srbminer-multi...); log: log do SRBMiner-MULTI
+mineracao:
+  ativo: sim
+  log: "~/mineracao/logs/mineracao_*.log"
+  queda_pct: [15, 30]        # queda do hashrate sobre a média de 15 min: âmbar, vermelho
+  rejeicao_pct: [1, 2]       # shares rejeitadas
+  ultima_share_s: [60, 120]  # tempo desde a última share aceita
+  latencia_ms: [100, 250]    # latência da share até a pool
 
 clima:
   cidade: "RIO DO SUL"

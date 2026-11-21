@@ -1,4 +1,5 @@
-<!-- docs/brainstorm/README.md | versão 1.2.0 | 15/11/2026 08:40 (-03) | criação original (Claude, para Lucas Tavares). Fonte: estilos v2-*, gamma-delta-1 a 6 e gamma-epsilon do repositório. -->
+<!-- docs/brainstorm/README.md | versão 1.3.0 | 21/11/2026 18:10 (-03) | criação original (Claude, para Lucas Tavares). Fonte: estilos v2-*, gamma-delta-1 a 6 e gamma-epsilon do repositório. -->
+<!-- histórico: 1.3.0 21/11/2026 18:10 tela de mineração do EPSILON: 5 mockups e 3 fusões -->
 <!-- histórico: 1.2.0 15/11/2026 08:40 protótipo renomeado para gamma-epsilon-prototipo (o nome EPSILON vai para a versão com rotação de telas) -->
 <!-- histórico: 1.1.0 08/11/2026 12:35 protótipo GAMMA EPSILON -->
 
@@ -48,3 +49,15 @@ Estilo `gamma-epsilon-prototipo` (`reator_gamma_epsilon_prototipo.py`, versão 0
 Decisão do Lucas: fica como protótipo, não está pronto para lançamento e o desenvolvimento parou por ora. Pendências conhecidas: a célula DISCO fica perto da borda de baixo do grupo, a leitura exige atenção (muitas células pequenas, fontes de 7 e 8 px) e o encaixe depende do número de discos e baias.
 
 ![GAMMA EPSILON nos estados normal, atenção e crítico](epsilon-prototipo-colmeias.png)
+
+## GAMMA EPSILON: tela de mineração
+
+Pedido de 21/11/2026: quando o PC minera, uma tela do EPSILON com o essencial do computador e da produção, sem energia (que já aparece na tela de 5,2"), com a saúde do hardware em barras para ver a distância até o limite. Estudo `gamma-epsilon-mineracao` (`reator_gamma_epsilon_mineracao.py`, dados de demonstração).
+
+Cinco mockups (matriz `--mineracao`): A, barras na largura toda; B, colunas verticais; C, hashrate em destaque; D, GPU | CPU e sistema com a produção em três caixas; E, o mais perto do limite primeiro, com o % do limite.
+
+![Os 5 mockups da tela de mineração](mineracao-mockups.png)
+
+O Lucas gostou das barras do E e da produção do D. Três fusões (matriz `--mineracao-fusao`), já sem as redundâncias (MINERAÇÃO no cabeçalho, MÉDIA no gráfico, seta de variação, algoritmo, número repetido nas leituras em %, LOG completo): F, barras pelo limite; G, barras em ordem fixa; H, só as 4 mais perto do limite. Escolhida a G, que virou a tela de mineração do GAMMA EPSILON.
+
+![As 3 fusões](mineracao-fusao.png)

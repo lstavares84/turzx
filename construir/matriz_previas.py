@@ -1,4 +1,7 @@
-# GAMMA | construir/matriz_previas.py | versão 1.7.0 | 15/11/2026 09:45 (-03) | criação original (Claude, para Lucas Tavares)
+# GAMMA | construir/matriz_previas.py | versão 1.9.0 | 21/11/2026 18:00 (-03) | criação original (Claude, para Lucas Tavares)
+# histórico: 1.9.0 21/11/2026 18:00 --epsilon com a tela de mineração (5 colunas)
+# histórico: 1.8.1 21/11/2026 17:45 opção --mineracao-fusao (F, G e H)
+# histórico: 1.8.0 21/11/2026 17:30 opção --mineracao: os 5 mockups da tela de mineração do EPSILON
 # histórico: 1.7.0 15/11/2026 09:45 opção --epsilon: as 4 telas do GAMMA EPSILON nos 3 estados; --extra prototipo
 # histórico: 1.6.0 08/11/2026 13:22 opção --tela 3.5 ou 5.2 (a 5,2" aparece reduzida à metade)
 # histórico: 1.5.0 07/11/2026 22:20 o DELTA entra nas colunas padrão (4 x 3); sai o --extra delta
@@ -44,7 +47,16 @@ V2 = [("v2-concreto", "v2_brutal", "BRUTALISTA", "concreto"),
 EPSILON = [("gamma-epsilon", "reator_gamma_epsilon", "PRINCIPAL", "tela 1: o DELTA", "principal"),
            ("gamma-epsilon", "reator_gamma_epsilon", "GRÁFICOS", "tela 2: 24 h na largura toda", "graficos"),
            ("gamma-epsilon", "reator_gamma_epsilon", "BACKUPS", "tela 3: status das rotinas", "backups"),
-           ("gamma-epsilon", "reator_gamma_epsilon", "ANDAMENTO", "durante o backup", "andamento")]
+           ("gamma-epsilon", "reator_gamma_epsilon", "ANDAMENTO", "durante o backup", "andamento"),
+           ("gamma-epsilon", "reator_gamma_epsilon", "MINERAÇÃO", "com o minerador rodando", "mineracao")]
+MINERACAO = [("gamma-epsilon-mineracao", "reator_gamma_epsilon_mineracao", "A", "barras na largura toda", "A"),
+             ("gamma-epsilon-mineracao", "reator_gamma_epsilon_mineracao", "B", "colunas verticais", "B"),
+             ("gamma-epsilon-mineracao", "reator_gamma_epsilon_mineracao", "C", "hashrate em destaque", "C"),
+             ("gamma-epsilon-mineracao", "reator_gamma_epsilon_mineracao", "D", "GPU | CPU e sistema", "D"),
+             ("gamma-epsilon-mineracao", "reator_gamma_epsilon_mineracao", "E", "mais perto do limite primeiro", "E")]
+FUSAO = [("gamma-epsilon-mineracao", "reator_gamma_epsilon_mineracao", "F", "barras pelo limite, 3 maiores", "F"),
+         ("gamma-epsilon-mineracao", "reator_gamma_epsilon_mineracao", "G", "barras em ordem fixa", "G"),
+         ("gamma-epsilon-mineracao", "reator_gamma_epsilon_mineracao", "H", "4 barras + resto numa linha", "H")]
 LINHAS = [("normal", "NORMAL", (110, 255, 110)), ("atencao", "ATENÇÃO", (255, 190, 40)), ("critico", "CRÍTICO", (255, 80, 70))]
 
 
@@ -101,6 +113,12 @@ def main():
         elif a == "--deltas":
             COLUNAS[:] = []
             extras.extend(DELTAS)
+        elif a == "--mineracao":
+            COLUNAS[:] = []
+            extras.extend(MINERACAO)
+        elif a == "--mineracao-fusao":
+            COLUNAS[:] = []
+            extras.extend(FUSAO)
         elif a == "--epsilon":
             COLUNAS[:] = []
             extras.extend(EPSILON)

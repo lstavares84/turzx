@@ -1,4 +1,5 @@
-# MATRIX GREEN PRO | versão 2.10.0 | 15/11/2026 09:00 (-03) | rotinas de backup: systemd, journal e arquivo de andamento
+# MATRIX GREEN PRO | versão 2.11.0 | 21/11/2026 17:45 (-03) | mineração: processo do minerador e log do SRBMiner-MULTI
+# histórico: 2.10.0 15/11/2026 09:00 rotinas de backup: systemd, journal e arquivo de andamento
 # histórico: 2.9.0 13/11/2026 19:40 IP público (o do roteador) e hora da última mudança
 # histórico: 2.8.0 08/11/2026 21:01 disco pelo número de série (sobrevive à formatação)
 # histórico: 2.7.0 07/11/2026 22:03 discos e baias montados via VeraCrypt, LUKS ou LVM
@@ -1089,6 +1090,106 @@ class Backups:
             return {"rotinas": []}
         v = self.worker.get(max_age=self.interval * 3 + 20)
         return v if v is not None else {"rotinas": None}
+
+
+# ---------------------------------------------------------------- Mineração
+# O PC está minerando quando um processo da lista está rodando (nome do processo ou do executável, sem diferenciar
+# maiúsculas; a mesma lista da tela do nobreak). A produção vem do log do minerador, sem API e sem falar com a pool:
+# o SRBMiner-MULTI escreve a cada 30 s a tabela "#0 RTX 5070 Ti 192.58 TH/s 249.8W 0.771 69% 67C 2752 13801 569 3 0"
+# (hashrate, potência, eficiência, ventoinha, temperatura, clocks, aceitas, rejeitadas, erros de hardware), as médias
+# "15 min" e "1 hr", "Connected to <pool>" e "share accepted [ 23ms]". Outros mineradores: só a detecção.
+MINERADORES = ["kryptex", "xmrig", "lolminer", "gminer", "t-rex", "nbminer", "teamredminer", "srbminer-multi",
+               "bzminer", "rigel", "onezerominer", "nanominer", "excavator", "ethminer", "wildrig"]
+_SRB_TS = r"\[(\d{4}-\d\d-\d\d \d\d:\d\d:\d\d)\]"
+_SRB_GPU = re.compile(_SRB_TS + r"\s+#0\s+.+?\s+([\d.]+)\s+([kMGTP]?)H/s\s+([\d.]+)W\s+([\d.]+)\s+(\d+)%\s+(\d+)C\s+"
+                      r"(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)")
+_SRB_MEDIA = re.compile(_SRB_TS + r"\s+(15 min|1 hr)\s+([\d.]+)\s+([kMGTP]?)H/s")
+_SRB_SHARE = re.compile(_SRB_TS + r".*share accepted \[\s*(\d+)ms\]")
+_SRB_POOL = re.compile(_SRB_TS + r"\s+Connected to (\S+)")
+_SRB_ANSI = re.compile(r"\x1b\[[0-9;?]*[A-Za-z]")
+_MULT = {"": 1.0, "k": 1e3, "M": 1e6, "G": 1e9, "T": 1e12, "P": 1e15}
+
+
+def _ts_log(t):
+    return time.mktime(time.strptime(t, "%Y-%m-%d %H:%M:%S"))
+
+
+def ler_log_srbminer(texto, desde=0.0):
+    """Interpreta o trecho final do log do SRBMiner-MULTI. Hashrates em H/s; série = [(t, H/s)] da tabela."""
+    out = {"serie": [], "pool": None, "ush": None, "lat_ms": None}
+    for linha in texto.splitlines():
+        linha = _SRB_ANSI.sub("", linha)
+        m = _SRB_GPU.search(linha)
+        if m:
+            t = _ts_log(m.group(1))
+            if t < desde:
+                continue
+            hr = float(m.group(2)) * _MULT[m.group(3)]
+            out["serie"].append((t, hr))
+            out.update(t=t, hr=hr, unidade=m.group(3) + "H/s", w=float(m.group(4)), fan=int(m.group(6)),
+                       temp=int(m.group(7)), cclk=int(m.group(8)), mclk=int(m.group(9)),
+                       ac=int(m.group(10)), rj=int(m.group(11)), hw=int(m.group(12)))
+            continue
+        m = _SRB_MEDIA.search(linha)
+        if m and _ts_log(m.group(1)) >= desde:
+            out["media15" if m.group(2) == "15 min" else "media1h"] = float(m.group(3)) * _MULT[m.group(4)]
+            continue
+        m = _SRB_SHARE.search(linha)
+        if m and _ts_log(m.group(1)) >= desde:
+            out["ush"], out["lat_ms"] = _ts_log(m.group(1)), int(m.group(2))
+            continue
+        m = _SRB_POOL.search(linha)
+        if m:
+            out["pool"] = m.group(2)
+    return out
+
+
+class Mineracao:
+    def __init__(self, cfg, iniciar=True):
+        c = cfg.get("mineracao", {})
+        self.ativo = str(c.get("ativo", "sim")).lower() not in ("nao", "não", "false", "0", "no")
+        self.nomes = [str(n).lower() for n in (c.get("processos") or MINERADORES)]
+        self.log = os.path.expanduser(str(c.get("log", "~/mineracao/logs/mineracao_*.log")))
+        self.interval = float(c.get("intervalo_s", 5))
+        self.worker = Worker("mineracao", self._read, self.interval)
+        if self.ativo and iniciar:
+            self.worker.start()
+
+    def processo(self):
+        """(nome, início) do primeiro processo de mineração rodando, ou None."""
+        for p in psutil.process_iter(["name", "exe", "create_time"]):
+            try:
+                nomes = {str(p.info.get("name") or "").lower(), os.path.basename(str(p.info.get("exe") or "")).lower()}
+            except Exception:
+                continue
+            if nomes & set(self.nomes):
+                return (p.info.get("name") or "?", p.info.get("create_time"))
+        return None
+
+    def _trecho(self, n=600_000):
+        arqs = sorted(glob.glob(self.log), key=os.path.getmtime)
+        if not arqs:
+            return ""
+        with open(arqs[-1], "rb") as f:
+            f.seek(0, os.SEEK_END)
+            f.seek(max(0, f.tell() - n))
+            return f.read().decode("utf-8", "replace")
+
+    def _read(self):
+        pr = self.processo()
+        if not pr:
+            return {"ativo": False}
+        nome, inicio = pr
+        d = {"ativo": True, "processo": nome, "inicio": inicio}
+        if "srbminer" in nome.lower():
+            d.update(ler_log_srbminer(self._trecho(), desde=(inicio or 0) - 5))
+        return d
+
+    def read(self):
+        if not self.ativo:
+            return {"ativo": False}
+        v = self.worker.get(max_age=self.interval * 3 + 10)
+        return v if v is not None else {"ativo": None}
 
 
 # ---------------------------------------------------------------- Clima (Open-Meteo)

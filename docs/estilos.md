@@ -1,4 +1,5 @@
-<!-- docs/estilos.md | versão 2.4.0 | 15/11/2026 15:40 (-03) | criação original (Claude, para Lucas Tavares). Fonte: código da v1.8.2 (estilos/, reator_gamma.py, alerts.py) e histórico do projeto. -->
+<!-- docs/estilos.md | versão 2.5.0 | 21/11/2026 18:10 (-03) | criação original (Claude, para Lucas Tavares). Fonte: código da v1.8.2 (estilos/, reator_gamma.py, alerts.py) e histórico do projeto. -->
+<!-- histórico: 2.5.0 21/11/2026 18:10 tela de mineração do EPSILON (fusão G) -->
 <!-- histórico: 2.4.0 15/11/2026 15:40 GAMMA EPSILON (rotação de telas e backups); protótipo de colmeias renomeado -->
 <!-- histórico: 2.3.0 13/11/2026 19:45 DELTA com o IP público (WAN) ao lado do WIFI -->
 <!-- histórico: 2.2.0 08/11/2026 13:30 seção da tela de 5,2" (mesmo desenho em escala 2,25) -->
@@ -125,14 +126,15 @@ O GAMMA GAMMA reorganizado, com gráficos de 24 h, alertas em destaque e um LOG.
 
 O GAMMA DELTA com mais duas telas que se alternam a cada minuto e uma tela de backup. Pacotes `Gamma-Epsilon-3.5-v<versão>.zip` e `Gamma-Epsilon-5.2-v<versão>.zip`, instalado com `--versao epsilon`. Telas em `estilos/epsilon_telas.py`.
 
-![GAMMA EPSILON: as 4 telas nos três estados](img/gamma-epsilon-telas.png)
+![GAMMA EPSILON: as 5 telas nos três estados](img/gamma-epsilon-telas.png)
 
 - **Principal:** o GAMMA DELTA, com o selo `EPSILON`.
 - **Gráficos 24 h:** cinco gráficos na largura toda, cada um com o valor atual e o pico (▲): temperatura (CPU em área verde, GPU em linha branca), uso de CPU e GPU, memória (VRAM e RAM, pico em GB), rede (download e upload) e ping, com os limites de 20 e 100 ms tracejados.
 - **Backups:** cada rotina com o estado, a última execução e a duração, o resultado (fundo âmbar quando houve falha ou erro) e a próxima execução; embaixo, o LOG e o relógio.
 - **Andamento:** enquanto um backup roda, o percentual da pasta atual, a barra, as pastas feitas, o copiado, a velocidade, o tempo restante e o decorrido. Sem o arquivo de andamento, só o tempo decorrido com uma barra listrada.
+- **Mineração:** com um minerador rodando (no PC, o SRBMiner-MULTI minerando Pearl na Kryptex). Em cima, a saúde em barras: GPU (temperatura, potência contra o limite em vigor, ventoinha e VRAM) e CPU e sistema (temperatura, uso e RAM), cada barra com a marca âmbar do aviso e a vermelha do limite; temperatura e potência mostram também o % do limite. Uma linha com o clock (ou o motivo da redução) e a bomba e o radiador. Embaixo, a produção: três caixas (hashrate, média de 15 min e rejeição), shares aceitas e rejeitadas, pool e latência, última share e o gráfico de hashrate de 60 min com a média tracejada. No pé, o relógio e o último alerta. Escolhida entre 5 mockups e 3 fusões (estudo `gamma-epsilon-mineracao`, matrizes `--mineracao` e `--mineracao-fusao`).
 - **Cabeçalho e escala:** iguais em todas as telas, para um alerta nunca ficar escondido. Um ponto por tela da rotação mostra a atual; no andamento aparece `BACKUP`.
-- **Prioridade:** alerta vermelho fixa a principal, backup rodando mostra o andamento, alerta âmbar fixa a principal; sem nada disso, a rotação (`rotacao.periodo_s`).
+- **Prioridade:** mineração primeiro; depois, alerta vermelho fixa a principal, backup rodando mostra o andamento, alerta âmbar fixa a principal; sem nada disso, a rotação (`rotacao.periodo_s`).
 
 Matriz das telas: `construir/matriz_previas.py SAIDA.png --epsilon`. Detalhes dos backups em [Backups na tela](backup.md).
 

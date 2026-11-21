@@ -1,4 +1,4 @@
-<!-- CHANGELOG | GAMMA | versão 2.4.0 | 15/11/2026 15:45 (-03) | criação original (Claude, para Lucas Tavares) -->
+<!-- CHANGELOG | GAMMA | versão 2.5.0 | 21/11/2026 18:10 (-03) | criação original (Claude, para Lucas Tavares) -->
 <!-- histórico: 1.0.0 02/11/2026 19:15 primeira versão do histórico -->
 
 # Histórico de versões
@@ -7,6 +7,7 @@ Segue [SemVer](https://semver.org/lang/pt-BR/) (MAJOR.MINOR.PATCH). Os estilos (
 
 ## [Não lançado]
 
+- GAMMA EPSILON ganha a tela de mineração: com um minerador rodando (a mesma lista de processos da tela do nobreak), ela entra no lugar da rotação, do backup e de um alerta vermelho. Saúde do hardware em barras com as marcas de aviso e de limite (GPU: temperatura, potência contra o limite em vigor, ventoinha e VRAM; CPU e sistema: temperatura, uso e RAM), clock ou motivo da redução, bomba e radiador; produção do SRBMiner-MULTI lida do próprio log (hashrate, média de 15 min, rejeição, shares, pool, latência, última share e gráfico de 60 min). Sem dados de energia: ficam na tela de 5,2". Nova seção `mineracao` no `config.yaml`.
 - Tela do nobreak (`nobreak/`): a TURZX de 5,2" em paisagem (1280x720) só com o nobreak Ragtech NEP 1200 (4162), lida a cada 1 s pelo `ragtech_read.py` (só leitura), com gráficos de 15 min, contadores do dia, alarmes do próprio nobreak e log em CSV e de eventos em `~/.local/state/nobreak`. Serviço systemd de usuário próprio, separado do Turing da tela de 3,5".
 - Tela do nobreak: tag MINERANDO ou SEM MINERAÇÃO (processo de minerador rodando, lista configurável), coluna `minerando` no CSV, médias do dia separadas por minerando e sem mineração, faixa nos gráficos marcando o tempo minerando, eventos de início e fim da mineração e retomada do dia depois de reiniciar.
 - Tela do nobreak: o dia e os últimos 15 minutos dos gráficos voltam do log ao reiniciar; gráficos por tempo, com o período desligado ou sem leitura em branco; mínimo, média e máximo do dia e faixa de operação de cada variável (tensão e frequência pela ANEEL, PRODIST Módulo 8; saída, potência e carga pelo fabricante); estado REDE ADEQUADA, PRECÁRIA ou CRÍTICA e a parte do dia em cada faixa; respostas embaralhadas do nobreak descartadas; prévia a partir do log, sem abrir a porta.

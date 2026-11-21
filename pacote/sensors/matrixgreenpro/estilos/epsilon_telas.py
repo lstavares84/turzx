@@ -1,4 +1,5 @@
-# GAMMA EPSILON | estilos/epsilon_telas.py | versão 1.1.0 | 21/11/2026 18:00 (-03) | criação original (Claude, para Lucas Tavares)
+# GAMMA EPSILON | estilos/epsilon_telas.py | versão 1.2.0 | 21/11/2026 17:41 (-03) | criação original (Claude, para Lucas Tavares)
+# histórico: 1.2.0 21/11/2026 17:41 MINERANDO pisca (1 s aceso, 1 s apagado)
 # histórico: 1.1.0 21/11/2026 18:00 tela de mineração (fusão G: barras de saúde com limite e produção do minerador)
 # histórico: 1.0.0 15/11/2026 09:30 criação: telas de gráficos, de status dos backups e de andamento do backup
 # Telas do GAMMA EPSILON além da principal (que é o GAMMA DELTA). Todas mantêm o cabeçalho e a escala N0/N1/N2,
@@ -69,7 +70,10 @@ def _topo(c, v, P, F, tela, telas):
     """Nome da tela e relógio à direita da escala N0/N1/N2 (na mineração, o tempo minerando)."""
     if tela == "mineracao":
         mi = v.raw("mineracao") or {}
-        c.text("tela.nome", 314, 42, "MINERANDO", font(ROBOTO, 15, "Bold"), P["amber"], anchor="rs")
+        b = v.vm.get("blink")                                   # pisca: 1 s aceso, 1 s apagado (esmaecido)
+        aceso = (int(time.time()) % 2 == 0) if b is None else b
+        c.text("tela.nome", 314, 42, "MINERANDO", font(ROBOTO, 15, "Bold"),
+               P["amber"] if aceso else mix(P["amber"], P["bg"], 0.8), anchor="rs")
         c.text("tela.pos", 314, 57, "HÁ " + mi.get("ha", "N/D"), F["xs"], P["sub"], anchor="rs")
         return
     c.text("tela.nome", 314, 42, NOMES[tela], font(ROBOTO, 15, "Bold"), P["accent"], anchor="rs")

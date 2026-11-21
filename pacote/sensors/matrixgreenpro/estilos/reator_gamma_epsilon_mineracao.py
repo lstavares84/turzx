@@ -1,4 +1,5 @@
-# GAMMA EPSILON | estudo da tela de mineração | versão 0.2.0 | 21/11/2026 17:45 (-03) | criação original (Claude, para Lucas Tavares)
+# GAMMA EPSILON | estudo da tela de mineração | versão 0.2.1 | 21/11/2026 17:41 (-03) | criação original (Claude, para Lucas Tavares)
+# histórico: 0.2.1 21/11/2026 17:41 MINERANDO pisca
 # histórico: 0.2.0 21/11/2026 17:45 fusões F, G e H: barras do E (valor e % do limite) com a produção do D, sem redundâncias
 # histórico: 0.1.0 21/11/2026 17:30 criação: 5 mockups (A a E) com dados de demonstração
 # Estudo da tela que o GAMMA EPSILON mostraria enquanto o PC minera (detecção pelo processo do minerador, como na
@@ -111,7 +112,10 @@ def _rej(m):
 
 
 def _topo(c, P, F, m, cabecalho=True):
-    c.text("mn.tit", 314, 42, "MINERANDO", font(ROBOTO, 15, "Bold"), P["amber"], anchor="rs")
+    import time
+    aceso = int(time.time()) % 2 == 0                           # pisca: 1 s aceso, 1 s apagado (esmaecido)
+    c.text("mn.tit", 314, 42, "MINERANDO", font(ROBOTO, 15, "Bold"), P["amber"] if aceso else mix(P["amber"], P["bg"], 0.8),
+           anchor="rs")
     c.text("mn.up", 314, 57, "HÁ " + m["up"], F["xs"], P["sub"], anchor="rs")
     if cabecalho:                                               # nas fusões sai: repetia o MINERANDO
         c.text("hdr.tela", 172, 17, "MINERAÇÃO", F["xs"], P["amber"], anchor="ms")

@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-# GAMMA NOBREAK | nobreak/nobreak_tela.py | versão 0.3.0 | 21/11/2026 10:44 (-03) | criação original (Claude, para Lucas Tavares)
+# GAMMA NOBREAK | nobreak/nobreak_tela.py | versão 0.4.0 | 21/11/2026 17:41 (-03) | criação original (Claude, para Lucas Tavares)
+# histórico: 0.4.0 21/11/2026 17:41 energia gasta, receita estimada da mineração e saldo, acumulados em acumulado.json
+#            (continuam de onde pararam); cotação automática do dólar (AwesomeAPI, a cada 10 min, com cache);
+#            MINERANDO pisca
 # histórico: 0.3.0 21/11/2026 10:44 histórico retomado do log ao reiniciar; gráficos por tempo (sem dado = em branco);
 #            mínimo, média e máximo do dia e faixa de operação de cada variável (ANEEL PRODIST e fabricante);
 #            classificação da rede (adequada, precária, crítica) e tempo do dia em cada faixa
@@ -19,6 +22,12 @@
 #   log:     ~/.local/state/nobreak/nobreak-AAAA-MM-DD.csv (uma linha por leitura) e nobreak-eventos.log.
 #            Ao reiniciar, o dia (mínimos, médias, máximos, tempos, quedas) e os últimos 15 min dos gráficos
 #            voltam do log; o período desligado ou sem leitura fica em branco nos gráficos.
+#   dinheiro: acumulado desde a primeira execução em ~/.local/state/nobreak/acumulado.json (gravado a cada 30 s e
+#            ao sair; ao iniciar, continua de onde parou). Gasto = energia medida na saída do nobreak enquanto minera
+#            x tarifa; gerado = receita ESTIMADA pelo hashrate do SRBMiner (receita de referência por dia a um
+#            hashrate de referência), o mesmo modelo do painel do chat da mineração; tarifa, receita de referência e
+#            câmbio de reserva vêm de ~/mineracao/painel.conf. Saldo = gerado - gasto. O dólar vem da AwesomeAPI
+#            (economia.awesomeapi.com.br, gratuita, com atraso de alguns minutos), consultada a cada 10 min.
 #   mineração: o computador está minerando quando um processo da lista MINERADORES está rodando (nome do processo
 #            ou do executável, sem diferenciar maiúsculas). A lista muda com --mineradores ou NOBREAK_MINERADORES.
 # Uso:
@@ -29,12 +38,17 @@
 import argparse
 import collections
 import csv
+import glob
 import importlib.util
+import json
 import math
 import os
 import random
+import re
 import sys
+import threading
 import time
+import urllib.request
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
@@ -71,6 +85,10 @@ PRODIST_TENSAO = {220: {"adequada": (202, 231), "precaria": (191, 233)},
 PRODIST_FREQ = {"normal": (59.9, 60.1), "disturbio": (59.5, 60.5)}     # itens 65 e 66
 FAB_SAIDA_V = (115 * 0.98, 115 * 1.02)                                # saída 115 V, regulação +/- 2 %
 FAB_POTENCIA_W, FAB_CARGA = 840, 100                                  # 1200 VA / 840 W
+PAINEL_CONF = Path.home() / "mineracao" / "painel.conf"            # tarifa, receita de referência e câmbio de reserva
+LOG_MINERADOR = str(Path.home() / "mineracao" / "logs" / "mineracao_*.log")
+URL_COTACAO = "https://economia.awesomeapi.com.br/json/last/USD-BRL"
+COTACAO_S = 600                                                    # consulta o dólar a cada 10 min
 VARS = ("entrada_V", "saida_V", "freq_Hz", "saida_A", "potencia_W", "carga_%", "bateria_%", "bateria_V", "temp_C")
 
 
@@ -189,6 +207,120 @@ class Mineracao:
                     return True
         self.qual = ""
         return False
+
+
+# ---------------------------------------------------------------- dinheiro: tarifa, receita, cotação e acumulado
+def ler_painel_conf(p=PAINEL_CONF):
+    """CHAVE=VALOR do painel.conf do chat da mineração (só os números usados aqui)."""
+    cfg = {"TARIFA_BRL_KWH": None, "RECEITA_USD_DIA_REF": None, "HASH_REF_THS": None, "USD_BRL": None}
+    try:
+        for linha in Path(p).read_text(encoding="utf-8").splitlines():
+            linha = linha.split("#", 1)[0].strip()
+            if "=" in linha:
+                k, v = (x.strip() for x in linha.split("=", 1))
+                if k in cfg and v:
+                    cfg[k] = float(v.replace(",", "."))
+    except (OSError, ValueError):
+        pass
+    return cfg
+
+
+_SRB_GPU = re.compile(r"\[(\d{4}-\d\d-\d\d \d\d:\d\d:\d\d)\]\s+#0\s+.+?\s+([\d.]+)\s+([kMGTP]?)H/s\s+([\d.]+)W")
+_MULT = {"": 1e-12, "k": 1e-9, "M": 1e-6, "G": 1e-3, "T": 1.0, "P": 1e3}       # -> TH/s
+
+
+class Hashrate:
+    """Último hashrate do SRBMiner-MULTI lido do próprio log (tabela "#0 ... 192.58 TH/s 249.8W" a cada 30 s)."""
+
+    def __init__(self, padrao=LOG_MINERADOR):
+        self.padrao, self.ths, self.t, self.lido = padrao, None, 0.0, 0.0
+
+    def atual(self, agora):
+        if agora - self.lido >= 10:                      # relê o fim do log a cada 10 s
+            self.lido = agora
+            arqs = sorted(glob.glob(self.padrao), key=os.path.getmtime)
+            if arqs:
+                try:
+                    with open(arqs[-1], "rb") as f:
+                        f.seek(max(0, os.path.getsize(arqs[-1]) - 200_000))
+                        texto = f.read().decode(errors="ignore")
+                    for m in _SRB_GPU.finditer(re.sub(r"\x1b\[[0-9;?]*[A-Za-z]", "", texto)):
+                        self.t = time.mktime(time.strptime(m.group(1), "%Y-%m-%d %H:%M:%S"))
+                        self.ths = float(m.group(2)) * _MULT[m.group(3)]
+                except OSError:
+                    pass
+        return self.ths if self.ths is not None and agora - self.t <= 120 else None   # velho = não conta
+
+
+class Cotacao:
+    """Dólar comercial (venda) da AwesomeAPI, consultado em segundo plano a cada 10 min, com cache em arquivo.
+    Sem internet: usa o último valor guardado; sem nada guardado: o câmbio fixo do painel.conf."""
+
+    def __init__(self, pasta, reserva=None, consulta=True):
+        self.arq = Path(pasta) / "cotacao.json"
+        self.valor, self.hora, self.fonte = reserva, None, "painel.conf (fixo)" if reserva else ""
+        try:
+            c = json.loads(self.arq.read_text(encoding="utf-8"))
+            self.valor, self.hora, self.fonte = c["valor"], c["hora"], c["fonte"]
+        except (OSError, ValueError, KeyError):
+            pass
+        if consulta:
+            threading.Thread(target=self._laco, daemon=True).start()
+
+    def _laco(self):
+        while True:
+            try:
+                req = urllib.request.Request(URL_COTACAO, headers={"User-Agent": "gamma-nobreak/0.4"})
+                with urllib.request.urlopen(req, timeout=15) as r:
+                    c = json.loads(r.read().decode())["USDBRL"]
+                self.valor = float(c["bid"])
+                self.hora = int(c.get("timestamp") or time.time())
+                self.fonte = "AwesomeAPI"
+                tmp = self.arq.with_suffix(".tmp")
+                tmp.write_text(json.dumps({"valor": self.valor, "hora": self.hora, "fonte": self.fonte}), encoding="utf-8")
+                tmp.replace(self.arq)
+            except Exception as e:
+                log(f"cotação do dólar indisponível: {type(e).__name__}: {e}")
+            time.sleep(COTACAO_S)
+
+
+class Financas:
+    """Energia, gasto, receita estimada e saldo acumulados desde a primeira execução (acumulado.json)."""
+
+    def __init__(self, pasta, gravar=True):
+        self.arq, self.gravar = Path(pasta) / "acumulado.json", gravar
+        self.a = {"desde": time.time(), "kwh_total": 0.0, "brl_total": 0.0, "kwh_min": 0.0, "brl_min": 0.0,
+                  "usd_receita": 0.0, "s_min": 0.0}
+        try:
+            self.a.update(json.loads(self.arq.read_text(encoding="utf-8")))
+        except (OSError, ValueError):
+            pass
+        self.cfg, self.cfg_t, self.salvo_t = ler_painel_conf(), time.time(), 0.0
+
+    def somar(self, potencia_w, minerando, ths, dt, agora):
+        if agora - self.cfg_t > 60:                      # o painel.conf pode mudar (tarifa, referência)
+            self.cfg, self.cfg_t = ler_painel_conf(), agora
+        tarifa = self.cfg["TARIFA_BRL_KWH"] or 0.0
+        kwh = potencia_w * dt / 3.6e6
+        self.a["kwh_total"] += kwh
+        self.a["brl_total"] += kwh * tarifa
+        if minerando:
+            self.a["kwh_min"] += kwh
+            self.a["brl_min"] += kwh * tarifa
+            self.a["s_min"] += dt
+            ref, href = self.cfg["RECEITA_USD_DIA_REF"], self.cfg["HASH_REF_THS"]
+            if ths and ref and href:
+                self.a["usd_receita"] += ths / href * ref / 86400 * dt
+        if agora - self.salvo_t >= 30:
+            self.salvar(agora)
+
+    def salvar(self, agora=None):
+        if not self.gravar:
+            return
+        self.salvo_t = agora or time.time()
+        tmp = self.arq.with_suffix(".tmp")
+        tmp.write_text(json.dumps(self.a, indent=1), encoding="utf-8")
+        tmp.replace(self.arq)                            # troca atômica: nunca fica um arquivo pela metade
 
 
 # ---------------------------------------------------------------- estado do dia, eventos e log
@@ -409,7 +541,15 @@ def _nivel(flags):
     return None
 
 
-def desenhar(reg, F, ultimo, erro, intervalo, minerando=False, qual="", agora=None):
+def _dinheiro(x, moeda="R$", casas=2):
+    """1234.5 -> 'R$ 1.234,50' (padrão brasileiro); negativo com sinal na frente."""
+    if x is None:
+        return f"{moeda} --"
+    s = f"{abs(x):,.{casas}f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    return f"{'-' if x < 0 else ''}{moeda} {s}"
+
+
+def desenhar(reg, F, ultimo, erro, intervalo, minerando=False, qual="", agora=None, fin=None, cot=None, ths=None):
     agora = agora or time.time()
     im = Image.new("RGB", (W, H), BG)
     dr = ImageDraw.Draw(im)
@@ -430,8 +570,9 @@ def desenhar(reg, F, ultimo, erro, intervalo, minerando=False, qual="", agora=No
     # ---- cabeçalho: título, mineração, estado da rede, relógio
     txt((20, 46), "NOBREAK", F("jb", 34), VERDE)
     tx0, tx1 = 220, 520
-    cor_m = GELO if minerando else CINZA
-    dr.rounded_rectangle((tx0, 10, tx1, 60), 8, fill=(18, 52, 22) if minerando else BG, outline=cor_m, width=3)
+    aceso = int(agora) % 2 == 0                      # MINERANDO pisca: 1 s aceso, 1 s apagado (esmaecido)
+    cor_m = (GELO if aceso else (60, 95, 60)) if minerando else CINZA
+    dr.rounded_rectangle((tx0, 10, tx1, 60), 8, fill=(18, 52, 22) if minerando and aceso else BG, outline=cor_m, width=3)
     txt(((tx0 + tx1) // 2, 46), "MINERANDO" if minerando else "SEM MINERAÇÃO", F("jb", 28), cor_m, "ms")
     if not d:
         cor_st, rot = VERMELHO, "SEM LEITURA"
@@ -555,8 +696,43 @@ def desenhar(reg, F, ultimo, erro, intervalo, minerando=False, qual="", agora=No
         txt((c1, yy), b1, F("jb", 17), GELO if minerando else BRANCO, "rs")
         txt((c2, yy), b2, F("jb", 17), BRANCO if not minerando else SUB, "rs")
 
+    # ---- dinheiro acumulado: gasto de energia minerando, receita estimada, saldo e cotação do dólar
+    yf0, yf1 = 428, 504
+    dr.rounded_rectangle((20, yf0, 1260, yf1), 10, fill=PAINEL, outline=LINHA, width=2)
+    if fin:
+        a, dol = fin.a, (cot.valor if cot else None)
+        usd = lambda brl: brl / dol if dol else None
+        brl = lambda u: u * dol if dol else None
+        tarifa = fin.cfg["TARIFA_BRL_KWH"]
+        desde = time.strftime("%d/%m/%Y %H:%M", time.localtime(a["desde"]))
+        txt((34, yf0 + 22), f"ACUMULADO desde {desde}", F("rb", 15), SUB)
+        txt((34, yf0 + 45), f"{_dur(a['s_min'])} minerando", F("jb", 14, "Regular"), GELO if minerando else SUB)
+        txt((34, yf0 + 66), cabe(f"nobreak {_n(a['kwh_total'], 1)} kWh = {_dinheiro(a['brl_total'])}",
+                                 F("jb", 13, "Regular"), 270), F("jb", 13, "Regular"), SUB)
+        saldo_u = a["usd_receita"] - (usd(a["brl_min"]) or 0) if dol else None
+        saldo_r = brl(a["usd_receita"]) - a["brl_min"] if dol else None
+        cols = [(330, "GASTO (energia minerando)", _dinheiro(a["brl_min"]), _dinheiro(usd(a["brl_min"]), "US$"),
+                 f"{_n(a['kwh_min'], 2)} kWh x {_dinheiro(tarifa, 'R$', 3)}" if tarifa else "sem tarifa no painel.conf",
+                 BRANCO),
+                (580, "GERADO (estimado)", _dinheiro(brl(a["usd_receita"])), _dinheiro(a["usd_receita"], "US$", 4),
+                 f"agora {_n(ths, 1)} TH/s" if ths else "minerador sem hashrate recente", GELO),
+                (830, "SALDO", _dinheiro(saldo_r), _dinheiro(saldo_u, "US$"),
+                 "gerado - gasto", (VERDE if (saldo_r or 0) >= 0 else VERMELHO))]
+        for x, rot, v1, v2, nota, cor in cols:
+            txt((x, yf0 + 22), rot, F("rb", 15), SUB)
+            b = dr.textbbox((x, yf0 + 48), v1, font=F("jb", 24), anchor="ls")
+            txt((x, yf0 + 48), v1, F("jb", 24), cor)
+            txt((b[2] + 10, yf0 + 48), v2, F("jb", 16), cor)
+            txt((x, yf0 + 67), nota, F("jb", 13, "Regular"), SUB)
+        xc = 1080
+        txt((xc, yf0 + 22), "DÓLAR", F("rb", 15), SUB)
+        txt((xc, yf0 + 48), _dinheiro(dol, "R$", 4) if dol else "R$ --", F("jb", 22), BRANCO)
+        quando = time.strftime("%H:%M", time.localtime(cot.hora)) if cot and cot.hora else ""
+        txt((xc, yf0 + 67), cabe(f"{cot.fonte} {quando}".strip() if cot else "", F("jb", 13, "Regular"), 170),
+            F("jb", 13, "Regular"), SUB)
+
     # ---- gráficos dos últimos 15 minutos, por tempo: sem leitura = em branco
-    yg0, yg1 = 430, 680
+    yg0, yg1 = 518, 680
     pts = [p for p in reg.hist if p[0] >= agora - JANELA_S]
     t0 = agora - JANELA_S
 
@@ -659,6 +835,8 @@ def main():
     a = ap.parse_args()
 
     ESTADO.mkdir(parents=True, exist_ok=True)
+    import signal                                     # systemctl stop manda SIGTERM: sai pelo finally e grava o acumulado
+    signal.signal(signal.SIGTERM, lambda *_: sys.exit(0))
     F = Fontes(a.turing)
     mina = Mineracao(a.mineradores.split(","))
 
@@ -671,19 +849,32 @@ def main():
             if 700 <= i < 760:                        # computador desligado: sem leitura
                 continue
             d = reg.anotar(d, fonte.minerando, "xmrig", agora - 900 + i)
-        desenhar(reg, F, d, None, a.intervalo, fonte.minerando, "xmrig", agora).save(a.previa or "demo.png")
+        fin = Financas(ESTADO, gravar=False)
+        fin.a = {"desde": agora - 3 * 86400, "kwh_total": 21.4, "brl_total": 21.4 * 0.869, "kwh_min": 15.6,
+                 "brl_min": 15.6 * 0.869, "usd_receita": 6.41, "s_min": 2.1 * 86400}
+        fin.cfg = {"TARIFA_BRL_KWH": 0.869, "RECEITA_USD_DIA_REF": 3.05, "HASH_REF_THS": 190, "USD_BRL": 5.32}
+        cot = Cotacao(ESTADO / "demo-sem-cache", 5.3412, consulta=False)
+        cot.hora, cot.fonte = agora - 240, "AwesomeAPI"
+        desenhar(reg, F, d, None, a.intervalo, fonte.minerando, "xmrig", agora, fin=fin, cot=cot,
+                 ths=188.6 if fonte.minerando else None).save(a.previa or "demo.png")
         log(f"prévia de demonstração gravada: {a.previa or 'demo.png'}")
         return 0
 
     if a.previa:                                      # só o log: não disputa a porta com o serviço
         reg = Registro(ESTADO, a.rede, gravar=False)
         d = reg.hist[-1][1] if reg.hist else None
+        fin = Financas(ESTADO, gravar=False)
+        cot = Cotacao(ESTADO, fin.cfg["USD_BRL"], consulta=False)
         desenhar(reg, F, d, None if d else "sem leituras recentes no log", a.intervalo,
-                 bool(d) and d.get("minerando") == "sim").save(a.previa)
+                 bool(d) and d.get("minerando") == "sim", fin=fin, cot=cot).save(a.previa)
         log(f"prévia gravada a partir do log: {a.previa}")
         return 0
     fonte = Nobreak(a.leitor, a.va)
     reg = Registro(ESTADO, a.rede)
+    fin = Financas(ESTADO)
+    cot = Cotacao(ESTADO, fin.cfg["USD_BRL"])
+    hr = Hashrate()
+    t_ant = None
 
     lcd = None
     if not a.sem_tela:
@@ -696,13 +887,18 @@ def main():
             t0 = time.time()
             d, erro = fonte.ler()
             m = mina.ativa()
+            ths = hr.atual(t0) if m else None
             if d:
                 ultimo = reg.anotar(d, m, mina.qual)
+                dt = (t0 - t_ant) if t_ant and t0 - t_ant <= LACUNA_S else 0.0   # lacuna (desligado): não soma
+                fin.somar(ultimo["potencia_W"], m, ths, dt, t0)
+                t_ant = t0
             else:
                 reg.falha(erro)
             if lcd:
                 try:
-                    lcd.DisplayPILImage(desenhar(reg, F, ultimo if d else None, erro, a.intervalo, m, mina.qual))
+                    lcd.DisplayPILImage(desenhar(reg, F, ultimo if d else None, erro, a.intervalo, m, mina.qual,
+                                                 fin=fin, cot=cot, ths=ths))
                 except Exception as e:
                     log(f"falha ao enviar à tela: {type(e).__name__}: {e}")
                     time.sleep(5)
@@ -714,6 +910,7 @@ def main():
     except KeyboardInterrupt:
         pass
     finally:
+        fin.salvar()
         fonte.fechar()
     return 0
 

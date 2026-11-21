@@ -145,6 +145,7 @@ Cada coletor (CPU, GPU, discos, baias, rede, clima...) roda isolado: se um falha
 | [Decisões e lições](docs/decisoes-e-licoes.md) | todos | por que o projeto é como é e os erros que não devem voltar |
 | [Roteiro](docs/roteiro.md) | todos | pendências e próximos passos |
 | [Brainstorm](docs/brainstorm/README.md) | todos | as 12 propostas da v2.0.0 e as variantes de estudo do DELTA, com imagens |
+| [Tela do nobreak](nobreak/README.md) | quem tem a tela de 5,2" | a 5,2" em paisagem só com o nobreak Ragtech 4162, atualizada a cada 1 s e com log em CSV |
 | [Histórico de versões](CHANGELOG.md) | todos | o que mudou em cada versão |
 
 ## Estado do projeto

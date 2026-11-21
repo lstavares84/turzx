@@ -1,0 +1,5 @@
+# GAMMA NOBREAK | 99-turzx-52.rules | versão 1.1.0 | 21/11/2026 10:21 (-03) | criação original (Claude, para Lucas Tavares)
+# histórico: 1.1.0 21/11/2026 10:21 grupo plugdev (a marca uaccess só vale em regras numeradas antes de 73)
+# histórico: 1.0.0 21/11/2026 10:20 criação
+# Libera a tela TURZX / Turing de 5,2" (USB 1cbe:0050) para quem está no grupo plugdev. Instalar em /etc/udev/rules.d/.
+SUBSYSTEM=="usb", ATTR{idVendor}=="1cbe", ATTR{idProduct}=="0050", MODE="0660", GROUP="plugdev", TAG+="uaccess"

@@ -1,4 +1,4 @@
-<!-- docs/instalacao.md | versão 2.1.0 | 08/11/2026 13:30 (-03) | criação original (Claude, para Lucas Tavares). Fonte: instalar-gamma.sh e pacote/scripts/ da v1.8.3. -->
+<!-- docs/instalacao.md | versão 2.1.0 | 08/11/2026 13:30 (-03) | criação original (Claude, para Lucas Tavares). Fonte: instalar-gamma.sh e tela-3.5-gamma/pacote/scripts/ da v1.8.3. -->
 <!-- histórico: 2.1.0 08/11/2026 13:30 tela de 5,2": --tela, TELA_PADRAO, REVISION TUR_USB e pacotes por tela -->
 <!-- histórico: 2.0.0 07/11/2026 22:24 Releases, GAMMA DELTA, apelidos, selo dev e histórico de 24 h -->
 
@@ -69,7 +69,7 @@ systemctl --user restart turing-smart-screen
 
 ⚠️ Para o FPS aparecer nos jogos da Steam, use a opção de inicialização `mangohud %command%`.
 
-⚠️ Confira a orientação da tela. Se a imagem estiver de ponta-cabeça, rode `./instalar-gamma.sh --invertido`. Para ver uma seta de teste na tela física, use `pacote/scripts/instalar.sh --teste-orientacao`.
+⚠️ Confira a orientação da tela. Se a imagem estiver de ponta-cabeça, rode `./instalar-gamma.sh --invertido`. Para ver uma seta de teste na tela física, use `tela-3.5-gamma/pacote/scripts/instalar.sh --teste-orientacao`.
 
 ⚠️ Confira o mapa das ventoinhas e a numeração das baias com as ferramentas descritas em [configuração](configuracao.md).
 
@@ -88,19 +88,19 @@ O instalador avisa se faltar o módulo `pyusb` no ambiente do Turing. Se o servi
 Somente leitura, mostra USB, porta serial, grupo `dialout`, serviços, tema ativo, leitura real de cada sensor, saúde e erros recentes:
 
 ```bash
-pacote/scripts/diagnosticar.sh            # completo, salvo em ~/.local/state/matrixgreenpro/
-pacote/scripts/diagnosticar.sh --resumo   # essencial
+tela-3.5-gamma/pacote/scripts/diagnosticar.sh            # completo, salvo em ~/.local/state/matrixgreenpro/
+tela-3.5-gamma/pacote/scripts/diagnosticar.sh --resumo   # essencial
 ```
 
-No ZIP, os scripts ficam em `scripts/` (sem o prefixo `pacote/`).
+No ZIP, os scripts ficam em `scripts/` (sem o prefixo `tela-3.5-gamma/pacote/`).
 
 ## Restauração e remoção
 
 ```bash
-pacote/scripts/restaurar.sh                          # volta ao tema anterior
-pacote/scripts/restaurar.sh --listar                 # lista os backups
-pacote/scripts/restaurar.sh --backup 20261101-001500 # restaura um backup específico
-pacote/scripts/restaurar.sh --remover-tudo           # desinstala tema e extensão (pede confirmação)
+tela-3.5-gamma/pacote/scripts/restaurar.sh                          # volta ao tema anterior
+tela-3.5-gamma/pacote/scripts/restaurar.sh --listar                 # lista os backups
+tela-3.5-gamma/pacote/scripts/restaurar.sh --backup 20261101-001500 # restaura um backup específico
+tela-3.5-gamma/pacote/scripts/restaurar.sh --remover-tudo           # desinstala tema e extensão (pede confirmação)
 ```
 
 Cada execução do instalador gera um backup em `~/.local/share/matrixgreenpro/backups/`. A configuração em `~/.config/matrixgreenpro/` e os backups nunca são apagados.

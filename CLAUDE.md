@@ -2,7 +2,7 @@
 
 # Instruções para agentes de IA
 
-Este repositório é o GAMMA, tema de monitoramento para as telas USB TURZX / Turing de 3,5" (em uso) e de 5,2" (suporte pronto, ainda sem teste no aparelho). O código é comum; o que é de cada tela fica em `pacote/telas/3.5` e `pacote/telas/5.2`. Antes de mudar qualquer coisa, leia o [README](README.md), a [arquitetura](docs/arquitetura.md), o [desenvolvimento](docs/desenvolvimento.md), as [decisões e lições](docs/decisoes-e-licoes.md) e o [roteiro](docs/roteiro.md).
+Este repositório é o GAMMA, tema de monitoramento para as telas USB TURZX / Turing de 3,5" (em uso) e de 5,2" (suporte pronto, ainda sem teste no aparelho). O repositório é dividido por tela: `tela-3.5-gamma/` (o tema GAMMA, com o instalador e o construtor) e `tela-5.2-nobreak/` (a tela do nobreak na 5,2"); scripts antigos ficam em `legado/`. No GAMMA, o código é comum às duas telas; o que é de cada tela fica em `tela-3.5-gamma/pacote/telas/3.5` e `tela-3.5-gamma/pacote/telas/5.2`. Antes de mudar qualquer coisa, leia o [README](README.md), a [arquitetura](docs/arquitetura.md), o [desenvolvimento](docs/desenvolvimento.md), as [decisões e lições](docs/decisoes-e-licoes.md) e o [roteiro](docs/roteiro.md).
 
 ## Comunicação com o Lucas
 
@@ -19,8 +19,8 @@ Este repositório é o GAMMA, tema de monitoramento para as telas USB TURZX / Tu
 ## Regras de trabalho
 
 - Não inventar fatos sobre o hardware. Faltando informação, pedir a saída de um comando somente leitura.
-- Mostrar toda modificação visual ou de código do tema na matriz de prévias em PNG (4 versões x 3 estados), gerada por `construir/matriz_previas.py`, nas duas telas (`--tela 5.2` para a de 5,2").
-- Quando a sessão roda no PC do Lucas (existe `~/Documentos/Projetos/turing-smart-screen-linux`, a pasta do Turing desde 14/11/2026; antes era `~/turing-smart-screen-linux`), toda edição termina assim: autoteste e matriz verdes, envio à tela (com autorização, pelo `construir/aplicar-na-tela.sh delta 3.5`, o estilo e a tela em uso), commit e push. Enviar a versão para a tela física (`construir/aplicar-na-tela.sh`, `instalar-gamma.sh` ou qualquer instalação) só com autorização explícita do Lucas no chat, a cada envio: perguntar e esperar um sim claro.
+- Mostrar toda modificação visual ou de código do tema na matriz de prévias em PNG (4 versões x 3 estados), gerada por `tela-3.5-gamma/construir/matriz_previas.py`, nas duas telas (`--tela 5.2` para a de 5,2").
+- Quando a sessão roda no PC do Lucas (existe `~/Documentos/Projetos/turing-smart-screen-linux`, a pasta do Turing desde 14/11/2026; antes era `~/turing-smart-screen-linux`), toda edição termina assim: autoteste e matriz verdes, envio à tela (com autorização, pelo `tela-3.5-gamma/construir/aplicar-na-tela.sh epsilon 3.5`, o estilo e a tela em uso), commit e push. Enviar a versão para a tela física (`tela-3.5-gamma/construir/aplicar-na-tela.sh`, `instalar-gamma.sh` ou qualquer instalação) só com autorização explícita do Lucas no chat, a cada envio: perguntar e esperar um sim claro.
 - Seguir os critérios de pronto de [docs/desenvolvimento.md](docs/desenvolvimento.md): autoteste verde, prévias sem problema de layout, instalação do zero com usuário comum, SemVer e CHANGELOG atualizados.
 - Pacotes enxutos: nada que não seja essencial entra nos ZIPs.
 - ZIPs são artefatos de lançamento, não vão para o Git.

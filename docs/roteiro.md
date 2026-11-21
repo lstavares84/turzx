@@ -1,4 +1,5 @@
-<!-- docs/roteiro.md | versão 2.6.0 | 15/11/2026 15:45 (-03) | criação original (Claude, para Lucas Tavares). Fonte: pendências do projeto em 07/11/2026, depois da v1.8.2. -->
+<!-- docs/roteiro.md | versão 2.7.0 | 21/11/2026 18:40 (-03) | criação original (Claude, para Lucas Tavares). Fonte: pendências do projeto em 07/11/2026, depois da v1.8.2. -->
+<!-- histórico: 2.7.0 21/11/2026 18:40 scripts antigos movidos para legado/ -->
 <!-- histórico: 2.6.0 15/11/2026 15:45 tela de backup e rotação feitas no GAMMA EPSILON; falta o arquivo de andamento nas rotinas -->
 <!-- histórico: 2.5.0 15/11/2026 07:55 tela de backup e rotação de 3 telas -->
 <!-- histórico: 2.4.0 08/11/2026 20:57 sinalização de internet via VPN -->
@@ -36,7 +37,7 @@ Já validados na tela física (07/11/2026): imagem, selo de versão, sensores de
 
 ## Organização do repositório
 
-13. Remover `construir-zips.sh` e `publicar-no-github.sh`, substituídos por `construir/construir_zips.py` e `gh release create` (veja o [desenvolvimento](desenvolvimento.md)).
+13. Apagar a pasta `legado/` quando ninguém mais precisar dela: `construir-zips.sh` e `publicar-no-github.sh` (substituídos por `tela-3.5-gamma/construir/construir_zips.py` e `gh release create`) e o `espelho-github` (substituído pelo `espelhar-github` do repositório debian; o `espelho-github.timer` antigo ainda está instalado no PC, parado). Desde 21/11/2026 ficam fora do caminho, em `legado/`.
 14. Decidir o destino dos estilos de estudo e legados (propostas v2, variantes do DELTA e do GAMMA GAMMA, protótipo de colmeias `gamma-epsilon-prototipo`, sonar, raio-x, uv, n3, faixa, `pcb`): arquivar, remover ou levar adiante na v2.0.0.
 15. Revisar redundâncias: taxas de ETH repetidas, SSD° no favo do BETA e na linha do disco, e o CORE duplicando a escala N0/N1/N2.
 

@@ -26,7 +26,7 @@ O GAMMA tem quatro estilos de entrega: ALPHA, BETA, GAMMA e DELTA, para a tela d
 
 ### Paleta
 
-Definida em `pacote/sensors/matrixgreenpro/estilos/reator_gamma.py` (dicionário `GAMMA`).
+Definida em `tela-3.5-gamma/pacote/sensors/matrixgreenpro/estilos/reator_gamma.py` (dicionário `GAMMA`).
 
 | Nome no código | Cor | Hexadecimal | RGB | Uso |
 |---|---|---|---|---|
@@ -136,7 +136,7 @@ O GAMMA DELTA com mais duas telas que se alternam a cada minuto e uma tela de ba
 - **Cabeçalho e escala:** iguais em todas as telas, para um alerta nunca ficar escondido. Um ponto por tela da rotação mostra a atual; no andamento aparece `BACKUP`.
 - **Prioridade:** mineração primeiro; depois, alerta vermelho fixa a principal, backup rodando mostra o andamento, alerta âmbar fixa a principal; sem nada disso, a rotação (`rotacao.periodo_s`).
 
-Matriz das telas: `construir/matriz_previas.py SAIDA.png --epsilon`. Detalhes dos backups em [Backups na tela](backup.md).
+Matriz das telas: `tela-3.5-gamma/construir/matriz_previas.py SAIDA.png --epsilon`. Detalhes dos backups em [Backups na tela](backup.md).
 
 ## Na tela de 5,2"
 

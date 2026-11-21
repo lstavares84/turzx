@@ -1,4 +1,5 @@
-<!-- README | GAMMA | versão 4.0.0 | 08/11/2026 13:29 (-03) | criação original (Claude, para Lucas Tavares) -->
+<!-- README | GAMMA | versão 5.0.0 | 21/11/2026 18:45 (-03) | criação original (Claude, para Lucas Tavares) -->
+<!-- histórico: 5.0.0 21/11/2026 18:45 mapa do repositório por tela (tela-3.5-gamma/, tela-5.2-nobreak/, legado/), telas do EPSILON -->
 <!-- histórico: 4.0.0 08/11/2026 13:29 duas telas: TUS-35 de 3,5" e TURZX de 5,2"; pacotes e pastas por tela -->
 <!-- histórico: 3.0.0 07/11/2026 22:20 revisão completa para a v1.8.2: quatro estilos, GAMMA DELTA, alertas, LOG, capturas reais -->
 <!-- histórico: 1.0.0 02/11/2026 19:20 primeira página (SENTINELA e DOSÍMETRO) -->
@@ -23,6 +24,37 @@ Verde fluorescente, hexágonos e brilho: CPU, GPU, RAM, discos, ventoinhas, bomb
 
 </div>
 
+## Mapa do repositório
+
+O repositório é dividido por tela. Cada pasta tem tudo o que precisa para a sua tela funcionar.
+
+| Pasta | Tela | O que é | Como roda no PC de referência |
+|---|---|---|---|
+| [`tela-3.5-gamma/`](tela-3.5-gamma/) | 3,5" (retrato) | o tema **GAMMA**: estilos ALPHA, BETA, GAMMA, DELTA e EPSILON, instalador, construtor dos ZIPs e prévias (o mesmo tema também está pronto para a 5,2") | serviço `turing-smart-screen`, com o GAMMA EPSILON |
+| [`tela-5.2-nobreak/`](tela-5.2-nobreak/) | 5,2" (paisagem) | a **tela do nobreak** Ragtech: rede elétrica, potência real, bateria, mineração e gasto de energia | serviço `nobreak-tela` |
+| [`docs/`](docs/) | as duas | documentação, capturas e brainstorm | |
+| [`legado/`](legado/) | | scripts substituídos e o espelho do GitHub antigo, guardados até serem apagados | não roda |
+
+### O que aparece em cada tela
+
+**Tela de 3,5", GAMMA EPSILON.** Três telas se alternam a cada minuto; duas telas intermediárias entram no lugar da rotação quando há algo acontecendo:
+
+| Tela | Quando aparece | O que mostra |
+|---|---|---|
+| Principal | na rotação (e fixa com alerta âmbar ou vermelho) | o GAMMA DELTA completo: CPU, GPU, RAM, discos, TerraMaster, refrigeração, rede com IP WAN, gráficos de 24 h e LOG |
+| Gráficos 24 h | na rotação | temperatura, uso, memória, rede e ping na largura toda, com o pico |
+| Backups | na rotação | as rotinas de backup: última execução, resultado e próxima |
+| Andamento do backup | intermediária, enquanto um backup roda | percentual, pasta, velocidade e tempo restante ([Backups na tela](docs/backup.md)) |
+| Mineração | intermediária, enquanto o minerador roda | saúde do hardware em barras com os limites e a produção do SRBMiner |
+
+<div align="center">
+<img src="docs/img/gamma-epsilon-telas.png" alt="As 5 telas do GAMMA EPSILON nos estados normal, atenção e crítico">
+
+<sub>GAMMA EPSILON: principal, gráficos, backups, andamento e mineração, nos três estados (dados de demonstração).</sub>
+</div>
+
+**Tela de 5,2", nobreak.** Uma tela só, em paisagem, atualizada a cada 1 s, com log em CSV ([detalhes](tela-5.2-nobreak/README.md)).
+
 ## Duas telas, um projeto
 
 O código é um só: coleta, alertas, LOG e histórico são os mesmos nas duas telas. O que muda é o tamanho do quadro, a pasta do tema e o pacote que você baixa.
@@ -33,8 +65,8 @@ O código é um só: coleta, alertas, LOG e histórico são os mesmos nas duas t
 | Resolução | 320x480, retrato | 720x1280, retrato |
 | Revisão no Turing | `A` (porta serial) | `TUR_USB` (USB direto) |
 | Pacotes | `Gamma-<Estilo>-3.5-v1.8.3.zip` | `Gamma-<Estilo>-5.2-v1.8.3.zip` |
-| Tema no repositório | [`pacote/telas/3.5/`](pacote/telas/3.5/) | [`pacote/telas/5.2/`](pacote/telas/5.2/) |
-| Estado | em uso no PC de referência | pronto no código, **ainda não testado na tela física** |
+| Tema no repositório | [`tela-3.5-gamma/pacote/telas/3.5/`](tela-3.5-gamma/pacote/telas/3.5/) | [`tela-3.5-gamma/pacote/telas/5.2/`](tela-3.5-gamma/pacote/telas/5.2/) |
+| Estado | em uso no PC de referência | GAMMA pronto no código, ainda não usado na tela física (a 5,2" do PC mostra o nobreak) |
 
 Na 5,2" os quatro estilos são exatamente os mesmos das versões finais, sem nenhuma mudança de desenho nem de versão: o quadro é desenhado em escala 2,25 com fontes e traços na resolução real (nada é esticado) e ocupa os primeiros 1080 pixels de altura; os 200 de baixo ficam só com o fundo. A única diferença é o nome do pacote, que diz para qual tela ele foi feito (`3.5` ou `5.2`).
 
@@ -145,12 +177,13 @@ Cada coletor (CPU, GPU, discos, baias, rede, clima...) roda isolado: se um falha
 | [Decisões e lições](docs/decisoes-e-licoes.md) | todos | por que o projeto é como é e os erros que não devem voltar |
 | [Roteiro](docs/roteiro.md) | todos | pendências e próximos passos |
 | [Brainstorm](docs/brainstorm/README.md) | todos | as 12 propostas da v2.0.0 e as variantes de estudo do DELTA, com imagens |
-| [Tela do nobreak](nobreak/README.md) | quem tem a tela de 5,2" | a 5,2" em paisagem só com o nobreak Ragtech 4162, atualizada a cada 1 s e com log em CSV |
+| [Backups na tela](docs/backup.md) | quem usa o EPSILON | rotinas de backup lidas do systemd e o arquivo de andamento |
+| [Tela do nobreak](tela-5.2-nobreak/README.md) | quem tem a tela de 5,2" | a 5,2" em paisagem só com o nobreak Ragtech 4162, atualizada a cada 1 s e com log em CSV |
 | [Histórico de versões](CHANGELOG.md) | todos | o que mudou em cada versão |
 
 ## Estado do projeto
 
-Versão **1.8.3** (08/11/2026), para as duas telas. Na tela de 3,5", em uso no PC de referência com o GAMMA DELTA. A tela de 5,2" ainda não chegou: o suporte está pronto no código e nas prévias, mas não foi testado no aparelho. Autoteste com 232 de 232 verificações no repositório, nas duas telas, e 110 de 110 em cada pacote (109 de 109 no Delta), e prévias sem nenhum problema de layout nos quatro estilos entregues. Já validado no hardware real: tela, sensores de CPU, GPU, RAM, NVMe e placa, baias do TerraMaster (inclusive um disco com VeraCrypt) e ping. Ainda pendente: confirmar o mapeamento das ventoinhas com o mapeador e a temperatura dos HDs SATA (hoje N/D). Veja o [roteiro](docs/roteiro.md).
+Versão **1.8.3** (08/11/2026), para as duas telas; o que veio depois (GAMMA EPSILON, IP WAN, mineração, discos pelo número de série) está no [histórico](CHANGELOG.md), em "Não lançado". Na tela de 3,5", em uso no PC de referência com o GAMMA EPSILON; na de 5,2", a tela do nobreak. Autoteste atual: 272 de 272 no repositório, nas duas telas. A tela de 5,2" ainda não chegou: o suporte está pronto no código e nas prévias, mas não foi testado no aparelho. Autoteste com 232 de 232 verificações no repositório, nas duas telas, e 110 de 110 em cada pacote (109 de 109 no Delta), e prévias sem nenhum problema de layout nos quatro estilos entregues. Já validado no hardware real: tela, sensores de CPU, GPU, RAM, NVMe e placa, baias do TerraMaster (inclusive um disco com VeraCrypt) e ping. Ainda pendente: confirmar o mapeamento das ventoinhas com o mapeador e a temperatura dos HDs SATA (hoje N/D). Veja o [roteiro](docs/roteiro.md).
 
 ## Créditos e licença
 

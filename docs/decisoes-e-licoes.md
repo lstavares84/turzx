@@ -55,7 +55,7 @@ Este documento explica por que o GAMMA é como é. Antes de propor uma mudança,
 - No autoteste, uma variável local chamada `base` colidiu com a função `base()`. Cuidado com nomes.
 - Alertas novos mudam as contagens esperadas no autoteste (por exemplo, a demonstração Atenção passou a 5 avisos e a Crítico a 3 críticos depois da temperatura dos discos).
 - O desenvolvimento aconteceu num ambiente sem a tela, sem a GPU e sem os sensores. Tudo que depende de hardware precisa ser validado na máquina real.
-- O selo mostra `dev` quando o tema é instalado direto do repositório: para ver a versão na tela, instale pelo ZIP (`construir/aplicar-na-tela.sh`).
+- O selo mostra `dev` quando o tema é instalado direto do repositório: para ver a versão na tela, instale pelo ZIP (`tela-3.5-gamma/construir/aplicar-na-tela.sh`).
 - O instalador procurava o arquivo do estilo pelo nome (`reator_<estilo>.py`) e recusava estilos com outro nome de arquivo e apelidos: hoje ele confere o registro `ESTILOS`/`ALIASES`.
 - O construtor dos ZIPs reescreve a lista de estilos do autoteste até `"pcb"`: estilo novo depois dele deixa o ZIP testando estilos que não existem.
 - Ping classificado pelo valor real e exibido arredondado acendia o âmbar com "20ms" na tela, e uma histerese de 5 ms prendia o âmbar até 15 ms: classifique pelo número exibido e mantenha a histerese pequena.

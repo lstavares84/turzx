@@ -1,4 +1,5 @@
-<!-- docs/desenvolvimento.md | versão 2.2.0 | 15/11/2026 15:50 (-03) | criação original (Claude, para Lucas Tavares). Fonte: tools/, construir/ e regras do projeto na v1.8.3. -->
+<!-- docs/desenvolvimento.md | versão 2.3.0 | 21/11/2026 18:40 (-03) | criação original (Claude, para Lucas Tavares). Fonte: tools/, tela-3.5-gamma/construir/ e regras do projeto na v1.8.3. -->
+<!-- histórico: 2.3.0 21/11/2026 18:40 repositório organizado por tela (tela-3.5-gamma/, tela-5.2-nobreak/, legado/) -->
 <!-- histórico: 2.2.0 15/11/2026 15:50 matriz --epsilon; pasta do Turing do PC em ~/Documentos/Projetos -->
 <!-- histórico: 2.1.0 08/11/2026 13:30 duas telas: pastas por tela, MGP_TELA, matriz --tela, ZIPs por tela -->
 <!-- histórico: 2.0.0 07/11/2026 22:24 revisão para a v1.8.2: quatro ZIPs, contagens, matriz 4 x 3, aplicar delta, Releases -->
@@ -11,24 +12,31 @@
 
 ```
 .
-├── README.md                 página de entrada
-├── CHANGELOG.md              histórico de versões
-├── VERSION                   versão atual (SemVer)
-├── LICENSE                   GPL-3.0
-├── CLAUDE.md                 regras para agentes de IA que trabalham no projeto
-├── instalar-gamma.sh         instalador de ponta a ponta
-├── construir/
-│   ├── construir_zips.py     gera os ZIPs enxutos (4 estilos x 2 telas)
-│   ├── matriz_previas.py     matriz de prévias (4 estilos x 3 estados), da 3,5" ou da 5,2"
-│   └── aplicar-na-tela.sh    aplica um estilo na tela do PC a partir do ZIP
-├── construir-zips.sh         OBSOLETO (modelo antigo, veja o roteiro)
-├── publicar-no-github.sh     OBSOLETO para a estrutura atual (veja o roteiro)
-├── pacote/                   extensão Python, scripts e ferramentas (comuns às duas telas)
-│   └── telas/
-│       ├── 3.5/MatrixGreenPro/   tema da tela de 3,5" (320x480)
-│       └── 5.2/MatrixGreenPro/   tema da tela de 5,2" (720x1280)
-├── pc/espelho-github/        utilitário do PC: espelho local dos repositórios (não entra nos ZIPs)
-└── docs/                     documentação (img/ com capturas, brainstorm/ com estudos)
+├── README.md                     mapa do repositório (o que é cada pasta e o que roda em cada tela)
+├── CHANGELOG.md                  histórico de versões
+├── LICENSE                       GPL-3.0
+├── CLAUDE.md                     regras para agentes de IA que trabalham no projeto
+├── tela-3.5-gamma/               tema GAMMA: em uso na tela de 3,5" (suporte pronto para a de 5,2")
+│   ├── README.md                 estilos, telas do EPSILON e instalação rápida
+│   ├── VERSION                   versão atual do GAMMA (SemVer)
+│   ├── instalar-gamma.sh         instalador de ponta a ponta
+│   ├── construir/
+│   │   ├── construir_zips.py     gera os ZIPs enxutos (5 estilos x 2 telas)
+│   │   ├── matriz_previas.py     matrizes de prévias (estilos, telas do EPSILON, estudos), da 3,5" ou da 5,2"
+│   │   └── aplicar-na-tela.sh    aplica um estilo na tela do PC a partir do ZIP
+│   └── pacote/                   o que vai para o ZIP
+│       ├── sensors/matrixgreenpro/   extensão Python: coleta, saúde, histórico e desenho
+│       │   └── estilos/              estilos entregues (ALPHA, BETA, GAMMA, DELTA, EPSILON e as telas do EPSILON)
+│       │       └── estudos/          estilos de estudo e legados (não entram nos ZIPs)
+│       ├── scripts/              instalar, diagnosticar e restaurar
+│       ├── tools/                autoteste, prévias, detector, mapeadores
+│       ├── extras/               config.exemplo.yaml e MangoHud
+│       └── telas/
+│           ├── 3.5/MatrixGreenPro/   tema da tela de 3,5" (320x480)
+│           └── 5.2/MatrixGreenPro/   tema da tela de 5,2" (720x1280)
+├── tela-5.2-nobreak/             tela do nobreak Ragtech na 5,2" em paisagem (programa próprio, serviço nobreak-tela)
+├── docs/                         documentação (img/ com capturas, brainstorm/ com estudos e mockups)
+└── legado/                       scripts substituídos (construir-zips.sh, publicar-no-github.sh) e o espelho do GitHub antigo
 ```
 
 ## Ambiente de testes
@@ -46,8 +54,8 @@ cd ~/turing-smart-screen-linux
 Numa cópia de desenvolvimento do Turing:
 
 ```bash
-cp -r pacote/sensors/matrixgreenpro <turing>/library/sensors/
-cp pacote/tools/*.py <turing>/tools/
+cp -r tela-3.5-gamma/pacote/sensors/matrixgreenpro <turing>/library/sensors/
+cp tela-3.5-gamma/pacote/tools/*.py <turing>/tools/
 cd <turing> && .venv/bin/python3 tools/mgp_selftest.py
 ```
 
@@ -74,12 +82,12 @@ MGP_HISTORICO=/tmp/hist-teste.json ~/turing-smart-screen-linux/.venv/bin/python3
 
 ## Matriz de prévias
 
-Toda modificação é mostrada ao Lucas como uma matriz em PNG: as 4 versões (ALPHA, BETA, GAMMA, DELTA) nas colunas e os 3 estados (normal, atenção, crítico) nas linhas, desenhadas com o código atual de `pacote/`. A ferramenta também confere limites, sobreposição de textos, glifos e cobertura de métricas de cada quadro e sai com código 1 se houver problema.
+Toda modificação é mostrada ao Lucas como uma matriz em PNG: as 4 versões (ALPHA, BETA, GAMMA, DELTA) nas colunas e os 3 estados (normal, atenção, crítico) nas linhas, desenhadas com o código atual de `tela-3.5-gamma/pacote/`. A ferramenta também confere limites, sobreposição de textos, glifos e cobertura de métricas de cada quadro e sai com código 1 se houver problema.
 
 ```bash
-python3 -I construir/matriz_previas.py previas/matriz.png ~/turing-smart-screen-linux
-python3 -I construir/matriz_previas.py previas/matriz-5.2.png ~/turing-smart-screen-linux --tela 5.2
-python3 -I construir/matriz_previas.py previas/matriz-epsilon.png --epsilon     # as 4 telas do GAMMA EPSILON
+python3 -I tela-3.5-gamma/construir/matriz_previas.py previas/matriz.png ~/turing-smart-screen-linux
+python3 -I tela-3.5-gamma/construir/matriz_previas.py previas/matriz-5.2.png ~/turing-smart-screen-linux --tela 5.2
+python3 -I tela-3.5-gamma/construir/matriz_previas.py previas/matriz-epsilon.png --epsilon     # as 4 telas do GAMMA EPSILON
 ```
 
 Sem a pasta do Turing no comando, a matriz procura as fontes em `~/turing-smart-screen-linux` e em `~/Documentos/Projetos/turing-smart-screen-linux`.
@@ -88,16 +96,16 @@ Opções: `--extra coluna` acrescenta a variante GAMMA GAMMA COLUNA; `--deltas` 
 
 ## Aplicar na tela do PC
 
-Numa sessão que roda no próprio PC, `construir/aplicar-na-tela.sh delta 3.5` (ou `alpha`, `beta`, `gamma`; e `5.2` para a tela de 5,2") monta o ZIP do estilo a partir do código atual, extrai com `unzip` e roda o instalador com `--sem-apt`. O instalador guarda o tema anterior (volta com `--restaurar`) e reinicia o serviço da tela. Rodar com o usuário comum, sem sudo. Instalado assim, o selo mostra a versão; instalado direto do repositório (`./instalar-gamma.sh --estilo NOME`), mostra `dev`. ⚠️ Só com autorização explícita do Lucas, a cada envio, e antes do commit.
+Numa sessão que roda no próprio PC, `tela-3.5-gamma/construir/aplicar-na-tela.sh delta 3.5` (ou `alpha`, `beta`, `gamma`; e `5.2` para a tela de 5,2") monta o ZIP do estilo a partir do código atual, extrai com `unzip` e roda o instalador com `--sem-apt`. O instalador guarda o tema anterior (volta com `--restaurar`) e reinicia o serviço da tela. Rodar com o usuário comum, sem sudo. Instalado assim, o selo mostra a versão; instalado direto do repositório (`./instalar-gamma.sh --estilo NOME`), mostra `dev`. ⚠️ Só com autorização explícita do Lucas, a cada envio, e antes do commit.
 
 ## Gerar os ZIPs
 
 ```bash
-python3 -I construir/construir_zips.py SAIDA 1.8.3:Alpha:3.5 1.8.3:Beta:3.5 1.8.3:Gamma:3.5 1.8.3:Delta:3.5 \
+python3 -I tela-3.5-gamma/construir/construir_zips.py SAIDA 1.8.3:Alpha:3.5 1.8.3:Beta:3.5 1.8.3:Gamma:3.5 1.8.3:Delta:3.5 \
     1.8.3:Alpha:5.2 1.8.3:Beta:5.2 1.8.3:Gamma:5.2 1.8.3:Delta:5.2
 ```
 
-Para cada estilo e tela, o construtor cria `SAIDA/Gamma-<Nome>-<tela>-v<versão>/` e o ZIP correspondente (sem a tela no pedido, vale 3.5). Cada pacote leva só a pasta do tema da sua tela, `TELA_PADRAO` e o `tela.py` já gravado. A versão é a mesma nas duas telas: criar o pacote da 5,2" não muda a versão do estilo, só o nome do pacote. Ele copia `pacote/`, remove os estilos não usados, reescreve `ESTILOS` e `ALIASES`, ajusta o autoteste e a prévia ao estilo, grava `versao.py`, `VERSION`, `ESTILO_PADRAO`, `LEIA-ME.md` e `CHANGELOG.md`, copia o instalador e preserva as permissões. O Delta leva também `reator_grupos.py`, `reator_delta2.py` e `graficos.py`. Contagem com as duas telas: na 3,5", Alpha e Beta com 40 arquivos, Gamma com 41 e Delta com 43; na 5,2", os mesmos números.
+Para cada estilo e tela, o construtor cria `SAIDA/Gamma-<Nome>-<tela>-v<versão>/` e o ZIP correspondente (sem a tela no pedido, vale 3.5). Cada pacote leva só a pasta do tema da sua tela, `TELA_PADRAO` e o `tela.py` já gravado. A versão é a mesma nas duas telas: criar o pacote da 5,2" não muda a versão do estilo, só o nome do pacote. Ele copia `tela-3.5-gamma/pacote/`, remove os estilos não usados, reescreve `ESTILOS` e `ALIASES`, ajusta o autoteste e a prévia ao estilo, grava `versao.py`, `VERSION`, `ESTILO_PADRAO`, `LEIA-ME.md` e `CHANGELOG.md`, copia o instalador e preserva as permissões. O Delta leva também `reator_grupos.py`, `reator_delta2.py` e `graficos.py`. Contagem com as duas telas: na 3,5", Alpha e Beta com 40 arquivos, Gamma com 41 e Delta com 43; na 5,2", os mesmos números.
 
 Para uma nova versão, troque o número nas linhas de `V`, acrescente a entrada em `ENT` dentro de `construir_zips.py` e rode de novo. O construtor reescreve a lista de estilos do autoteste procurando o trecho que termina em `"pcb"`: estilos novos entram antes dele.
 

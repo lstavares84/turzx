@@ -1,4 +1,4 @@
-<!-- docs/arquitetura.md | versão 2.1.0 | 08/11/2026 13:30 (-03) | criação original (Claude, para Lucas Tavares). Fonte: código da v1.8.3 em pacote/. -->
+<!-- docs/arquitetura.md | versão 2.1.0 | 08/11/2026 13:30 (-03) | criação original (Claude, para Lucas Tavares). Fonte: código da v1.8.3 em tela-3.5-gamma/pacote/. -->
 <!-- histórico: 2.1.0 08/11/2026 13:30 telas de 3,5" e 5,2": tela.py, escala no Canvas e pastas por tela -->
 <!-- histórico: 2.0.0 07/11/2026 22:24 revisão para a v1.8.2: histórico, alertas confirmados, LOG, GAMMA DELTA, estudos -->
 
@@ -52,34 +52,34 @@ flowchart TB
 
 | Caminho | Papel |
 |---|---|
-| `pacote/telas/3.5/MatrixGreenPro/` | tema da tela de 3,5": `theme.yaml` (`DISPLAY_SIZE: 3.5"`), `background.png` e `preview.png` de 320x480 |
-| `pacote/telas/5.2/MatrixGreenPro/` | tema da tela de 5,2": `theme.yaml` (`DISPLAY_SIZE: 5.2"`), `background.png` de 720x1280 e `preview.png` |
-| `pacote/sensors/matrixgreenpro/tela.py` | qual tela o pacote desenha (`TELA = "3.5"` ou `"5.2"`, gravado pelo instalador; `MGP_TELA` tem prioridade nas prévias), com largura, altura e escala |
-| `pacote/sensors/sensors_custom_hook.txt` | bloco acrescentado ao `sensors_custom.py` do Turing |
-| `pacote/sensors/matrixgreenpro/collectors.py` | `Cpu`, `Gpu` (inclui os motivos de redução de clock da NVML), `Fps`, `Disks`, `Baias`, `Net`, `Ping`, `Weather`, `Power`; helpers `_hwmon_fans`, `_hwmon_temps`, `_fisicos`, `_bloco_base`, `_temp_bloco`, `_disco_rotativo` |
-| `pacote/sensors/matrixgreenpro/settings.py` | valores padrão (limites, histerese, `alertas`) e leitura do `config.yaml` e do `fans.yaml` |
-| `pacote/sensors/matrixgreenpro/alerts.py` | estados, paleta, `Hyst`, `Streak`, `Confirma` e `Sustentado` |
-| `pacote/sensors/matrixgreenpro/viewmodel.py` | níveis, filtros, total dos HDs e formatação (`disk_use`, `cap_txt`, `rate` e outros) |
-| `pacote/sensors/matrixgreenpro/alertas.py` | LOG de alertas (`Alertas`) |
-| `pacote/sensors/matrixgreenpro/historico.py` | histórico de 24 h (`Historico`) e as séries de demonstração |
-| `pacote/sensors/matrixgreenpro/brusco.py` | detector de mudanças bruscas (só nas variantes de estudo do DELTA) |
-| `pacote/sensors/matrixgreenpro/panel.py` | sensor `MatrixGreenProPanel`, motor (`Engine`), demonstração e envio à tela |
-| `pacote/sensors/matrixgreenpro/render.py` | desenho do estilo `matrix`, usado como reserva |
-| `pacote/sensors/matrixgreenpro/versao.py` | `VERSAO` (no repositório fica `dev`; o construtor grava a versão do lançamento) |
-| `pacote/sensors/matrixgreenpro/estilos/base.py` | `Canvas` (texto, linhas, polígonos, checagem de sobreposição e glifos), `VM` (marca métricas usadas), `REQUIRED` (cobertura obrigatória), `iface_row`, `selo_versao`, `bloom` |
-| `pacote/sensors/matrixgreenpro/estilos/reator.py` | motor do ALPHA e do BETA: favo de 19 células, `cell_values`, hexágono, linhas de texto |
-| `pacote/sensors/matrixgreenpro/estilos/reator_grupos.py` | motor do GAMMA GAMMA (colmeia, `_resumos`, painel por grupo) |
-| `pacote/sensors/matrixgreenpro/estilos/reator_delta2.py` | motor do GAMMA DELTA e das variantes (alertas em destaque, hexágono do total, barra da RAM, LOG) |
-| `pacote/sensors/matrixgreenpro/estilos/graficos.py` | gráficos de 24 h com o pico marcado e os nomes girados |
-| `pacote/sensors/matrixgreenpro/estilos/alerta.py` | indicadores de alerta (`draw_status`, escala N0/N1/N2, brilho) |
-| `pacote/sensors/matrixgreenpro/estilos/reator_gamma*.py` | paleta `GAMMA` e os estilos (entregues e de estudo) |
-| `pacote/sensors/matrixgreenpro/estilos/v2_*.py` | as 12 propostas da v2.0.0 (base comum em `v2_base.py`) |
-| `pacote/scripts/` | `instalar.sh`, `restaurar.sh`, `diagnosticar.sh` |
-| `pacote/tools/` | `mgp_selftest.py`, `mgp_preview.py`, `mgp_mapear_fans.py`, `mgp_baias.py`, `mgp_detect.py`, `mgp_orientation_test.py` |
+| `tela-3.5-gamma/pacote/telas/3.5/MatrixGreenPro/` | tema da tela de 3,5": `theme.yaml` (`DISPLAY_SIZE: 3.5"`), `background.png` e `preview.png` de 320x480 |
+| `tela-3.5-gamma/pacote/telas/5.2/MatrixGreenPro/` | tema da tela de 5,2": `theme.yaml` (`DISPLAY_SIZE: 5.2"`), `background.png` de 720x1280 e `preview.png` |
+| `tela-3.5-gamma/pacote/sensors/matrixgreenpro/tela.py` | qual tela o pacote desenha (`TELA = "3.5"` ou `"5.2"`, gravado pelo instalador; `MGP_TELA` tem prioridade nas prévias), com largura, altura e escala |
+| `tela-3.5-gamma/pacote/sensors/sensors_custom_hook.txt` | bloco acrescentado ao `sensors_custom.py` do Turing |
+| `tela-3.5-gamma/pacote/sensors/matrixgreenpro/collectors.py` | `Cpu`, `Gpu` (inclui os motivos de redução de clock da NVML), `Fps`, `Disks`, `Baias`, `Net`, `Ping`, `Weather`, `Power`; helpers `_hwmon_fans`, `_hwmon_temps`, `_fisicos`, `_bloco_base`, `_temp_bloco`, `_disco_rotativo` |
+| `tela-3.5-gamma/pacote/sensors/matrixgreenpro/settings.py` | valores padrão (limites, histerese, `alertas`) e leitura do `config.yaml` e do `fans.yaml` |
+| `tela-3.5-gamma/pacote/sensors/matrixgreenpro/alerts.py` | estados, paleta, `Hyst`, `Streak`, `Confirma` e `Sustentado` |
+| `tela-3.5-gamma/pacote/sensors/matrixgreenpro/viewmodel.py` | níveis, filtros, total dos HDs e formatação (`disk_use`, `cap_txt`, `rate` e outros) |
+| `tela-3.5-gamma/pacote/sensors/matrixgreenpro/alertas.py` | LOG de alertas (`Alertas`) |
+| `tela-3.5-gamma/pacote/sensors/matrixgreenpro/historico.py` | histórico de 24 h (`Historico`) e as séries de demonstração |
+| `tela-3.5-gamma/pacote/sensors/matrixgreenpro/brusco.py` | detector de mudanças bruscas (só nas variantes de estudo do DELTA) |
+| `tela-3.5-gamma/pacote/sensors/matrixgreenpro/panel.py` | sensor `MatrixGreenProPanel`, motor (`Engine`), demonstração e envio à tela |
+| `tela-3.5-gamma/pacote/sensors/matrixgreenpro/render.py` | desenho do estilo `matrix`, usado como reserva |
+| `tela-3.5-gamma/pacote/sensors/matrixgreenpro/versao.py` | `VERSAO` (no repositório fica `dev`; o construtor grava a versão do lançamento) |
+| `tela-3.5-gamma/pacote/sensors/matrixgreenpro/estilos/base.py` | `Canvas` (texto, linhas, polígonos, checagem de sobreposição e glifos), `VM` (marca métricas usadas), `REQUIRED` (cobertura obrigatória), `iface_row`, `selo_versao`, `bloom` |
+| `tela-3.5-gamma/pacote/sensors/matrixgreenpro/estilos/reator.py` | motor do ALPHA e do BETA: favo de 19 células, `cell_values`, hexágono, linhas de texto |
+| `tela-3.5-gamma/pacote/sensors/matrixgreenpro/estilos/reator_grupos.py` | motor do GAMMA GAMMA (colmeia, `_resumos`, painel por grupo) |
+| `tela-3.5-gamma/pacote/sensors/matrixgreenpro/estilos/reator_delta2.py` | motor do GAMMA DELTA e das variantes (alertas em destaque, hexágono do total, barra da RAM, LOG) |
+| `tela-3.5-gamma/pacote/sensors/matrixgreenpro/estilos/graficos.py` | gráficos de 24 h com o pico marcado e os nomes girados |
+| `tela-3.5-gamma/pacote/sensors/matrixgreenpro/estilos/alerta.py` | indicadores de alerta (`draw_status`, escala N0/N1/N2, brilho) |
+| `tela-3.5-gamma/pacote/sensors/matrixgreenpro/estilos/reator_gamma*.py` | paleta `GAMMA` e os estilos (entregues e de estudo) |
+| `tela-3.5-gamma/pacote/sensors/matrixgreenpro/estilos/v2_*.py` | as 12 propostas da v2.0.0 (base comum em `v2_base.py`) |
+| `tela-3.5-gamma/pacote/scripts/` | `instalar.sh`, `restaurar.sh`, `diagnosticar.sh` |
+| `tela-3.5-gamma/pacote/tools/` | `mgp_selftest.py`, `mgp_preview.py`, `mgp_mapear_fans.py`, `mgp_baias.py`, `mgp_detect.py`, `mgp_orientation_test.py` |
 | `instalar-gamma.sh` | instalador de ponta a ponta |
-| `construir/construir_zips.py` | gera os quatro ZIPs enxutos |
-| `construir/matriz_previas.py` | matriz de prévias (4 estilos x 3 estados) |
-| `construir/aplicar-na-tela.sh` | aplica um estilo na tela do PC a partir do ZIP |
+| `tela-3.5-gamma/construir/construir_zips.py` | gera os quatro ZIPs enxutos |
+| `tela-3.5-gamma/construir/matriz_previas.py` | matriz de prévias (4 estilos x 3 estados) |
+| `tela-3.5-gamma/construir/aplicar-na-tela.sh` | aplica um estilo na tela do PC a partir do ZIP |
 
 ## Duas telas com o mesmo desenho
 
@@ -94,4 +94,4 @@ Na 5,2" o desenho é exatamente o da 3,5": ocupa a altura lógica de 0 a 480 (10
 3. Usar o acesso `VM` para que a cobertura de métricas (`REQUIRED`) seja verificada.
 4. Acrescentar o estilo à lista do autoteste (antes de `"pcb"`, que fica por último) e ao dicionário de nomes do `mgp_preview.py`.
 5. Rodar o autoteste e as prévias (veja [desenvolvimento](desenvolvimento.md)).
-6. Para virar entrega, adicionar a linha em `V` no `construir/construir_zips.py` (e os arquivos extras do motor na regra de cópia).
+6. Para virar entrega, adicionar a linha em `V` no `tela-3.5-gamma/construir/construir_zips.py` (e os arquivos extras do motor na regra de cópia).

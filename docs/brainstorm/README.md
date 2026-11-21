@@ -7,11 +7,11 @@
 
 [Voltar ao README](../../README.md)
 
-Ideias guardadas para as próximas versões. Nada aqui é entregue nos ZIPs. Todos os estilos estão no código (`pacote/sensors/matrixgreenpro/estilos/`) e podem ser vistos com `--estilo NOME` no instalador ou com a matriz de prévias. As imagens são quadros desenhados com os dados de demonstração, não fotos da tela física.
+Ideias guardadas para as próximas versões. Nada aqui é entregue nos ZIPs. Todos os estilos estão no código (`tela-3.5-gamma/pacote/sensors/matrixgreenpro/estilos/`) e podem ser vistos com `--estilo NOME` no instalador ou com a matriz de prévias. As imagens são quadros desenhados com os dados de demonstração, não fotos da tela física.
 
 ## v2.0.0: 12 temas com a mesma paleta
 
-Pedido de 07/11/2026: manter as cores do GAMMA e mudar o desenho por completo. Base comum em `v2_base.py`. Matriz: `python3 -I construir/matriz_previas.py previas/matriz-v2.png ~/turing-smart-screen-linux --v2`.
+Pedido de 07/11/2026: manter as cores do GAMMA e mudar o desenho por completo. Base comum em `v2_base.py`. Matriz: `python3 -I tela-3.5-gamma/construir/matriz_previas.py previas/matriz-v2.png ~/turing-smart-screen-linux --v2`.
 
 ![As 12 propostas no estado normal](v2-propostas-normal.png)
 
@@ -44,7 +44,7 @@ Total de TB de todos os HDs, marca de mudanças bruscas (âmbar por até 10 min 
 
 Pedido de 08/11/2026: todos os dados do DELTA (menos os gráficos) como células de colmeia em volta de um CORE grande, agrupadas por categoria: CPU, GPU, RAM, DISCOS, TERRAMASTER, REFRIGERAÇÃO e REDE. Dentro do grupo, as células ficam a 2 px umas das outras; entre grupos e até o CORE, 2 mm (cerca de 13 px). Em DISCOS e TERRAMASTER, cada disco e cada baia encostam no centro do grupo, com U, T e L do lado de fora. O LOG, o relógio e o clima continuam no rodapé.
 
-Estilo `gamma-epsilon-prototipo` (`reator_gamma_epsilon_prototipo.py`, versão 0.6.1; até 15/11/2026 se chamava `gamma-epsilon`, nome que passou para a versão EPSILON com rotação de telas). Matriz: `--extra prototipo`. As células são posicionadas sozinhas (`_empacotar`); os centros dos grupos (`LUGARES`) saíram de uma busca que exige caber tudo nos 3 estados, com 1 ou 4 baias montadas. Se algo não couber, o quadro mostra "não coube" no alto.
+Estilo `gamma-epsilon-prototipo` (`estudos/reator_gamma_epsilon_prototipo.py`, versão 0.6.1; até 15/11/2026 se chamava `gamma-epsilon`, nome que passou para a versão EPSILON com rotação de telas). Matriz: `--extra prototipo`. As células são posicionadas sozinhas (`_empacotar`); os centros dos grupos (`LUGARES`) saíram de uma busca que exige caber tudo nos 3 estados, com 1 ou 4 baias montadas. Se algo não couber, o quadro mostra "não coube" no alto.
 
 Decisão do Lucas: fica como protótipo, não está pronto para lançamento e o desenvolvimento parou por ora. Pendências conhecidas: a célula DISCO fica perto da borda de baixo do grupo, a leitura exige atenção (muitas células pequenas, fontes de 7 e 8 px) e o encaixe depende do número de discos e baias.
 
@@ -52,7 +52,7 @@ Decisão do Lucas: fica como protótipo, não está pronto para lançamento e o 
 
 ## GAMMA EPSILON: tela de mineração
 
-Pedido de 21/11/2026: quando o PC minera, uma tela do EPSILON com o essencial do computador e da produção, sem energia (que já aparece na tela de 5,2"), com a saúde do hardware em barras para ver a distância até o limite. Estudo `gamma-epsilon-mineracao` (`reator_gamma_epsilon_mineracao.py`, dados de demonstração).
+Pedido de 21/11/2026: quando o PC minera, uma tela do EPSILON com o essencial do computador e da produção, sem energia (que já aparece na tela de 5,2"), com a saúde do hardware em barras para ver a distância até o limite. Estudo `gamma-epsilon-mineracao` (`estudos/reator_gamma_epsilon_mineracao.py`, dados de demonstração).
 
 Cinco mockups (matriz `--mineracao`): A, barras na largura toda; B, colunas verticais; C, hashrate em destaque; D, GPU | CPU e sistema com a produção em três caixas; E, o mais perto do limite primeiro, com o % do limite.
 

@@ -1,4 +1,4 @@
-<!-- docs/configuracao.md | versão 2.4.0 | 21/11/2026 18:10 (-03) | criação original (Claude, para Lucas Tavares). Fonte: pacote/sensors/matrixgreenpro/settings.py e pacote/extras/config.exemplo.yaml da v1.8.2. -->
+<!-- docs/configuracao.md | versão 2.4.0 | 21/11/2026 18:10 (-03) | criação original (Claude, para Lucas Tavares). Fonte: tela-3.5-gamma/pacote/sensors/matrixgreenpro/settings.py e tela-3.5-gamma/pacote/extras/config.exemplo.yaml da v1.8.2. -->
 <!-- histórico: 2.4.0 21/11/2026 18:10 mineração (GAMMA EPSILON) -->
 <!-- histórico: 2.3.0 15/11/2026 15:40 rotinas de backup e rotação de telas (GAMMA EPSILON) -->
 <!-- histórico: 2.2.0 13/11/2026 19:45 IP público do roteador (ip_publico) -->
@@ -9,7 +9,7 @@
 
 [Voltar ao README](../README.md)
 
-A configuração fica em `~/.config/matrixgreenpro/config.yaml` (ou no caminho da variável `MGP_CONFIG`). Todo valor tem padrão embutido em `settings.py`, então o arquivo só precisa ter o que você quer mudar. Se o arquivo tiver erro, o painel segue com os padrões e registra o problema. Exemplo comentado: [pacote/extras/config.exemplo.yaml](../pacote/extras/config.exemplo.yaml).
+A configuração fica em `~/.config/matrixgreenpro/config.yaml` (ou no caminho da variável `MGP_CONFIG`). Todo valor tem padrão embutido em `settings.py`, então o arquivo só precisa ter o que você quer mudar. Se o arquivo tiver erro, o painel segue com os padrões e registra o problema. Exemplo comentado: [tela-3.5-gamma/pacote/extras/config.exemplo.yaml](../tela-3.5-gamma/pacote/extras/config.exemplo.yaml).
 
 Depois de editar, reinicie o serviço:
 

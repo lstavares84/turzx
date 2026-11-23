@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-# GAMMA NOBREAK | tela-5.2-nobreak/nobreak_tela.py | versão 0.5.0 | 21/11/2026 18:15 (-03) | criação original (Claude, para Lucas Tavares)
+# GAMMA NOBREAK | tela-5.2-nobreak/nobreak_tela.py | versão 0.5.1 | 23/11/2026 06:15 (-03) | criação original (Claude, para Lucas Tavares)
+# histórico: 0.5.1 23/11/2026 06:15 a leitura e o log do nobreak não dependem mais da tela: sem a TURZX (cabo solto
+#            ou desligada) o programa segue gravando e tenta reabrir a tela a cada 30 s; a presença da tela é conferida
+#            pelo sysfs, porque a biblioteca engole os erros de USB. Antes, sem a tela no início o serviço encerrava
+#            e não gravava nada (queda de 23/11 às 05:35 ficou sem dados do nobreak).
 # histórico: 0.5.0 21/11/2026 18:15 potência real = carga do firmware x 840 W (antes: tensão x corrente da saída, que é
 #            potência aparente em VA e dava 848 "W" contra 587 W reais na tomada medidora); log, médias, gráficos e
 #            acumulado refeitos com a regra nova
@@ -66,6 +70,8 @@ ESTADO = Path(os.environ.get("NOBREAK_ESTADO", Path.home() / ".local" / "state" 
 W, H = 1280, 720
 JANELA_S = 900                    # janela dos gráficos: 15 minutos
 LACUNA_S = 5                      # sem leitura por mais que isso: o gráfico fica em branco nesse trecho
+TELA_USB_VENDOR = "1cbe"          # TURZX / Turing de 5,2" (USB 1cbe:0050)
+TELA_RETENTATIVA_S = 30           # sem a tela: tenta reabri-la a cada tanto, sem parar a leitura do nobreak
 
 # paleta GAMMA (a mesma do tema da tela de 3,5")
 BG, PAINEL, LINHA = (3, 10, 4), (8, 22, 10), (35, 75, 35)
@@ -869,6 +875,33 @@ def abrir_tela(turing, brilho):
     return lcd
 
 
+def _usb_tela():
+    """(barramento, endereço) da TURZX no USB, lido do sysfs, ou None se ela não está conectada.
+    A biblioteca da tela engole os erros de USB (só imprime "USB write error"), então o programa não percebe
+    sozinho que o cabo foi solto; por isso a presença é conferida aqui, a cada ciclo, sem abrir o dispositivo."""
+    try:
+        for p in Path("/sys/bus/usb/devices").iterdir():
+            try:
+                if (p / "idVendor").read_text().strip() == TELA_USB_VENDOR:
+                    return (int((p / "busnum").read_text()), int((p / "devnum").read_text()))
+            except (OSError, ValueError):
+                continue
+    except OSError:
+        pass
+    return None
+
+
+def tentar_abrir_tela(turing, brilho):
+    """Abre a tela sem derrubar o programa. Devolve (lcd, endereço_usb, motivo): se falhar, lcd é None."""
+    ident = _usb_tela()
+    if ident is None:
+        return None, None, "TURZX não encontrada no USB (cabo solto?)"
+    try:
+        return abrir_tela(turing, brilho), ident, None
+    except Exception as e:                            # SystemExit (SIGTERM) passa direto e encerra normalmente
+        return None, None, f"{type(e).__name__}: {e}"
+
+
 def main():
     ap = argparse.ArgumentParser(description="Tela do nobreak Ragtech na TURZX de 5,2\" em paisagem")
     ap.add_argument("--intervalo", type=float, default=1.0, help="segundos entre leituras (padrão 1)")
@@ -926,10 +959,18 @@ def main():
     hr = Hashrate()
     t_ant = None
 
-    lcd = None
+    # A leitura e o log do nobreak NUNCA dependem da tela: sem a TURZX (cabo solto, desligada), o programa segue
+    # lendo e gravando, e tenta reabrir a tela a cada TELA_RETENTATIVA_S segundos.
+    lcd, lcd_id, prox_tela, motivo_ant = None, None, 0.0, None
     if not a.sem_tela:
-        lcd = abrir_tela(a.turing, a.brilho)
-        log("tela de 5,2\" aberta em paisagem (1280x720)")
+        lcd, lcd_id, motivo = tentar_abrir_tela(a.turing, a.brilho)
+        if lcd:
+            log("tela de 5,2\" aberta em paisagem (1280x720)")
+        else:
+            motivo_ant = motivo
+            prox_tela = time.time() + TELA_RETENTATIVA_S
+            log(f"tela indisponível ({motivo}); sigo lendo e gravando o nobreak; nova tentativa a cada "
+                f"{TELA_RETENTATIVA_S} s")
     log(f"lendo o nobreak a cada {a.intervalo:g} s; rede de {a.rede} V; log em {ESTADO}")
     ultimo = None
     try:
@@ -945,17 +986,27 @@ def main():
                 t_ant = t0
             else:
                 reg.falha(erro)
+            if not a.sem_tela:
+                if lcd and _usb_tela() != lcd_id:      # cabo solto, ou religada em outro endereço USB
+                    log("tela desconectada do USB; sigo gravando o nobreak e tento reabrir a tela")
+                    lcd, lcd_id, prox_tela = None, None, t0 + TELA_RETENTATIVA_S
+                elif lcd is None and t0 >= prox_tela:
+                    lcd, lcd_id, motivo = tentar_abrir_tela(a.turing, a.brilho)
+                    if lcd:
+                        log("tela voltou: reaberta em paisagem (1280x720)")
+                        motivo_ant = None
+                    else:
+                        prox_tela = t0 + TELA_RETENTATIVA_S
+                        if motivo != motivo_ant:       # só registra quando o motivo muda, para não encher o log
+                            log(f"tela indisponível ({motivo}); nova tentativa em {TELA_RETENTATIVA_S} s")
+                            motivo_ant = motivo
             if lcd:
                 try:
                     lcd.DisplayPILImage(desenhar(reg, F, ultimo if d else None, erro, a.intervalo, m, mina.qual,
                                                  fin=fin, cot=cot, ths=ths))
-                except Exception as e:
+                except Exception as e:                 # a leitura continua; a tela é reaberta na próxima tentativa
                     log(f"falha ao enviar à tela: {type(e).__name__}: {e}")
-                    time.sleep(5)
-                    try:
-                        lcd = abrir_tela(a.turing, a.brilho)
-                    except Exception as e2:
-                        log(f"tela indisponível: {type(e2).__name__}: {e2}")
+                    lcd, lcd_id, prox_tela = None, None, t0 + TELA_RETENTATIVA_S
             time.sleep(max(0.0, a.intervalo - (time.time() - t0)))
     except KeyboardInterrupt:
         pass
